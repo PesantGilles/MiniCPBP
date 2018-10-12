@@ -20,6 +20,8 @@ import minicp.engine.core.AbstractConstraint;
 import minicp.engine.core.IntVar;
 import minicp.util.exception.NotImplementedException;
 
+import java.util.Arrays;
+
 /**
  * Maximum Constraint
  */
@@ -34,8 +36,8 @@ public class Maximum extends AbstractConstraint {
      * @param x the variable on which the maximum is to be found
      * @param y the variable that is equal to the maximum on x
      */
-    public Maximum(IntVar[] x, IntVar y) {
-        super(x[0].getSolver());
+    public Maximum(IntVar[] x, IntVar y, IntVar[] vars) {
+        super(vars);
         assert (x.length > 0);
         this.x = x;
         this.y = y;
@@ -76,4 +78,5 @@ public class Maximum extends AbstractConstraint {
         y.removeAbove(max);
         y.removeBelow(min);
     }
+
 }

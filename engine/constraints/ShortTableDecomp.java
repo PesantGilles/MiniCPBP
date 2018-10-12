@@ -36,7 +36,7 @@ public class ShortTableDecomp extends AbstractConstraint {
      * @param star  the symbol representing "any" setValue in the table
      */
     public ShortTableDecomp(IntVar[] x, int[][] table, int star) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
         this.table = table;
         this.star = star;
@@ -72,4 +72,5 @@ public class ShortTableDecomp extends AbstractConstraint {
             }
         }
     }
+
 }

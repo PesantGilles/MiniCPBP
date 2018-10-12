@@ -23,7 +23,7 @@ public interface Solver {
 
     /**
      * Posts the constraint, that is call {@link Constraint#post()} and
-     * computes the fix-point.
+     * DOES NOT compute the fix-point.
      * A {@link minicp.util.exception.InconsistencyException} is thrown
      * if by posting the constraint it is proven that there is no solution.
      *
@@ -44,7 +44,7 @@ public interface Solver {
      * A {@link minicp.util.exception.InconsistencyException} is thrown
      * if by posting the constraint it is proven that there is no solution.
      * @param c the constraint to be posted
-     * @param enforceFixPoint is one wants to compute the fix-point after
+     * @param enforceFixPoint if one wants to compute the fix-point after
      */
     void post(Constraint c, boolean enforceFixPoint);
 
@@ -52,6 +52,11 @@ public interface Solver {
      * Computes the fix-point with all the scheduled constraints.
      */
     void fixPoint();
+
+    /**
+     * Performs belief propagation with all the posted constraints.
+     */
+    void beliefPropa();
 
     /**
      * Returns the state manager in charge of the global
@@ -62,11 +67,25 @@ public interface Solver {
     StateManager getStateManager();
 
     /**
-     * Adds a listener called whenever the fix-point.
+     * Adds a listener called whenever we start fixPoint.
      *
-     * @param listener the listener that is called whenever the fix-point is started
+     * @param listener the listener that is called whenever fixPoint is started
      */
     void onFixPoint(Procedure listener);
+
+    /**
+     * Registers the variable for belief propagation.
+     *
+     * @param x the variable
+     */
+   void registerVar(IntVar x);
+
+    /**
+     * Adds a listener called whenever we start beliefPropa.
+     *
+     * @param listener the listener that is called whenever beliefPropa is started
+     */
+    void onBeliefPropa(Procedure listener);
 
     /**
      * Creates a minimization objective on the given variable.
@@ -88,7 +107,7 @@ public interface Solver {
 
     /**
      * Forces the boolean variable to be true and then
-     * computes the fix-point.
+     * computes the fix-point
      *
      * @param b the variable that must be set to true
      */

@@ -40,8 +40,8 @@ public class Circuit extends AbstractConstraint {
      * @param x the variables representing the successor array that is
      *          {@code x[i]} is the city visited after city i
      */
-    public Circuit(IntVar[] x) {
-        super(x[0].getSolver());
+    public Circuit(IntVar... x) {
+        super(x);
         assert (x.length > 0);
         this.x = x;
         dest = new StateInt[x.length];
@@ -68,4 +68,5 @@ public class Circuit extends AbstractConstraint {
         // TODO
          throw new NotImplementedException("Circuit");
     }
+
 }

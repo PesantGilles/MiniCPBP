@@ -39,8 +39,8 @@ public class IsLessOrEqual extends AbstractConstraint { // b <=> x <= c
      * @param c the constant
      * @see minicp.cp.Factory#isLessOrEqual(IntVar, int)
      */
-    public IsLessOrEqual(BoolVar b, IntVar x, int c) {
-        super(b.getSolver());
+    public IsLessOrEqual(BoolVar b, IntVar x, int c, IntVar[] vars) {
+        super(vars);
         this.b = b;
         this.x = x;
         this.c = c;
@@ -51,4 +51,5 @@ public class IsLessOrEqual extends AbstractConstraint { // b <=> x <= c
         // TODO
          throw new NotImplementedException("IsLessOrEqual");
     }
+
 }

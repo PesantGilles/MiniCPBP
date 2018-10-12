@@ -161,4 +161,80 @@ public interface IntVar {
      *            is thrown if the domain becomes empty
      */
     void removeAbove(int v);
+
+    /**
+     * Returns the marginal of the specified value.
+     *
+     * @param v the value whose marginal is to be returned
+     * @exception InconsistencyException
+     *            is thrown if the value is not in the domain
+     * @return the marginal
+     */
+    double marginal(int v);
+
+    /**
+     * Sets the marginal of the specified value.
+     *
+     * @param v the value whose marginal is to be set to m
+     * @exception InconsistencyException
+     *            is thrown if the value is not in the domain
+     */
+    void setMarginal(int v, double m);
+
+    /**
+     * Sets the marginals to 1.
+     *
+     */
+    void resetMarginals();
+
+
+    /**
+     * Normalizes the marginals.
+     * @return always true
+     *
+     */
+    boolean normalizeMarginals();
+
+    /**
+     * Normalizes the marginals.
+     * @param epsilon 
+     * @return false if a normalized value is less than epsilon or greater than 1-epsilon
+     *
+     */
+    boolean normalizeMarginals(double epsilon);
+
+    /**
+     * Returns the largest marginal for a value in the domain.
+     *
+     * @return the largest marginal
+     */
+    double maxMarginal();
+
+    /**
+     * Returns the value in the domain that has the largest marginal.
+     *
+     * @return the value with the largest marginal
+     */
+    int valueWithMaxMarginal();
+
+    /**
+     * Returns the marginal of the specified value after cancelling 
+     * out the local belief of a constraint.
+     *
+     * @param v the value, b the local belief
+     * @return the corrected marginal
+     * @exception InconsistencyException
+     *            is thrown if the value is not in the domain
+     */
+    double sendMessage(int v, double b);
+
+    /**
+     * Accumulates in the marginal of the specified value 
+     * the local belief of a constraint.
+     *
+     * @param v the value, b the local belief
+     * @exception InconsistencyException
+     *            is thrown if the value is not in the domain
+     */
+    void receiveMessage(int v, double b);
 }

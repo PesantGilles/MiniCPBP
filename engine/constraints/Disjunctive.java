@@ -54,7 +54,7 @@ public class Disjunctive extends AbstractConstraint {
 
 
     private Disjunctive(IntVar[] start, int[] duration, boolean postMirror) {
-        super(start[0].getSolver());
+        super(start);
         this.start = start;
         this.duration = duration;
         this.end = Factory.makeIntVarArray(start.length, i -> plus(start[i], duration[i]));
@@ -120,6 +120,5 @@ public class Disjunctive extends AbstractConstraint {
     private boolean notLast() {
          throw new NotImplementedException("Disjunctive");
     }
-
 
 }

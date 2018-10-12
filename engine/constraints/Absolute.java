@@ -33,8 +33,8 @@ public class Absolute extends AbstractConstraint {
      * @param x the input variable such that its absolut value is equal to y
      * @param y the variable that represents the absolute value of x
      */
-    public Absolute(IntVar x, IntVar y) {
-        super(x.getSolver());
+    public Absolute(IntVar x, IntVar y, IntVar[] vars) {
+        super(vars);
         this.x = x;
         this.y = y;
     }

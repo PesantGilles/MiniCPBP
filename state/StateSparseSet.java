@@ -25,12 +25,12 @@ import java.util.NoSuchElementException;
  */
 public class StateSparseSet {
 
-    private int[] values;
-    private int[] indexes;
+    protected int[] values;
+    protected int[] indexes;
     private StateInt size;
     private StateInt min;
     private StateInt max;
-    private int ofs;
+    protected int ofs;
     private int n;
 
     /**
@@ -57,7 +57,7 @@ public class StateSparseSet {
     }
 
 
-    private void exchangePositions(int val1, int val2) {
+    protected void exchangePositions(int val1, int val2) {
         assert (checkVal(val1));
         assert (checkVal(val2));
         int v1 = val1;

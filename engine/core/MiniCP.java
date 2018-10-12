@@ -26,16 +26,24 @@ import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.ArrayList;
 
 
 public class MiniCP implements Solver {
 
     private Queue<Constraint> propagationQueue = new ArrayDeque<>();
     private List<Procedure> fixPointListeners = new LinkedList<>();
+    private List<Procedure> beliefPropaListeners = new LinkedList<>();
 
     private final StateManager sm;
 
     private final StateStack<IntVar> vars;
+
+    private List<IntVar> variables = new ArrayList<>();;
+    private List<Constraint> constraints = new ArrayList<>();;
+
+    private static final int beliefPropaMaxIter = 5;
+    private static final double beliefPropaExtremeValueEpsilon= 1.0E-3;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -47,6 +55,11 @@ public class MiniCP implements Solver {
         return sm;
     }
 
+    @Override
+    public void registerVar(IntVar x) {
+	variables.add(x);
+    }
+    
     public void schedule(Constraint c) {
         if (c.isActive() && !c.isScheduled()) {
             c.setScheduled(true);
@@ -78,6 +91,54 @@ public class MiniCP implements Solver {
         }
     }
 
+    @Override
+    public void onBeliefPropa(Procedure listener) {
+        beliefPropaListeners.add(listener);
+    }
+
+    private void notifyBeliefPropa() {
+        beliefPropaListeners.forEach(s -> s.call());
+    }
+
+    /**
+     * Belief Propagation
+     * standard version, with two distinct message-passing phases
+     * first from variables to constraints, and then from constraints to variables
+     *
+     */
+    @Override
+    public void beliefPropa() {
+
+	notifyBeliefPropa();
+
+	boolean noExtremeValue = true;
+
+	for(IntVar x : variables) { 
+	    x.normalizeMarginals(); 
+	}
+        try {
+	    int it = 1;
+	    do {
+		for(Constraint c : constraints) {
+		    c.receiveMessages();
+		}
+		for(IntVar x : variables) { 
+		    x.resetMarginals(); // prepare to receive all the messages from constraints
+		}
+		for(Constraint c : constraints) {
+		    c.sendMessages();
+		}
+		for(IntVar x : variables) { 
+		    noExtremeValue = noExtremeValue && x.normalizeMarginals(beliefPropaExtremeValueEpsilon); 
+		}
+		it++;
+	    } while (it<=beliefPropaMaxIter && noExtremeValue);
+
+        } catch (InconsistencyException e) {
+            throw e;
+        }
+    }
+
     private void propagate(Constraint c) {
         c.setScheduled(false);
         if (c.isActive())
@@ -96,11 +157,13 @@ public class MiniCP implements Solver {
 
     @Override
     public void post(Constraint c) {
-        post(c, true);
+	// no incremental propagation -- wait until all constraints have been posted
+        post(c, false);
     }
 
     @Override
     public void post(Constraint c, boolean enforceFixPoint) {
+	constraints.add(c);
         c.post();
         if (enforceFixPoint) fixPoint();
     }

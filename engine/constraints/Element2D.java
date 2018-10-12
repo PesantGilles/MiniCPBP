@@ -66,8 +66,8 @@ public class Element2D extends AbstractConstraint {
      * @param y the second dimention index variable
      * @param z the result variable
      */
-    public Element2D(int[][] mat, IntVar x, IntVar y, IntVar z) {
-        super(x.getSolver());
+    public Element2D(int[][] mat, IntVar x, IntVar y, IntVar z, IntVar[] vars) {
+        super(vars);
         this.matrix = mat;
         this.x = x;
         this.y = y;
@@ -123,4 +123,5 @@ public class Element2D extends AbstractConstraint {
         low.setValue(l);
         up.setValue(u);
     }
+
 }

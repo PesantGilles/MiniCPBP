@@ -135,6 +135,37 @@ public final class BranchingScheme {
     }
 
     /**
+     * Maximum Marginal Strength strategy.
+     * It selects an unbound variable with the largest marginal strength 
+     * on one of the values in its domain.
+     * Then it creates two branches. The left branch
+     * assigning the variable to that value.
+     * The right branch removing this value from the domain.
+     * @param x the variable on which the max marginal strength strategy is applied.
+     * @return maxMarginalStrength branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalStrength(IntVar... x) {
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+		    xi -> -(xi.maxMarginal() - 1.0 / xi.size()));
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal(); 
+                return branch(
+			      () -> { 
+				  equal(xs, v); 
+			      },
+			      () -> {
+				  notEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
      * Sequential Search combinator that linearly
      * considers a list of branching generator.
      * One branching of this list is executed

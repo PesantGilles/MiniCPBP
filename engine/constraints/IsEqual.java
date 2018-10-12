@@ -39,8 +39,8 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
      *          if and only if x takes the value c
      * @see minicp.cp.Factory#isEqual(IntVar, int)
      */
-    public IsEqual(BoolVar b, IntVar x, int c) {
-        super(b.getSolver());
+    public IsEqual(BoolVar b, IntVar x, int c, IntVar[] vars) {
+        super(vars);
         this.b = b;
         this.x = x;
         this.c = c;
@@ -71,4 +71,5 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
             setActive(false);
         }
     }
+
 }

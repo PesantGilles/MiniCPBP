@@ -196,6 +196,7 @@ public final class Factory {
      * @see BranchingScheme#branch(Procedure...)
      */
     public static DFSearch makeDfs(Solver cp, Supplier<Procedure[]> branching) {
+ 	cp.beliefPropa(); // initial propagation at root node
         return new DFSearch(cp.getStateManager(), branching);
     }
 
@@ -260,7 +261,7 @@ public final class Factory {
      */
     public static IntVar abs(IntVar x) {
         IntVar r = makeIntVar(x.getSolver(), 0, x.max());
-        x.getSolver().post(new Absolute(x, r));
+        x.getSolver().post(new Absolute(x, r, new IntVar[]{x,r}));
         return r;
     }
 
@@ -278,7 +279,9 @@ public final class Factory {
         int min = Arrays.stream(x).mapToInt(IntVar::min).min().getAsInt();
         int max = Arrays.stream(x).mapToInt(IntVar::max).max().getAsInt();
         IntVar y = makeIntVar(cp, min, max);
-        cp.post(new Maximum(x, y));
+        IntVar[] vars = Arrays.copyOf(x,x.length+1);
+ 	vars[x.length] = y;
+        cp.post(new Maximum(x, y, vars));
         return y;
     }
 
@@ -298,38 +301,38 @@ public final class Factory {
 
     /**
      * Forces the variable to be equal to some given value and
-     * computes the fix point.
+     * performs belief propagation.
      *
      * @param x the variable to be assigned to v
      * @param v the value that must be assigned to x
      */
     public static void equal(IntVar x, int v) {
         x.assign(v);
-        x.getSolver().fixPoint();
+        x.getSolver().beliefPropa();
     }
 
     /**
      * Forces the variable to be less or equal to some given value and
-     * computes the fix point.
+     * performs belief propagation.
      *
      * @param x the variable that is constrained bo be less or equal to v
      * @param v the value that must be the upper bound on x
      */
     public static void lessOrEqual(IntVar x, int v) {
         x.removeAbove(v);
-        x.getSolver().fixPoint();
+        x.getSolver().beliefPropa();
     }
 
     /**
      * Forces the variable to be different to some given value and
-     * computes the fix point.
+     * performs belief propagation.
      *
      * @param x the variable that is constrained bo be different from v
      * @param v the value that must be different from x
      */
     public static void notEqual(IntVar x, int v) {
         x.remove(v);
-        x.getSolver().fixPoint();
+        x.getSolver().beliefPropa();
     }
 
 
@@ -342,7 +345,7 @@ public final class Factory {
      * @return a constraint so that {@code x != y}
      */
     public static Constraint notEqual(IntVar x, IntVar y) {
-        return new NotEqual(x, y);
+        return new NotEqual(x, y, new IntVar[]{x,y});
     }
 
     /**
@@ -356,7 +359,7 @@ public final class Factory {
      * @return a constraint so that {@code x != y+c}
      */
     public static Constraint notEqual(IntVar x, IntVar y, int c) {
-        return new NotEqual(x, y, c);
+        return new NotEqual(x, y, c, new IntVar[]{x,y});
     }
 
     /**
@@ -374,7 +377,7 @@ public final class Factory {
         BoolVar b = makeBoolVar(x.getSolver());
         Solver cp = x.getSolver();
         try {
-            cp.post(new IsEqual(b, x, c));
+            cp.post(new IsEqual(b, x, c, new IntVar[]{x,b}));
         } catch (InconsistencyException e) {
             e.printStackTrace();
         }
@@ -395,7 +398,7 @@ public final class Factory {
     public static BoolVar isLessOrEqual(IntVar x, final int c) {
         BoolVar b = makeBoolVar(x.getSolver());
         Solver cp = x.getSolver();
-        cp.post(new IsLessOrEqual(b, x, c));
+        cp.post(new IsLessOrEqual(b, x, c, new IntVar[]{x,b}));
         return b;
     }
 
@@ -453,7 +456,7 @@ public final class Factory {
      * @return a constraint so that {@code x <= y}
      */
     public static Constraint lessOrEqual(IntVar x, IntVar y) {
-        return new LessOrEqual(x, y);
+        return new LessOrEqual(x, y, new IntVar[]{x,y});
     }
 
     /**
@@ -465,7 +468,7 @@ public final class Factory {
      * @return a constraint so that {@code x >= y}
      */
     public static Constraint largerOrEqual(IntVar x, IntVar y) {
-        return new LessOrEqual(y, x);
+        return new LessOrEqual(y, x, new IntVar[]{y,x});
     }
 
     /**
@@ -482,7 +485,7 @@ public final class Factory {
     public static IntVar element(int[] array, IntVar y) {
         Solver cp = y.getSolver();
         IntVar z = makeIntVar(cp, IntStream.of(array).min().getAsInt(), IntStream.of(array).max().getAsInt());
-        cp.post(new Element1D(array, y, z));
+        cp.post(new Element1D(array, y, z, new IntVar[]{y,z}));
         return z;
     }
 
@@ -508,7 +511,7 @@ public final class Factory {
             }
         }
         IntVar z = makeIntVar(x.getSolver(), min, max);
-        x.getSolver().post(new Element2D(matrix, x, y, z));
+        x.getSolver().post(new Element2D(matrix, x, y, z, new IntVar[]{x,y,z}));
         return z;
     }
 
@@ -529,9 +532,10 @@ public final class Factory {
             sumMax += x[i].max();
         }
         Solver cp = x[0].getSolver();
-        IntVar s = makeIntVar(cp, sumMin, sumMax);
-        cp.post(new Sum(x, s));
-        return s;
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = makeIntVar(cp, sumMin, sumMax);
+        cp.post(new Sum(vars));
+        return vars[x.length];
     }
 
     /**
@@ -542,7 +546,9 @@ public final class Factory {
      * @return a constraint so that {@code y = x[0]+x[1]+...+x[n-1]}
      */
     public static Constraint sum(IntVar[] x, IntVar y) {
-        return new Sum(x, y);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = minus(y);
+        return new Sum(vars);
     }
 
     /**
@@ -553,7 +559,10 @@ public final class Factory {
      * @return a constraint so that {@code y = x[0]+x[1]+...+x[n-1]}
      */
     public static Constraint sum(IntVar[] x, int y) {
-        return new Sum(x, y);
+        Solver cp = x[0].getSolver();
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = makeIntVar(cp, -y, -y);
+        return new Sum(vars);
     }
 
     /**

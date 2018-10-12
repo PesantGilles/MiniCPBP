@@ -13,32 +13,31 @@
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
  */
 
-package minicp.engine.core;
+package minicp.state;
 
+/**
+ * Object that wraps a double value
+ * that can be saved and restored through
+ * the {@link StateManager#saveState()} / {@link StateManager#restoreState()}
+ * methods.
+ *
+ * @see StateManager#makeStateDouble(double) for the creation.
+ */
+public interface StateDouble {
 
-import minicp.util.Procedure;
-import minicp.cp.Factory;
+    /**
+     * Set the value
+     * @param v the value to set
+     * @return the new value that was set
+     */
+    double setValue(double v);
 
-public class ConstraintClosure extends AbstractConstraint {
-
-
-    private final Procedure filtering;
-    private final Solver cp;
-
-    public ConstraintClosure(Solver cp, Procedure filtering) {
-        super(Factory.makeIntVarArray(cp,0,0)); // call with an empty array
-        this.filtering = filtering;
-	this.cp = cp;
-    }
+    /**
+     * Retrieves the value
+     * @return the value
+     */
+    double value();
 
     @Override
-    public void post() {
-
-    }
-
-    @Override
-    public void propagate() {
-        filtering.call();
-    }
-
+    String toString();
 }

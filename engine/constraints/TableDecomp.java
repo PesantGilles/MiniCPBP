@@ -38,7 +38,7 @@ public class TableDecomp extends AbstractConstraint {
      *              The second dimension must be of the same size as the array x.
      */
     public TableDecomp(IntVar[] x, int[][] table) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
         this.table = table;
     }
@@ -73,4 +73,5 @@ public class TableDecomp extends AbstractConstraint {
             }
         }
     }
+
 }

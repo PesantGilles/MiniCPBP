@@ -84,13 +84,12 @@ public class IntVarImpl implements IntVar {
     public IntVarImpl(Solver cp, int min, int max) {
         if (min > max) throw new InvalidParameterException("at least one setValue in the domain");
         this.cp = cp;
+        cp.registerVar(this);
         domain = new SparseSetDomain(cp.getStateManager(), min, max);
         onDomain = new StateStack<>(cp.getStateManager());
         onBind = new StateStack<>(cp.getStateManager());
         onBounds = new StateStack<>(cp.getStateManager());
     }
-
-
 
     /**
      * Creates a variable with a given set of values as initial domain.
@@ -202,5 +201,50 @@ public class IntVarImpl implements IntVar {
     @Override
     public void removeAbove(int v) {
         domain.removeAbove(v, domListener);
+    }
+
+    @Override
+    public double marginal(int v) {
+    	return domain.marginal(v);
+    }
+
+    @Override
+    public void setMarginal(int v, double m) {
+    	domain.setMarginal(v,m);
+    }
+
+    @Override
+    public void resetMarginals() {
+	domain.resetMarginals();
+    }
+
+    @Override
+    public boolean normalizeMarginals() {
+	return domain.normalizeMarginals(0);
+    }
+
+    @Override
+    public boolean normalizeMarginals(double epsilon) {
+	return domain.normalizeMarginals(epsilon);
+    }
+
+    @Override
+    public double maxMarginal() {
+	return domain.maxMarginal();
+    }
+
+    @Override
+    public int valueWithMaxMarginal() {
+	return domain.valueWithMaxMarginal();
+    }
+
+    @Override
+    public double sendMessage(int v, double b) {
+	return domain.marginal(v) / b;
+    }
+
+    @Override
+    public void receiveMessage(int v, double b) {
+	domain.setMarginal(v,domain.marginal(v) * b);
     }
 }

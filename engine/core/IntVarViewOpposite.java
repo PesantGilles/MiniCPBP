@@ -27,6 +27,8 @@ public class IntVarViewOpposite implements IntVar {
 
     public IntVarViewOpposite(IntVar x) {
         this.x = x;
+
+        x.getSolver().registerVar(this);
     }
 
     @Override
@@ -116,6 +118,51 @@ public class IntVarViewOpposite implements IntVar {
     @Override
     public void removeAbove(int v) {
         x.removeBelow(-v);
+    }
+
+    @Override
+    public double marginal(int v) {
+    	return x.marginal(-v);
+    }
+
+    @Override
+    public void setMarginal(int v, double m) {
+    	x.setMarginal(-v,m);
+    }
+
+    @Override
+    public void resetMarginals() {
+	x.resetMarginals();
+    }
+
+    @Override
+    public boolean normalizeMarginals() {
+	return x.normalizeMarginals(0);
+    }
+
+    @Override
+    public boolean normalizeMarginals(double epsilon) {
+	return x.normalizeMarginals(epsilon);
+    }
+
+    @Override
+    public double maxMarginal() {
+	return x.maxMarginal();
+    }
+
+    @Override
+    public int valueWithMaxMarginal() {
+	return -x.valueWithMaxMarginal();
+    }
+
+    @Override
+    public double sendMessage(int v, double b) {
+	return x.marginal(-v) / b;
+    }
+
+    @Override
+    public void receiveMessage(int v, double b) {
+	x.setMarginal(-v,x.marginal(-v) * b);
     }
 
     @Override

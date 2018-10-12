@@ -125,6 +125,13 @@ public class Copier implements StateManager {
     }
 
     @Override
+    public StateDouble makeStateDouble(double initValue) {
+        CopyDouble s = new CopyDouble(initValue);
+        store.add(s);
+        return s;
+    }
+
+    @Override
     public StateMap makeStateMap() {
         CopyMap s = new CopyMap<>();
         store.add(s);

@@ -26,8 +26,8 @@ public class LessOrEqual extends AbstractConstraint { // x <= y
     private final IntVar x;
     private final IntVar y;
 
-    public LessOrEqual(IntVar x, IntVar y) {
-        super(x.getSolver());
+    public LessOrEqual(IntVar x, IntVar y, IntVar[] vars) {
+        super(vars);
         this.x = x;
         this.y = y;
     }
@@ -46,4 +46,5 @@ public class LessOrEqual extends AbstractConstraint { // x <= y
         if (x.max() <= y.min())
             setActive(false);
     }
+
 }

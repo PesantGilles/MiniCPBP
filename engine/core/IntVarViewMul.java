@@ -32,6 +32,8 @@ public class IntVarViewMul implements IntVar {
         assert (a > 0);
         this.a = a;
         this.x = x;
+
+        x.getSolver().registerVar(this);
     }
 
     @Override
@@ -159,4 +161,66 @@ public class IntVarViewMul implements IntVar {
         return b.toString();
 
     }
+
+    @Override
+    public double marginal(int v) {
+	if (v % a == 0) {
+	    return x.marginal(v/a);
+        } else {
+            throw new InconsistencyException();
+        }
+    }
+
+    @Override
+    public void setMarginal(int v, double m) {
+	if (v % a == 0) {
+	    x.setMarginal(v/a, m);
+        } else {
+            throw new InconsistencyException();
+        }
+    }
+
+    @Override
+    public void resetMarginals() {
+	x.resetMarginals();
+    }
+
+    @Override
+    public boolean normalizeMarginals() {
+	return x.normalizeMarginals(0);
+    }
+
+    @Override
+    public boolean normalizeMarginals(double epsilon) {
+	return x.normalizeMarginals(epsilon);
+    }
+
+    @Override
+    public double maxMarginal() {
+	return x.maxMarginal();
+    }
+
+    @Override
+    public int valueWithMaxMarginal() {
+	return x.valueWithMaxMarginal() * a;
+    }
+
+    @Override
+    public double sendMessage(int v, double b) {
+	if (v % a == 0) {
+	    return x.marginal(v/a) / b;
+        } else {
+            throw new InconsistencyException();
+	}
+    }
+
+    @Override
+    public void receiveMessage(int v, double b) {
+	if (v % a == 0) {
+	    x.setMarginal(v/a, x.marginal(v/a) * b);
+        } else {
+            throw new InconsistencyException();
+	}
+    }
+
 }

@@ -17,8 +17,11 @@ package minicp.engine.constraints;
 
 import minicp.engine.core.AbstractConstraint;
 import minicp.engine.core.BoolVar;
+import minicp.engine.core.IntVar;
 import minicp.state.StateInt;
 import minicp.util.exception.NotImplementedException;
+
+import java.util.Arrays;
 
 /**
  * Reified logical or constraint
@@ -42,12 +45,12 @@ public class IsOr extends AbstractConstraint { // b <=> x1 or x2 or ... xn
      * @param b the boolean that is true if at least one variable in x is true
      * @param x an non empty array of variables
      */
-    public IsOr(BoolVar b, BoolVar[] x) {
-        super(b.getSolver());
+    public IsOr(BoolVar b, BoolVar[] x, IntVar[] vars) {
+        super(vars);
         this.b = b;
         this.x = x;
         this.n = x.length;
-        or = new Or(x);
+        or = new Or(x,vars);
 
         nUnBounds = getSolver().getStateManager().makeStateInt(n);
         unBounds = new int[n];
@@ -69,4 +72,5 @@ public class IsOr extends AbstractConstraint { // b <=> x1 or x2 or ... xn
         // TODO Implement the constraint as efficiently as possible and make sure you pass all the tests
          throw new NotImplementedException();
     }
+
 }

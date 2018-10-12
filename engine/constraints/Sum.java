@@ -69,7 +69,7 @@ public class Sum extends AbstractConstraint {
      * @param x the non empty set of variables that should sum to zero
      */
     public Sum(IntVar[] x) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
         this.n = x.length;
         nUnBounds = getSolver().getStateManager().makeStateInt(n);
@@ -109,4 +109,5 @@ public class Sum extends AbstractConstraint {
             x[idx].removeBelow(-(sumMax - x[idx].max()));
         }
     }
+
 }

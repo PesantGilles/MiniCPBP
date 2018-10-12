@@ -17,6 +17,7 @@ package minicp.engine.constraints;
 
 import minicp.engine.core.AbstractConstraint;
 import minicp.engine.core.BoolVar;
+import minicp.engine.core.IntVar;
 import minicp.state.StateInt;
 import minicp.util.exception.NotImplementedException;
 
@@ -39,8 +40,8 @@ public class Or extends AbstractConstraint { // x1 or x2 or ... xn
      *
      * @param x the variables in the scope of the constraint
      */
-    public Or(BoolVar[] x) {
-        super(x[0].getSolver());
+    public Or(BoolVar[] x, IntVar[] vars) {
+        super(vars);
         this.x = x;
         this.n = x.length;
         wL = getSolver().getStateManager().makeStateInt(0);
@@ -59,4 +60,5 @@ public class Or extends AbstractConstraint { // x1 or x2 or ... xn
         // TODO: implement the filtering using watched literal technique and make sure you pass all the tests
          throw new NotImplementedException("Or");
     }
+
 }

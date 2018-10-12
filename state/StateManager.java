@@ -88,6 +88,14 @@ public interface StateManager {
     StateBool makeStateBool(boolean initValue);
 
     /**
+     * Creates a Stateful double (restorable)
+     *
+     * @param initValue the initial setValue
+     * @return a reference to the double.
+     */
+    StateDouble makeStateDouble(double initValue);
+
+    /**
      * Creates a Stateful map (restorable)
      *
      * @return a reference to the map.

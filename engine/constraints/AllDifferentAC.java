@@ -68,7 +68,7 @@ public class AllDifferentAC extends AbstractConstraint {
     private int maxVal;
 
     public AllDifferentAC(IntVar... x) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
         maximumMatching = new MaximumMatching(x);
         match = new int[x.length];
@@ -125,4 +125,5 @@ public class AllDifferentAC extends AbstractConstraint {
         //       use  GraphUtil.stronglyConnectedComponents to compute SCC's
          throw new NotImplementedException("AllDifferentAC");
     }
+
 }

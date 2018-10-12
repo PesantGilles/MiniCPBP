@@ -48,7 +48,7 @@ public class CumulativeDecomposition extends AbstractConstraint {
      * @param capa the capacity of the constraint
      */
     public CumulativeDecomposition(IntVar[] start, int[] duration, int[] demand, int capa) {
-        super(start[0].getSolver());
+        super(start);
         this.start = start;
         this.duration = duration;
         this.end = Factory.makeIntVarArray(start.length, i -> plus(start[i], duration[i]));

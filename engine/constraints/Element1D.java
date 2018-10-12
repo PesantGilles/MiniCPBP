@@ -32,7 +32,7 @@ public class Element1D extends AbstractConstraint {
     private final int[] t;
     private final IntVar y;
     private final IntVar z;
-
+    
     /**
      * Creates an element constraint {@code array[y] = z}
      *
@@ -40,8 +40,8 @@ public class Element1D extends AbstractConstraint {
      * @param y the index variable
      * @param z the result variable
      */
-    public Element1D(int[] array, IntVar y, IntVar z) {
-        super(y.getSolver());
+    public Element1D(int[] array, IntVar y, IntVar z, IntVar[] vars) {
+        super(vars);
         this.t = array;
         this.y = y;
         this.z = z;
@@ -51,4 +51,5 @@ public class Element1D extends AbstractConstraint {
     public void post() {
          throw new NotImplementedException("Element1D");
     }
+
 }

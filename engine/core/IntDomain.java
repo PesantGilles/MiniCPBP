@@ -142,6 +142,48 @@ public interface IntDomain {
     void removeAbove(int v, DomainListener l);
 
     /**
+     * Returns the marginal of an element from the domain.
+     *
+     * @param v is an element in the domain
+     */
+    double marginal(int v);
+
+    /**
+     * Sets the marginal of an element from the domain.
+     *
+     * @param v is an element in the domain, m is the marginal
+     */
+    void setMarginal(int v, double m);
+
+    /**
+     * Sets the marginals to 1.
+     *
+     */
+    void resetMarginals();
+
+
+    /**
+     * Normalizes the marginals.
+     * @return false if a normalized value is less than epsilon or greater than 1-epsilon
+     *
+     */
+    boolean normalizeMarginals(double epsilon);
+
+    /**
+     * Returns the largest marginal for a value in the domain.
+     *
+     * @return the largest marginal
+     */
+    double maxMarginal();
+
+    /**
+     * Returns the value in the domain that has the largest marginal.
+     *
+     * @return the value with the largest marginal
+     */
+    int valueWithMaxMarginal();
+
+    /**
      * Copies the values of the domain into an array.
      *
      * @param dest an array large enough {@code dest.length >= size()}

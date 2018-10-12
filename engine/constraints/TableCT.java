@@ -52,7 +52,7 @@ public class TableCT extends AbstractConstraint {
      *              The second dimension must be of the same size as the array x.
      */
     public TableCT(IntVar[] x, int[][] table) {
-        super(x[0].getSolver());
+        super(x);
         this.x = new IntVar[x.length];
         this.table = table;
 
@@ -111,4 +111,5 @@ public class TableCT extends AbstractConstraint {
 
         //throw new NotImplementedException("TableCT");
     }
+
 }

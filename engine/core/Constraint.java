@@ -75,4 +75,17 @@ public interface Constraint {
     boolean isActive();
 
 
+    /************* BP services *************/
+
+    /**
+     * Collects messages (outside beliefs) from the variables in its scope.
+     */
+    void receiveMessages();
+
+    /**
+     * Updates its local belief (given the outside beliefs) and sends it 
+     * as messages to the variables in its scope.
+     */
+    void sendMessages();
+
 }

@@ -29,6 +29,8 @@ public class IntVarViewOffset implements IntVar {
     public IntVarViewOffset(IntVar x, int offset) { // y = x + o
         this.x = x;
         this.o = offset;
+
+        x.getSolver().registerVar(this);
     }
 
     @Override
@@ -118,6 +120,51 @@ public class IntVarViewOffset implements IntVar {
     @Override
     public void removeAbove(int v) {
         x.removeAbove(v - o);
+    }
+
+    @Override
+    public double marginal(int v) {
+    	return x.marginal(v - o);
+    }
+
+    @Override
+    public void setMarginal(int v, double m) {
+    	x.setMarginal(v - o,m);
+    }
+
+    @Override
+    public void resetMarginals() {
+	x.resetMarginals();
+    }
+
+    @Override
+    public boolean normalizeMarginals() {
+	return x.normalizeMarginals(0);
+    }
+
+    @Override
+    public boolean normalizeMarginals(double epsilon) {
+	return x.normalizeMarginals(epsilon);
+    }
+
+    @Override
+    public double maxMarginal() {
+	return x.maxMarginal();
+    }
+
+    @Override
+    public int valueWithMaxMarginal() {
+	return x.valueWithMaxMarginal() + o;
+    }
+
+    @Override
+    public double sendMessage(int v, double b) {
+	return x.marginal(v - o) / b;
+    }
+
+    @Override
+    public void receiveMessage(int v, double b) {
+	x.setMarginal(v - o, x.marginal(v - o) * b);
     }
 
     @Override

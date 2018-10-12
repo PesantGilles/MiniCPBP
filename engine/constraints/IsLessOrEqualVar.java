@@ -33,20 +33,17 @@ public class IsLessOrEqualVar extends AbstractConstraint {
     private final IntVar x;
     private final IntVar y;
 
-    
-
     /**
      * Creates a reified is less or equal constraint {@code b <=> x <= y}.
      * @param b the truth value that will be set to true if {@code x <= y}, false otherwise
      * @param x left hand side of less or equal operator
      * @param y right hand side of less or equal operator
      */
-    public IsLessOrEqualVar(BoolVar b, IntVar x, IntVar y) {
-        super(x.getSolver());
+    public IsLessOrEqualVar(BoolVar b, IntVar x, IntVar y, IntVar[] vars) {
+        super(vars);
         this.b = b;
         this.x = x;
         this.y = y;
-        
     }
 
     @Override
@@ -60,4 +57,5 @@ public class IsLessOrEqualVar extends AbstractConstraint {
         // TODO
          throw new NotImplementedException();
     }
+
 }

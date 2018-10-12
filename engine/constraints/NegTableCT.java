@@ -45,7 +45,7 @@ public class NegTableCT extends AbstractConstraint {
      * @param table the array of invalid solutions (second dimension must be of same size as the array x)
      */
     public NegTableCT(IntVar[] x, int[][] table) {
-        super(x[0].getSolver());
+        super(x);
         this.x = new IntVar[x.length];
 
 
@@ -100,4 +100,5 @@ public class NegTableCT extends AbstractConstraint {
         // TODO
          throw new NotImplementedException("NegTableCT");
     }
+
 }

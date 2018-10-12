@@ -24,7 +24,7 @@ public class AllDifferentBinary extends AbstractConstraint {
     private IntVar[] x;
 
     public AllDifferentBinary(IntVar... x) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
     }
 
@@ -33,7 +33,7 @@ public class AllDifferentBinary extends AbstractConstraint {
         Solver cp = x[0].getSolver();
         for (int i = 0; i < x.length; i++) {
             for (int j = i + 1; j < x.length; j++) {
-                cp.post(new NotEqual(x[i], x[j]), false);
+                cp.post(new NotEqual(x[i], x[j], new IntVar[]{x[i],x[j]}), false);
             }
         }
     }

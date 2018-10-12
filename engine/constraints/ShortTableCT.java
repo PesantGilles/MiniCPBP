@@ -43,7 +43,7 @@ public class ShortTableCT extends AbstractConstraint {
      * @param star  the {@code *} symbol representing "any" value in the table
      */
     public ShortTableCT(IntVar[] x, int[][] table, int star) {
-        super(x[0].getSolver());
+        super(x);
         this.x = x;
         this.table = table;
 
@@ -73,4 +73,5 @@ public class ShortTableCT extends AbstractConstraint {
         // TODO: implement the filtering
          throw new NotImplementedException("ShortTableCT");
     }
+
 }

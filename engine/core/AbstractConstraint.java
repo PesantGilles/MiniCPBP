@@ -16,6 +16,7 @@
 package minicp.engine.core;
 
 import minicp.state.StateBool;
+import minicp.state.StateDouble;
 
 import java.util.Queue;
 
@@ -32,9 +33,29 @@ public abstract class AbstractConstraint implements Constraint {
     private boolean scheduled = false;
     private final StateBool active;
 
-    public AbstractConstraint(Solver cp) {
-        this.cp = cp;
+    private StateDouble[][] localBelief;
+    private double[][] outsideBelief;
+    private int[] ofs;
+    private IntVar[] vars; // all the variables in the scope of the constraint
+    private boolean exactWCounting = false;
+
+    public AbstractConstraint(IntVar[] vars) {
+        this.cp = vars[0].getSolver();
         active = cp.getStateManager().makeStateBool(true);
+	this.vars = vars;
+
+	localBelief = new StateDouble[vars.length][];
+	ofs = new int[vars.length];
+	outsideBelief = new double[vars.length][];
+	
+	for(int i = 0; i<vars.length; i++){
+	    ofs[i] = vars[i].min();
+	    localBelief[i] = new StateDouble[vars[i].max() - vars[i].min() + 1];
+	    outsideBelief[i] = new double[vars[i].max() - vars[i].min() + 1];
+	    for(int j = 0; j<localBelief[i].length; j++){
+		localBelief[i][j] = cp.getStateManager().makeStateDouble(1); // no belief yet; initialized to 1 in order to retrieve the first var-to-constraint msg correctly
+	    }
+	}
     }
 
     public void post() {
@@ -62,4 +83,113 @@ public abstract class AbstractConstraint implements Constraint {
     public boolean isActive() {
         return active.value();
     }
+
+    protected void setExactWCounting(boolean exact) {
+        this.exactWCounting = exact;
+    }
+
+    protected boolean isExactWCounting() {
+        return exactWCounting;
+    }
+
+    protected double localBelief(int i, int val) {
+	return localBelief[i][val-ofs[i]].value();
+    }
+
+    protected double setLocalBelief(int i, int val, double b) {
+	return localBelief[i][val-ofs[i]].setValue(b);
+    }
+
+    protected double outsideBelief(int i, int val) {
+	return outsideBelief[i][val-ofs[i]];
+    }
+
+    protected double setOutsideBelief(int i, int val, double b) {
+	outsideBelief[i][val-ofs[i]] = b;
+	return b;
+    }
+
+    interface getBelief {
+	double get(int i, int val);
+    }
+
+    interface setBelief {
+	double set(int i, int val, double b);
+    }
+
+    private void normalizeBelief(int i, getBelief f1, setBelief f2) {
+	double sum = 0;
+	for (int val = vars[i].min(); val <= vars[i].max(); val++) {
+	    if (vars[i].contains(val)) {
+		sum += f1.get(i,val);
+	    }
+    	}
+        if (sum == 0) return; // temporary state of a soon-to-be-empty domain
+	for (int val = vars[i].min(); val <= vars[i].max(); val++) {
+	    if (vars[i].contains(val)) {
+		f2.set(i,val,f1.get(i,val)/sum);
+	    }
+	}
+    }
+
+    public void receiveMessages() {
+	for(int i = 0; i<vars.length; i++){
+            for (int val = vars[i].min(); val <= vars[i].max(); val++) {
+                if (vars[i].contains(val)) {
+		    setOutsideBelief(i,val,vars[i].sendMessage(val,localBelief(i,val)));
+		}
+	    }
+	    normalizeBelief(i, (j,val) -> outsideBelief(j,val), 
+			    (j,val,b) -> setOutsideBelief(j,val,b));
+	}
+    }
+
+    public void sendMessages() {
+	if (isExactWCounting()) { 
+	    updateBelief(); // no need to call propagate() since it subsumes it
+	    for(int i = 0; i<vars.length; i++){
+		normalizeBelief(i, (j,val) -> localBelief(j,val), 
+				(j,val,b) -> setLocalBelief(j,val,b));
+		for (int val = vars[i].min(); val <= vars[i].max(); val++) {
+		    if (vars[i].contains(val)) {
+			double localB = localBelief(i,val);
+			if (localB==0) { // no support from this constraint 
+			    vars[i].remove(val); // standard domain consistency filtering
+			}
+			else if (localB==1) { // backbone var for this constraint (and hence for all of them)
+			    vars[i].assign(val);
+			}
+			vars[i].receiveMessage(val,localB);
+		    }
+		}
+	    }
+	} else { // approximate weighted counting (incl. default updateBelief())
+	    cp.fixPoint(); // if at least one constraint does not implement exact weighted counting, perform standard propagation
+	    updateBelief();
+	    for(int i = 0; i<vars.length; i++){
+		normalizeBelief(i, (j,val) -> localBelief(j,val), 
+				(j,val,b) -> setLocalBelief(j,val,b));
+		for (int val = vars[i].min(); val <= vars[i].max(); val++) {
+		    if (vars[i].contains(val)) {
+			vars[i].receiveMessage(val,localBelief(i,val));
+		    }
+		}
+	    }
+	}
+    }
+
+    /**
+     * Updates its local belief given the outside beliefs.
+     * To be defined in the actual constraint.
+     *
+     * Default behaviour: uniform belief
+     */
+    protected void updateBelief() {
+	for(int i = 0; i<vars.length; i++){
+	    for(int j = 0; j<localBelief[i].length; j++){
+		localBelief[i][j].setValue(1); // will be normalized
+	    }
+	}
+    }
+
 }

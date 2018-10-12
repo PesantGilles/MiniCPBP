@@ -33,11 +33,12 @@ public class NotEqual extends AbstractConstraint {
      * @param c the offset value on y
      * @see minicp.cp.Factory#notEqual(IntVar, IntVar, int)
      */
-    public NotEqual(IntVar x, IntVar y, int c) { // x != y + c
-        super(x.getSolver());
+    public NotEqual(IntVar x, IntVar y, int c, IntVar[] vars) { // x != y + c
+        super(vars);
         this.x = x;
         this.y = y;
         this.c = c;
+  	setExactWCounting(true);
     }
 
     /**
@@ -47,8 +48,8 @@ public class NotEqual extends AbstractConstraint {
      * @param y the right memer
      * @see minicp.cp.Factory#notEqual(IntVar, IntVar)
      */
-    public NotEqual(IntVar x, IntVar y) { // x != y
-        this(x, y, 0);
+    public NotEqual(IntVar x, IntVar y, IntVar[] vars) { // x != y
+        this(x, y, 0, vars);
     }
 
     @Override
@@ -58,8 +59,10 @@ public class NotEqual extends AbstractConstraint {
         else if (x.isBound())
             y.remove(x.min() - c);
         else {
-            x.propagateOnBind(this);
-            y.propagateOnBind(this);
+	    if (!isExactWCounting()) { // only schedule propagate() if counting is not exact
+		x.propagateOnBind(this);
+		y.propagateOnBind(this);
+	    }
         }
     }
 
@@ -69,5 +72,27 @@ public class NotEqual extends AbstractConstraint {
             x.remove(y.min() + c);
         else y.remove(x.min() - c);
         setActive(false);
+    }
+
+    @Override
+    public void updateBelief() {
+	// Treatment of x
+	for (int vx = x.min(); vx <= x.max(); vx++) {
+	    if (x.contains(vx)) {
+		if (y.contains(vx-c))
+		    setLocalBelief(0,vx,1 - outsideBelief(1,vx-c));
+		else
+		    setLocalBelief(0,vx,1 - 0);
+	    }
+	}
+	// Treatment of y
+	for (int vy = y.min(); vy <= y.max(); vy++) {
+	    if (y.contains(vy)) {
+		if (x.contains(vy+c))
+		    setLocalBelief(1,vy,1 - outsideBelief(0,vy+c));
+		else
+		    setLocalBelief(1,vy,1 - 0);
+	    }
+	}
     }
 }

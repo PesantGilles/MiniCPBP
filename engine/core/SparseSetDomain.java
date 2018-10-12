@@ -16,18 +16,20 @@
 package minicp.engine.core;
 
 import minicp.state.StateManager;
-import minicp.state.StateSparseSet;
+import minicp.state.StateSparseWeightedSet;
+
+import java.util.NoSuchElementException;
 
 
 /**
  * Implementation of a domain with a sparse-set
  */
 public class SparseSetDomain implements IntDomain {
-    private StateSparseSet domain;
+    private StateSparseWeightedSet domain;
 
 
     public SparseSetDomain(StateManager sm, int min, int max) {
-        domain = new StateSparseSet(sm, max - min + 1, min);
+        domain = new StateSparseWeightedSet(sm, max - min + 1, min);
     }
 
     @Override
@@ -132,15 +134,80 @@ public class SparseSetDomain implements IntDomain {
     }
 
     @Override
+    public double marginal(int v) {
+        return domain.weight(v);
+    }
+
+    @Override
+    public void setMarginal(int v, double m) {
+        domain.setWeight(v,m);
+    }
+
+    @Override
+    public void resetMarginals() {
+	for (int v = min(); v <= max(); v++) {
+	    if (contains(v)) {
+		setMarginal(v,1);
+	    }
+	}
+    }
+
+    @Override
+    public boolean normalizeMarginals(double epsilon) {
+	double sum = 0;
+	boolean extremeValue = false;
+	for (int v = min(); v <= max(); v++) {
+	    if (contains(v)) {
+		sum += marginal(v);
+	    }
+	}
+        assert(sum > 0);
+	for (int v = min(); v <= max(); v++) {
+	    if (contains(v)) {
+		double nm = marginal(v)/sum;
+		setMarginal(v,nm);
+		if (nm<epsilon || nm>1.0-epsilon)
+		    extremeValue = true;
+	    }
+	}
+	return extremeValue;
+    }
+
+    @Override
+    public double maxMarginal() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+    	double max = -1;
+	for (int v = min(); v <= max(); v++) {
+	    if (contains(v)) {
+		if (marginal(v) > max) {
+		    max = marginal(v);
+		}
+	    }
+    	}
+    	return max;
+    }
+
+    @Override
+    public int valueWithMaxMarginal() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+    	double max = -1;
+	int valWithMax = -1;
+	for (int v = min(); v <= max(); v++) {
+	    if (contains(v)) {
+		if (marginal(v) > max) {
+		    max = marginal(v);
+		    valWithMax = v;
+		}
+	    }
+    	}
+    	return valWithMax;
+    }
+
+    @Override
     public String toString() {
-        StringBuilder b = new StringBuilder();
-        b.append("{");
-        for (int i = min(); i <= max() - 1; i++)
-            if (contains((i)))
-                b.append(i).append(',');
-        if (size() > 0) b.append(max());
-        b.append("}");
-        return b.toString();
+	return domain.toString();
     }
 
 }
