@@ -39,8 +39,8 @@ public class MiniCP implements Solver {
 
     private final StateStack<IntVar> vars;
 
-    private List<IntVar> variables = new ArrayList<>();;
-    private List<Constraint> constraints = new ArrayList<>();;
+    private StateStack<IntVar> variables;
+    private StateStack<Constraint> constraints;
 
     private static final int beliefPropaMaxIter = 5;
     private static final double beliefPropaExtremeValueEpsilon= 1.0E-3;
@@ -48,6 +48,8 @@ public class MiniCP implements Solver {
     public MiniCP(StateManager sm) {
         this.sm = sm;
         vars = new StateStack<>(sm);
+        variables = new StateStack<>(sm);
+        constraints = new StateStack<>(sm);
     }
 
     @Override
@@ -57,7 +59,7 @@ public class MiniCP implements Solver {
 
     @Override
     public void registerVar(IntVar x) {
-	variables.add(x);
+	variables.push(x);
     }
     
     public void schedule(Constraint c) {
@@ -113,23 +115,23 @@ public class MiniCP implements Solver {
 
 	boolean noExtremeValue = true;
 
-	for(IntVar x : variables) { 
-	    x.normalizeMarginals(); 
+        for (int i = 0; i < variables.size(); i++) {
+	    variables.get(i).normalizeMarginals(); 
 	}
         try {
 	    int it = 1;
 	    do {
-		for(Constraint c : constraints) {
-		    c.receiveMessages();
+		for (int i = 0; i < constraints.size(); i++) {
+		    constraints.get(i).receiveMessages();
 		}
-		for(IntVar x : variables) { 
-		    x.resetMarginals(); // prepare to receive all the messages from constraints
+		for (int i = 0; i < variables.size(); i++) {
+		    variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
 		}
-		for(Constraint c : constraints) {
-		    c.sendMessages();
+		for (int i = 0; i < constraints.size(); i++) {
+		    constraints.get(i).sendMessages();
 		}
-		for(IntVar x : variables) { 
-		    noExtremeValue = noExtremeValue && x.normalizeMarginals(beliefPropaExtremeValueEpsilon); 
+		for (int i = 0; i < variables.size(); i++) {
+		    noExtremeValue = noExtremeValue && variables.get(i).normalizeMarginals(beliefPropaExtremeValueEpsilon); 
 		}
 		it++;
 	    } while (it<=beliefPropaMaxIter && noExtremeValue);
@@ -163,7 +165,7 @@ public class MiniCP implements Solver {
 
     @Override
     public void post(Constraint c, boolean enforceFixPoint) {
-	constraints.add(c);
+	constraints.push(c);
         c.post();
         if (enforceFixPoint) fixPoint();
     }
