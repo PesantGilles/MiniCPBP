@@ -37,6 +37,8 @@ public abstract class AbstractConstraint implements Constraint {
     private double[][] outsideBelief;
     private int[] ofs;
     private IntVar[] vars; // all the variables in the scope of the constraint
+    private int maxDomainSize;
+    private int[] domainValues;
     private boolean exactWCounting = false;
 
     public AbstractConstraint(IntVar[] vars) {
@@ -48,6 +50,7 @@ public abstract class AbstractConstraint implements Constraint {
 	ofs = new int[vars.length];
 	outsideBelief = new double[vars.length][];
 	
+	maxDomainSize = 0;
 	for(int i = 0; i<vars.length; i++){
 	    ofs[i] = vars[i].min();
 	    localBelief[i] = new StateDouble[vars[i].max() - vars[i].min() + 1];
@@ -55,7 +58,9 @@ public abstract class AbstractConstraint implements Constraint {
 	    for(int j = 0; j<localBelief[i].length; j++){
 		localBelief[i][j] = cp.getStateManager().makeStateDouble(1); // no belief yet; initialized to 1 in order to retrieve the first var-to-constraint msg correctly
 	    }
+	    maxDomainSize = Math.max(maxDomainSize, vars[i].max() - vars[i].min() + 1);
 	}
+	domainValues = new int[maxDomainSize];
     }
 
     public void post() {
@@ -119,25 +124,23 @@ public abstract class AbstractConstraint implements Constraint {
 
     private void normalizeBelief(int i, getBelief f1, setBelief f2) {
 	double sum = 0;
-	for (int val = vars[i].min(); val <= vars[i].max(); val++) {
-	    if (vars[i].contains(val)) {
-		sum += f1.get(i,val);
-	    }
+        int s = vars[i].fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+	    sum += f1.get(i,domainValues[j]);
     	}
         if (sum == 0) return; // temporary state of a soon-to-be-empty domain
-	for (int val = vars[i].min(); val <= vars[i].max(); val++) {
-	    if (vars[i].contains(val)) {
-		f2.set(i,val,f1.get(i,val)/sum);
-	    }
+        for (int j = 0; j < s; j++) {
+	    int val = domainValues[j];
+	    f2.set(i,val,f1.get(i,val)/sum);
 	}
     }
 
     public void receiveMessages() {
 	for(int i = 0; i<vars.length; i++){
-            for (int val = vars[i].min(); val <= vars[i].max(); val++) {
-                if (vars[i].contains(val)) {
-		    setOutsideBelief(i,val,vars[i].sendMessage(val,localBelief(i,val)));
-		}
+	    int s = vars[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		int val = domainValues[j];
+		setOutsideBelief(i,val,vars[i].sendMessage(val,localBelief(i,val)));
 	    }
 	    normalizeBelief(i, (j,val) -> outsideBelief(j,val), 
 			    (j,val,b) -> setOutsideBelief(j,val,b));
@@ -150,17 +153,17 @@ public abstract class AbstractConstraint implements Constraint {
 	    for(int i = 0; i<vars.length; i++){
 		normalizeBelief(i, (j,val) -> localBelief(j,val), 
 				(j,val,b) -> setLocalBelief(j,val,b));
-		for (int val = vars[i].min(); val <= vars[i].max(); val++) {
-		    if (vars[i].contains(val)) {
-			double localB = localBelief(i,val);
-			if (localB==0) { // no support from this constraint 
-			    vars[i].remove(val); // standard domain consistency filtering
-			}
-			else if (localB==1) { // backbone var for this constraint (and hence for all of them)
-			    vars[i].assign(val);
-			}
-			vars[i].receiveMessage(val,localB);
+		int s = vars[i].fillArray(domainValues);
+		for (int j = 0; j < s; j++) {
+		    int val = domainValues[j];
+		    double localB = localBelief(i,val);
+		    if (localB==0) { // no support from this constraint 
+			vars[i].remove(val); // standard domain consistency filtering
 		    }
+		    else if (localB==1) { // backbone var for this constraint (and hence for all of them)
+			vars[i].assign(val);
+		    }
+		    vars[i].receiveMessage(val,localB);
 		}
 	    }
 	} else { // approximate weighted counting (incl. default updateBelief())
@@ -169,10 +172,10 @@ public abstract class AbstractConstraint implements Constraint {
 	    for(int i = 0; i<vars.length; i++){
 		normalizeBelief(i, (j,val) -> localBelief(j,val), 
 				(j,val,b) -> setLocalBelief(j,val,b));
-		for (int val = vars[i].min(); val <= vars[i].max(); val++) {
-		    if (vars[i].contains(val)) {
-			vars[i].receiveMessage(val,localBelief(i,val));
-		    }
+		int s = vars[i].fillArray(domainValues);
+		for (int j = 0; j < s; j++) {
+		    int val = domainValues[j];
+		    vars[i].receiveMessage(val,localBelief(i,val));
 		}
 	    }
 	}
