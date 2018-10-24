@@ -196,7 +196,8 @@ public final class Factory {
      * @see BranchingScheme#branch(Procedure...)
      */
     public static DFSearch makeDfs(Solver cp, Supplier<Procedure[]> branching) {
- 	cp.beliefPropa(); // initial propagation at root node
+ 	if (cp.isBeliefPropa())
+	    cp.beliefPropa(); // initial propagation at root node
         return new DFSearch(cp.getStateManager(), branching);
     }
 
@@ -301,38 +302,47 @@ public final class Factory {
 
     /**
      * Forces the variable to be equal to some given value and
-     * performs belief propagation.
+     * performs (belief) propagation.
      *
      * @param x the variable to be assigned to v
      * @param v the value that must be assigned to x
      */
     public static void equal(IntVar x, int v) {
         x.assign(v);
-        x.getSolver().beliefPropa();
+ 	if (x.getSolver().isBeliefPropa())
+	    x.getSolver().beliefPropa();
+	else
+	    x.getSolver().fixPoint();
     }
 
     /**
      * Forces the variable to be less or equal to some given value and
-     * performs belief propagation.
+     * performs (belief) propagation.
      *
      * @param x the variable that is constrained bo be less or equal to v
      * @param v the value that must be the upper bound on x
      */
     public static void lessOrEqual(IntVar x, int v) {
         x.removeAbove(v);
-        x.getSolver().beliefPropa();
+ 	if (x.getSolver().isBeliefPropa())
+	    x.getSolver().beliefPropa();
+	else
+	    x.getSolver().fixPoint();
     }
 
     /**
      * Forces the variable to be different to some given value and
-     * performs belief propagation.
+     * performs (belief) propagation.
      *
      * @param x the variable that is constrained bo be different from v
      * @param v the value that must be different from x
      */
     public static void notEqual(IntVar x, int v) {
         x.remove(v);
-        x.getSolver().beliefPropa();
+ 	if (x.getSolver().isBeliefPropa())
+	    x.getSolver().beliefPropa();
+	else
+	    x.getSolver().fixPoint();
     }
 
 

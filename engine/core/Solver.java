@@ -59,6 +59,11 @@ public interface Solver {
     void beliefPropa();
 
     /**
+     * @return whether or not beliefPropa() is to be performed instead of fixPoint()
+     */
+    boolean isBeliefPropa();
+
+    /**
      * Returns the state manager in charge of the global
      * state of the solver.
      *

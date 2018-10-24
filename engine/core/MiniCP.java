@@ -42,6 +42,7 @@ public class MiniCP implements Solver {
     private StateStack<IntVar> variables;
     private StateStack<Constraint> constraints;
 
+    private static final boolean beliefPropaOn = true;
     private static final int beliefPropaMaxIter = 5;
     private static final double beliefPropaExtremeValueEpsilon= 1.0E-3;
 
@@ -62,6 +63,10 @@ public class MiniCP implements Solver {
 	variables.push(x);
     }
     
+    public boolean isBeliefPropa() {
+	return beliefPropaOn;
+    }
+
     public void schedule(Constraint c) {
         if (c.isActive() && !c.isScheduled()) {
             c.setScheduled(true);
