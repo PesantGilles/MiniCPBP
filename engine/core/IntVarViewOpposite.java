@@ -172,11 +172,18 @@ public class IntVarViewOpposite implements IntVar {
         for (int i = min(); i <= max() - 1; i++) {
             if (contains((i))) {
                 b.append(i);
-                b.append(',');
+		b.append("  <");
+		b.append(marginal(i));
+		b.append(">, ");
             }
         }
-        if (size() > 0) b.append(max());
-        b.append("}");
+        if (size() > 0) {
+	    b.append(max());
+	    b.append("  <");
+	    b.append(marginal(max()));
+	    b.append(">, ");
+	}
+	b.append("}");
         return b.toString();
     }
 }
