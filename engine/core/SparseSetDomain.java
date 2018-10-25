@@ -26,10 +26,12 @@ import java.util.NoSuchElementException;
  */
 public class SparseSetDomain implements IntDomain {
     private StateSparseWeightedSet domain;
+    private int[] domainValues; // an array large enough to hold the domain
 
 
     public SparseSetDomain(StateManager sm, int min, int max) {
         domain = new StateSparseWeightedSet(sm, max - min + 1, min);
+	domainValues = new int[max - min + 1];
     }
 
     @Override
@@ -145,10 +147,10 @@ public class SparseSetDomain implements IntDomain {
 
     @Override
     public void resetMarginals() {
-	for (int v = min(); v <= max(); v++) {
-	    if (contains(v)) {
-		setMarginal(v,1);
-	    }
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    setMarginal(v,1);
 	}
     }
 
@@ -156,21 +158,19 @@ public class SparseSetDomain implements IntDomain {
     public boolean normalizeMarginals(double epsilon) {
 	double sum = 0;
 	boolean extremeValue = false;
-	for (int v = min(); v <= max(); v++) {
-	    if (contains(v)) {
-		sum += marginal(v);
-	    }
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    sum += marginal(domainValues[j]);
 	}
         assert(sum > 0);
-	for (int v = min(); v <= max(); v++) {
-	    if (contains(v)) {
-		double nm = marginal(v)/sum;
-		setMarginal(v,nm);
-		if (nm<epsilon || nm>1.0-epsilon)
-		    extremeValue = true;
-	    }
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    double nm = marginal(v)/sum;
+	    setMarginal(v,nm);
+	    if (nm<epsilon || nm>1.0-epsilon)
+		extremeValue = true;
 	}
-	return extremeValue;
+	return !extremeValue;
     }
 
     @Override
@@ -178,11 +178,11 @@ public class SparseSetDomain implements IntDomain {
         if (domain.isEmpty())
             throw new NoSuchElementException();
     	double max = -1;
-	for (int v = min(); v <= max(); v++) {
-	    if (contains(v)) {
-		if (marginal(v) > max) {
-		    max = marginal(v);
-		}
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    if (marginal(v) > max) {
+		max = marginal(v);
 	    }
     	}
     	return max;
@@ -194,12 +194,12 @@ public class SparseSetDomain implements IntDomain {
             throw new NoSuchElementException();
     	double max = -1;
 	int valWithMax = -1;
-	for (int v = min(); v <= max(); v++) {
-	    if (contains(v)) {
-		if (marginal(v) > max) {
-		    max = marginal(v);
-		    valWithMax = v;
-		}
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    if (marginal(v) > max) {
+		max = marginal(v);
+		valWithMax = v;
 	    }
     	}
     	return valWithMax;
