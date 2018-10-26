@@ -136,10 +136,10 @@ public class MiniCP implements Solver {
 		    constraints.get(i).sendMessages();
 		}
 		for (int i = 0; i < variables.size(); i++) {
-		    noExtremeValue = noExtremeValue && variables.get(i).normalizeMarginals(beliefPropaExtremeValueEpsilon); 
+		    noExtremeValue = variables.get(i).normalizeMarginals(beliefPropaExtremeValueEpsilon) && noExtremeValue; 
 		}
 		it++;
-	    } while (it<=beliefPropaMaxIter && noExtremeValue);
+ 	    } while (it<=beliefPropaMaxIter && noExtremeValue);
 
         } catch (InconsistencyException e) {
             throw e;
