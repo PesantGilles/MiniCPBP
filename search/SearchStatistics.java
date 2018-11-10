@@ -15,6 +15,8 @@
 
 package minicp.search;
 
+import java.util.Date;
+
 /**
  * Statistics collected during the
  * execution of
@@ -27,10 +29,13 @@ public class SearchStatistics {
     private int nNodes = 0;
     private int nSolutions = 0;
     private boolean completed = false;
+    private long startTime = new Date().getTime();
 
     public String toString() {
+	long timeElapsed = new Date().getTime() - startTime;
         return "\n\t#choice: " + nNodes
                 + "\n\t#fail: " + nFailures
+                + "\n\texecution time (ms): " + timeElapsed
                 + "\n\t#sols : " + nSolutions
                 + "\n\tcompleted : " + completed + "\n";
     }
@@ -66,5 +71,4 @@ public class SearchStatistics {
     public boolean isCompleted() {
         return completed;
     }
-
 }
