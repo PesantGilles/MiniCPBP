@@ -196,8 +196,18 @@ public final class Factory {
      * @see BranchingScheme#branch(Procedure...)
      */
     public static DFSearch makeDfs(Solver cp, Supplier<Procedure[]> branching) {
- 	if (cp.isBeliefPropa())
-	    cp.beliefPropa(); // initial propagation at root node
+	switch(cp.getMode()) { // initial propagation at root node
+	case SP: 
+	    cp.fixPoint();
+	    break;
+	case BP: 
+	    cp.beliefPropa();
+	    break;
+	case SBP: 
+	    cp.fixPoint();
+	    cp.beliefPropa();
+	    break;
+	}
         return new DFSearch(cp.getStateManager(), branching);
     }
 
@@ -302,47 +312,100 @@ public final class Factory {
 
     /**
      * Forces the variable to be equal to some given value and
-     * performs (belief) propagation.
+     * performs propagation.
      *
      * @param x the variable to be assigned to v
      * @param v the value that must be assigned to x
      */
     public static void equal(IntVar x, int v) {
         x.assign(v);
- 	if (x.getSolver().isBeliefPropa())
-	    x.getSolver().beliefPropa();
-	else
+	switch(x.getSolver().getMode()) {
+	case BP:
+	    break;
+	case SP:
+	case SBP:
 	    x.getSolver().fixPoint();
+	}
+    }
+
+    /**
+     * Branches on x=v and 
+     * performs (belief) propagation.
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqual(IntVar x, int v) {
+        x.assign(v);
+	switch(x.getSolver().getMode()) {
+	case BP:
+	    x.getSolver().beliefPropa();
+	    break;
+	case SP:
+	    x.getSolver().fixPoint();
+	    break;
+	case SBP:
+	    x.getSolver().fixPoint();
+	    x.getSolver().beliefPropa();
+	}
     }
 
     /**
      * Forces the variable to be less or equal to some given value and
-     * performs (belief) propagation.
+     * performs propagation.
      *
      * @param x the variable that is constrained bo be less or equal to v
      * @param v the value that must be the upper bound on x
      */
     public static void lessOrEqual(IntVar x, int v) {
         x.removeAbove(v);
- 	if (x.getSolver().isBeliefPropa())
-	    x.getSolver().beliefPropa();
-	else
+	switch(x.getSolver().getMode()) {
+	case BP:
+	    break;
+	case SP:
+	case SBP:
 	    x.getSolver().fixPoint();
+	}
     }
 
     /**
      * Forces the variable to be different to some given value and
-     * performs (belief) propagation.
+     * performs propagation.
      *
      * @param x the variable that is constrained bo be different from v
      * @param v the value that must be different from x
      */
     public static void notEqual(IntVar x, int v) {
         x.remove(v);
- 	if (x.getSolver().isBeliefPropa())
-	    x.getSolver().beliefPropa();
-	else
+	switch(x.getSolver().getMode()) {
+	case BP:
+	    break;
+	case SP:
+	case SBP:
 	    x.getSolver().fixPoint();
+	}
+    }
+
+    /**
+     * Branches on x!=v and
+     * performs (belief) propagation.
+     *
+     * @param x the variable that is constrained bo be different from v
+     * @param v the value that must be different from x
+     */
+    public static void branchNotEqual(IntVar x, int v) {
+        x.remove(v);
+	switch(x.getSolver().getMode()) {
+	case BP:
+	    x.getSolver().beliefPropa();
+	    break;
+	case SP:
+	    x.getSolver().fixPoint();
+	    break;
+	case SBP:
+	    x.getSolver().fixPoint();
+	    x.getSolver().beliefPropa();
+	}
     }
 
 
@@ -549,6 +612,34 @@ public final class Factory {
     }
 
     /**
+     * Returns a variable representing
+     * the weighted sum of a given set of variables.
+     * This relation is enforced by the {@link Sum} constraint
+     * posted by calling this method.
+     *
+     * @param c an array of integer coefficients
+     * @param x an array of variables
+     * @return a variable equal to {@code c[0]*x[0]+c[1]*x[1]+...+c[n-1]*x[n-1]}
+     */
+    public static IntVar sum(int[] c, IntVar... x) {
+	assert(c.length == x.length);
+        int sumMin = 0;
+        int sumMax = 0;
+        for (int i = 0; i < x.length; i++) {
+            sumMin += c[i]*x[i].min();
+            sumMax += c[i]*x[i].max();
+        }
+        Solver cp = x[0].getSolver();
+        IntVar[] vars = new IntVar[x.length + 1];
+        for (int i = 0; i < x.length; i++) {
+            vars[i] = mul(x[i],c[i]);
+        }
+        vars[x.length] = makeIntVar(cp, sumMin, sumMax);
+        cp.post(new Sum(vars));
+        return vars[x.length];
+    }
+
+    /**
      * Returns a sum constraint.
      *
      * @param x an array of variables
@@ -557,6 +648,23 @@ public final class Factory {
      */
     public static Constraint sum(IntVar[] x, IntVar y) {
         IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = minus(y);
+        return new Sum(vars);
+    }
+
+    /**
+     * Returns a weighted sum constraint.
+     *
+     * @param c an array of integer coefficients
+     * @param x an array of variables
+     * @param y a variable
+     * @return a constraint so that {@code y = c[0]*x[0]+c[1]*x[1]+...+c[n-1]*x[n-1]}
+     */
+    public static Constraint sum(int[] c, IntVar[] x, IntVar y) {
+        IntVar[] vars = new IntVar[x.length + 1];
+        for (int i = 0; i < x.length; i++) {
+            vars[i] = mul(x[i],c[i]);
+        }
         vars[x.length] = minus(y);
         return new Sum(vars);
     }
@@ -571,6 +679,24 @@ public final class Factory {
     public static Constraint sum(IntVar[] x, int y) {
         Solver cp = x[0].getSolver();
         IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = makeIntVar(cp, -y, -y);
+        return new Sum(vars);
+    }
+
+    /**
+     * Returns a weighted sum constraint.
+     *
+     * @param c an array of integer coefficients
+     * @param x an array of variables
+     * @param y a constant
+     * @return a constraint so that {@code y = c[0]*x[0]+c[1]*x[1]+...+c[n-1]*x[n-1]}
+     */
+    public static Constraint sum(int[] c, IntVar[] x, int y) {
+        Solver cp = x[0].getSolver();
+        IntVar[] vars = new IntVar[x.length + 1];
+        for (int i = 0; i < x.length; i++) {
+            vars[i] = mul(x[i],c[i]);
+        }
         vars[x.length] = makeIntVar(cp, -y, -y);
         return new Sum(vars);
     }

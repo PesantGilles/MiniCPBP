@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 
 import static minicp.cp.Factory.equal;
 import static minicp.cp.Factory.notEqual;
+import static minicp.cp.Factory.branchEqual;
+import static minicp.cp.Factory.branchNotEqual;
 
 /**
  * Factory for search procedures.
@@ -128,8 +130,8 @@ public final class BranchingScheme {
                 return EMPTY;
             else {
                 int v = xs.min();
-                return branch(() -> equal(xs, v),
-                        () -> notEqual(xs, v));
+                return branch(() -> branchEqual(xs, v),
+                        () -> branchNotEqual(xs, v));
             }
         };
     }
@@ -156,10 +158,10 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal(); 
                 return branch(
 			      () -> { 
-				  equal(xs, v); 
+				  branchEqual(xs, v); 
 			      },
 			      () -> {
-				  notEqual(xs, v);
+				  branchNotEqual(xs, v);
 			      } );
             }
         };

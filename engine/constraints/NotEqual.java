@@ -58,12 +58,15 @@ public class NotEqual extends AbstractConstraint {
             x.remove(y.min() + c);
         else if (x.isBound())
             y.remove(x.min() - c);
-        else {
-	    if (!getSolver().isBeliefPropa() ||  !isExactWCounting()) { // only schedule propagate() if counting is not exact
+        else switch(getSolver().getMode()) {
+	    case BP:
+		if (isExactWCounting())
+		    break; // only schedule propagate() if counting is not exact
+	    case SP:
+	    case SBP:
 		x.propagateOnBind(this);
 		y.propagateOnBind(this);
 	    }
-        }
     }
 
     @Override
