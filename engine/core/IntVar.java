@@ -187,21 +187,11 @@ public interface IntVar {
      */
     void resetMarginals();
 
-
     /**
      * Normalizes the marginals.
-     * @return always true
      *
      */
-    boolean normalizeMarginals();
-
-    /**
-     * Normalizes the marginals.
-     * @param epsilon 
-     * @return false if a normalized value is less than epsilon or greater than 1-epsilon
-     *
-     */
-    boolean normalizeMarginals(double epsilon);
+    void normalizeMarginals();
 
     /**
      * Returns the largest marginal for a value in the domain.

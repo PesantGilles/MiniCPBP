@@ -193,13 +193,8 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
-    public boolean normalizeMarginals() {
-	return x.normalizeMarginals(0);
-    }
-
-    @Override
-    public boolean normalizeMarginals(double epsilon) {
-	return x.normalizeMarginals(epsilon);
+    public void normalizeMarginals() {
+	x.normalizeMarginals();
     }
 
     @Override

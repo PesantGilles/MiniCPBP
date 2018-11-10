@@ -38,7 +38,7 @@ public abstract class AbstractConstraint implements Constraint {
     private int[] ofs;
     private IntVar[] vars; // all the variables in the scope of the constraint
     private int maxDomainSize;
-    private int[] domainValues;
+    protected int[] domainValues; // an array large enough to hold any domain of vars
     private boolean exactWCounting = false;
 
     public AbstractConstraint(IntVar[] vars) {
@@ -126,6 +126,11 @@ public abstract class AbstractConstraint implements Constraint {
 	double sum = 0;
         int s = vars[i].fillArray(domainValues);
         for (int j = 0; j < s; j++) {
+	    int val = domainValues[j];
+	    if ((f1.get(i,val) < cp.getEpsilon()) && (f1.get(i,val) > 0))
+		f2.set(i,val,cp.getEpsilon());
+	    else if ((f1.get(i,val) > 1 -  cp.getEpsilon()) && (f1.get(i,val) < 1))
+		f2.set(i,val,1 - cp.getEpsilon());
 	    sum += f1.get(i,domainValues[j]);
     	}
         if (sum == 0) return; // temporary state of a soon-to-be-empty domain

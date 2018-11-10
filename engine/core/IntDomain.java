@@ -164,10 +164,10 @@ public interface IntDomain {
 
     /**
      * Normalizes the marginals.
-     * @return false if a normalized value is less than epsilon or greater than 1-epsilon
      *
+     * @param epsilon used to limit extreme marginal values
      */
-    boolean normalizeMarginals(double epsilon);
+    void normalizeMarginals(double epsilon);
 
     /**
      * Returns the largest marginal for a value in the domain.

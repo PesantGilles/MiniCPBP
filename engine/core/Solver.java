@@ -21,6 +21,12 @@ import minicp.util.Procedure;
 
 public interface Solver {
 
+    public enum PropaMode {
+	SP /* support propagation (aka standard constraint propagation) */, 
+	BP /* belief propagation */, 
+	SBP /* both support and belief propagation */ 
+    } 
+
     /**
      * Posts the constraint, that is call {@link Constraint#post()} and
      * DOES NOT compute the fix-point.
@@ -49,6 +55,16 @@ public interface Solver {
     void post(Constraint c, boolean enforceFixPoint);
 
     /**
+     * @return the propagation mode
+     */
+    PropaMode getMode();
+
+    /**
+     * @return the epsilon used to limit extreme marginal/belief values
+     */
+    double getEpsilon();
+
+    /**
      * Computes the fix-point with all the scheduled constraints.
      */
     void fixPoint();
@@ -57,11 +73,6 @@ public interface Solver {
      * Performs belief propagation with all the posted constraints.
      */
     void beliefPropa();
-
-    /**
-     * @return whether or not beliefPropa() is to be performed instead of fixPoint()
-     */
-    boolean isBeliefPropa();
 
     /**
      * Returns the state manager in charge of the global

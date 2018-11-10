@@ -155,22 +155,23 @@ public class SparseSetDomain implements IntDomain {
     }
 
     @Override
-    public boolean normalizeMarginals(double epsilon) {
+    public void normalizeMarginals(double epsilon) {
 	double sum = 0;
-	boolean extremeValue = false;
 	int s = fillArray(domainValues);
 	for (int j = 0; j < s; j++) {
-	    sum += marginal(domainValues[j]);
+	    int v = domainValues[j];
+	    if ((marginal(v) < epsilon) && (marginal(v) > 0))
+		setMarginal(v,epsilon);
+	    else if ((marginal(v) > 1 - epsilon) && (marginal(v) < 1))
+		setMarginal(v,1 - epsilon);
+	    sum += marginal(v);
 	}
         assert(sum > 0);
 	for (int j = 0; j < s; j++) {
 	    int v = domainValues[j];
 	    double nm = marginal(v)/sum;
 	    setMarginal(v,nm);
-	    if (nm<epsilon || nm>1.0-epsilon)
-		extremeValue = true;
 	}
-	return !extremeValue;
     }
 
     @Override

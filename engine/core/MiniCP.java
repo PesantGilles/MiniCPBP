@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.ArrayList;
 
-
 public class MiniCP implements Solver {
 
     private Queue<Constraint> propagationQueue = new ArrayDeque<>();
@@ -42,9 +41,14 @@ public class MiniCP implements Solver {
     private StateStack<IntVar> variables;
     private StateStack<Constraint> constraints;
 
-    private static final boolean beliefPropaOn = true;
+    //******** PARAMETERS ********
+    // SP  /* support propagation (aka standard constraint propagation) */
+    // BP  /* belief propagation */
+    // SBP /* both support and belief propagation */
+    private static final PropaMode mode = PropaMode.BP;
     private static final int beliefPropaMaxIter = 5;
-    private static final double beliefPropaExtremeValueEpsilon= 1.0E-3;
+    private static final double beliefPropaExtremeValueEpsilon = 1.0E-5;
+    //****************************
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -63,8 +67,12 @@ public class MiniCP implements Solver {
 	variables.push(x);
     }
     
-    public boolean isBeliefPropa() {
-	return beliefPropaOn;
+    public PropaMode getMode() {
+	return mode;
+    }
+
+    public double getEpsilon() {
+	return beliefPropaExtremeValueEpsilon;
     }
 
     public void schedule(Constraint c) {
@@ -115,35 +123,47 @@ public class MiniCP implements Solver {
      */
     @Override
     public void beliefPropa() {
-
+	boolean allBound;
 	notifyBeliefPropa();
-
-	boolean noExtremeValue = true;
-
         for (int i = 0; i < variables.size(); i++) {
 	    variables.get(i).normalizeMarginals(); 
 	}
         try {
 	    int it = 1;
 	    do {
-		for (int i = 0; i < constraints.size(); i++) {
-		    constraints.get(i).receiveMessages();
-		}
-		for (int i = 0; i < variables.size(); i++) {
-		    variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
-		}
-		for (int i = 0; i < constraints.size(); i++) {
-		    constraints.get(i).sendMessages();
-		}
-		for (int i = 0; i < variables.size(); i++) {
-		    noExtremeValue = variables.get(i).normalizeMarginals(beliefPropaExtremeValueEpsilon) && noExtremeValue; 
-		}
+		allBound = BPiteration();
 		it++;
- 	    } while (it<=beliefPropaMaxIter && noExtremeValue);
+ 	    } while (it<=beliefPropaMaxIter && !allBound);
 
+	    if (allBound)
+		BPiteration(); // one last iteration to ensure feasibility
         } catch (InconsistencyException e) {
             throw e;
         }
+    }
+
+    /**
+     * a single iteration of Belief Propagation:
+     * from variables to constraints, and then from constraints to variables
+     *
+     * @return true iff all variables are bound
+     */
+    private boolean BPiteration() {
+	boolean allBound = true;
+	for (int i = 0; i < constraints.size(); i++) {
+	    constraints.get(i).receiveMessages();
+	}
+	for (int i = 0; i < variables.size(); i++) {
+	    variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
+	}
+	for (int i = 0; i < constraints.size(); i++) {
+	    constraints.get(i).sendMessages();
+	}
+	for (int i = 0; i < variables.size(); i++) {
+	    variables.get(i).normalizeMarginals();
+	    allBound = allBound && variables.get(i).isBound(); 
+	}
+	return allBound;
     }
 
     private void propagate(Constraint c) {
@@ -181,3 +201,4 @@ public class MiniCP implements Solver {
         fixPoint();
     }
 }
+

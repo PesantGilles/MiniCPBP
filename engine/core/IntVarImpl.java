@@ -219,13 +219,8 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
-    public boolean normalizeMarginals() {
-	return domain.normalizeMarginals(0);
-    }
-
-    @Override
-    public boolean normalizeMarginals(double epsilon) {
-	return domain.normalizeMarginals(epsilon);
+    public void normalizeMarginals() {
+	domain.normalizeMarginals(cp.getEpsilon());
     }
 
     @Override
