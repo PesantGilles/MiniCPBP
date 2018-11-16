@@ -34,6 +34,11 @@ public class Sum extends AbstractConstraint {
     private StateInt sumBounds;
     private IntVar[] x;
     private int n;
+    private double[][] ip;
+    private double[][] op;
+    private int offset;
+    private int mini;
+    private int maxi;
 
     /**
      * Creates a sum constraint.
@@ -75,12 +80,47 @@ public class Sum extends AbstractConstraint {
         nUnBounds = getSolver().getStateManager().makeStateInt(n);
         sumBounds = getSolver().getStateManager().makeStateInt(0);
         unBounds = IntStream.range(0, n).toArray();
+   	setExactWCounting(true);
+	// compute the extent of the dynamic programming tables ip and op	
+	int fwd, bwd;
+	fwd = 0;
+	bwd = 0;
+	for (int i = 0 ; i < n; i++) {
+	    bwd -= x[i].min();
+	}
+	maxi = 0;
+	for( int i = 0; i < n; i++) {
+	    maxi = Math.max( maxi, Math.min( fwd, bwd ));
+	    fwd += x[i].max();
+	    bwd += x[i].min();
+	}
+	fwd = 0;
+	bwd = 0;
+	for (int i = 0; i < n; i++) {
+	    bwd -= x[i].max();
+	}
+	mini = 0;
+	for(int i = 0; i < n; i++) {
+	    mini = Math.min( mini, Math.max( fwd, bwd ));
+	    fwd += x[i].min();
+	    bwd += x[i].max();
+	}
+	this.offset = -mini; 
+	this.op = new double[n][maxi-mini+1];
+	this.ip = new double[n][maxi-mini+1];
     }
 
     @Override
     public void post() {
-        for (IntVar var : x)
-            var.propagateOnBoundChange(this);
+	switch(getSolver().getMode()) {
+	case BP:
+	    if (isExactWCounting())
+		break; // only schedule propagate() if counting is not exact
+	case SP:
+	case SBP:
+	    for (IntVar var : x)
+		var.propagateOnBoundChange(this);
+	}
         propagate();
     }
 
@@ -108,6 +148,52 @@ public class Sum extends AbstractConstraint {
             x[idx].removeAbove(-(sumMin - x[idx].min()));
             x[idx].removeBelow(-(sumMax - x[idx].max()));
         }
+    }
+
+
+    @Override
+    public void updateBelief(){
+	for(int i = 0; i<n; i++){
+	    Arrays.fill(ip[i],0);
+	}
+	// Reach forward
+	ip[0][offset] = 1;
+	for(int i = 0; i<n-1; i++){
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		int v = domainValues[j];
+		for(int k = mini-(v<0?v:0); k <= maxi-(v>0?v:0); k++){
+		    if(ip[i][k+offset]>0) {
+			ip[i+1][k+offset+v] += ip[i][k+offset] * outsideBelief(i,v);
+		    }
+		}
+	    }
+	}
+
+	for(int i = 0; i<n; i++){
+	    Arrays.fill(op[i],0);
+	}
+	// Reach backward and set local beliefs
+	op[n-1][offset] = 1;
+	for(int i = n-1; i>0; i--){
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		int v = domainValues[j];
+		double belief = 0;
+		for(int k = mini-(v<0?v:0); k <= maxi-(v>0?v:0); k++){
+		    if(op[i][k+offset+v]>0) {
+			op[i-1][k+offset] += op[i][k+offset+v] * outsideBelief(i,v);
+			belief += ip[i][k+offset] * op[i][k+offset+v];
+		    }
+		}
+		setLocalBelief(i,v,belief);
+	    }
+	}
+	int s = x[0].fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    setLocalBelief(0,v,op[0][offset+v]);
+	}
     }
 
 }

@@ -34,6 +34,9 @@ public class TableCT extends AbstractConstraint {
     private int[][] table; //the table
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
+    private double[] tupleWeight;
+    private BitSet supportedTuples;
+    private BitSet supporti;
 
     /**
      * Table constraint.
@@ -55,6 +58,10 @@ public class TableCT extends AbstractConstraint {
         super(x);
         this.x = new IntVar[x.length];
         this.table = table;
+    	setExactWCounting(true);
+	tupleWeight = new double[table.length];
+	supportedTuples = new BitSet(table.length);
+	supporti = new BitSet(table.length);
 
         // Allocate supportedByVarVal
         supports = new BitSet[x.length][];
@@ -77,8 +84,15 @@ public class TableCT extends AbstractConstraint {
 
     @Override
     public void post() {
-        for (IntVar var : x)
-            var.propagateOnDomainChange(this);
+	switch(getSolver().getMode()) {
+	case BP:
+	    if (isExactWCounting())
+		break; // only schedule propagate() if counting is not exact
+	case SP:
+	case SBP:
+	    for (IntVar var : x)
+		var.propagateOnDomainChange(this);
+	}
         propagate();
     }
 
@@ -90,26 +104,77 @@ public class TableCT extends AbstractConstraint {
         BitSet supportedTuples = new BitSet(table.length);
         supportedTuples.flip(0, table.length);
 
-        // TODO 1: compute supportedTuples as
+        // Compute supportedTuples as
         // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
-
-         // This should be displayed instead of the actual code
-
-        // TODO 2
         for (int i = 0; i < x.length; i++) {
-            for (int v = x[i].min(); v <= x[i].max(); v++) {
-                if (x[i].contains(v)) {
-                    // TODO 2 the condition for removing the setValue v from x[i] is to check if
-                    // there is no intersection between supportedTuples and the support[i][v]
-                     throw new NotImplementedException();
-                }
+            BitSet supporti = new BitSet();
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		supporti.or(supports[i][domainValues[j]]);
+            }
+            supportedTuples.and(supporti);
+        }
+
+        for (int i = 0; i < x.length; i++) {
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		// The condition for removing the setValue v from x[i] is to check if
+		// there is no intersection between supportedTuples and the support[i][v]
+		int v = domainValues[j];
+		if (!supports[i][v].intersects(supportedTuples)) {
+		    x[i].remove(v);
+		}
             }
         }
 
 
-        //throw new NotImplementedException("TableCT");
     }
+
+    @Override
+    public void updateBelief(){
+
+        // Compute supportedTuples as
+        // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
+        //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
+        //
+        supportedTuples.set(0, table.length); // set them all to true
+        for (int i = 0; i < x.length; i++) {
+	    supporti.clear(); // set them all to false
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		supporti.or(supports[i][domainValues[j]]);
+            }
+            supportedTuples.and(supporti);
+        }
+
+	// Each tuple has its own weight given by the product of the outside_belief of its elements.
+	// Compute these products, but only for supported tuples.
+	for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k+1)) {
+	    tupleWeight[k] = 1;
+	    for (int i = 0; i < x.length; i++) { 
+		tupleWeight[k] *= outsideBelief(i,table[k][i]);
+	    }
+	}
+
+        for (int i = 0; i < x.length; i++) {
+	    int s = x[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		int v = domainValues[j];
+		double belief = 0;
+		// Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
+		for (int k = supports[i][v].nextSetBit(0); k >= 0; k = supports[i][v].nextSetBit(k+1)) {
+		    if (supportedTuples.get(k)) {
+			belief += tupleWeight[k] / outsideBelief(i,v);
+		    }
+		}
+		setLocalBelief(i,v,belief);
+            }
+        }
+    }
+
+    // FOR SIMPLE COUNTING:
+    // the frequency of x[i]=v is given by (supports[i][v] /\ supportedTuples).cardinality()
 
 }
