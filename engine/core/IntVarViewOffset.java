@@ -29,8 +29,6 @@ public class IntVarViewOffset implements IntVar {
     public IntVarViewOffset(IntVar x, int offset) { // y = x + o
         this.x = x;
         this.o = offset;
-
-        x.getSolver().registerVar(this);
     }
 
     @Override

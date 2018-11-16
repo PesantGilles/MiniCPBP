@@ -32,8 +32,6 @@ public class IntVarViewMul implements IntVar {
         assert (a > 0);
         this.a = a;
         this.x = x;
-
-        x.getSolver().registerVar(this);
     }
 
     @Override

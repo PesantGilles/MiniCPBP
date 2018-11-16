@@ -151,7 +151,7 @@ public final class BranchingScheme {
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
-		    xi -> -(xi.maxMarginal() - 1.0 / xi.size()));
+		    xi -> 1.0 / xi.size() - xi.maxMarginal());
             if (xs == null)
                 return EMPTY;
             else {

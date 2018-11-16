@@ -27,8 +27,6 @@ public class IntVarViewOpposite implements IntVar {
 
     public IntVarViewOpposite(IntVar x) {
         this.x = x;
-
-        x.getSolver().registerVar(this);
     }
 
     @Override
