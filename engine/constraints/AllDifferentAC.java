@@ -238,14 +238,12 @@ public class AllDifferentAC extends AbstractConstraint {
 		int val = x[i].min();
 		freeVals.remove(val);
 		// set trivial local belief for bound var...
-		setLocalBelief(i,val,1);
-		// ...and for other vars being assigned that val
+ 		setLocalBelief(i,val,1);
+		// ...and apply basic fwd checking to other vars
 		for (int k = 0; k < j; k++)
-		    if (x[varIndices[k]].contains(val))
-			setLocalBelief(varIndices[k],val,0);
+		    x[varIndices[k]].remove(val);
 		for (int k = j+1; k < nbVar; k++)
-		    if (x[varIndices[k]].contains(val))
-			setLocalBelief(varIndices[k],val,0);
+		    x[varIndices[k]].remove(val);
 	    }
 	}
  	// initialize outside beliefs matrix
@@ -269,6 +267,7 @@ public class AllDifferentAC extends AbstractConstraint {
 	// set local beliefs by computing the permanent of beliefs sub-matrices
 	if (nbVal-1 <= exactPermanentThreshold) {
 	    // exact permanent
+	    setExactWCounting(true);
 	    for (int j = 0; j < nbVar; j++) {
 		int i = varIndices[j];
 		for (int k = 0; k < nbVal; k++) {
@@ -282,6 +281,7 @@ public class AllDifferentAC extends AbstractConstraint {
 	}
 	else {
 	    // approximate permanent
+	    setExactWCounting(false);
 	    for (int j = 0; j < nbVar; j++) {
 		int i = varIndices[j];
 		for (int k = 0; k < nbVal; k++) {
@@ -295,12 +295,12 @@ public class AllDifferentAC extends AbstractConstraint {
 	}
     }
 
-    // precompute gamma function up to n
+    // precompute gamma function up to n+1, to account for small floating-point errors
     private void precompute_gamma(int n) {
 	double factorial=1.0;
-	gamma = new double[n+1];
+	gamma = new double[n+2];
 	gamma[0]=1.0;
-	for(int i=1; i<=n; i++){
+	for(int i=1; i<=n+1; i++){
 	    factorial *= (double) i;
 	    gamma[i] = Math.pow( factorial, 1.0/((double) i));
 	}
