@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 
@@ -24,6 +27,7 @@ import minicp.util.Procedure;
 public class IntVarViewOpposite implements IntVar {
 
     private final IntVar x;
+    private String name;
 
     public IntVarViewOpposite(IntVar x) {
         this.x = x;
@@ -119,6 +123,11 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public int randomValue() {
+	return -x.randomValue();
+    }
+
+    @Override
     public double marginal(int v) {
     	return x.marginal(-v);
     }
@@ -158,6 +167,16 @@ public class IntVarViewOpposite implements IntVar {
 	x.setMarginal(-v,x.marginal(-v) * b);
     }
 
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+	
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();

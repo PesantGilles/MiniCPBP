@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 
@@ -25,6 +28,7 @@ public class IntVarViewOffset implements IntVar {
 
     private final IntVar x;
     private final int o;
+    private String name;
 
     public IntVarViewOffset(IntVar x, int offset) { // y = x + o
         this.x = x;
@@ -121,6 +125,11 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public int randomValue() {
+	return x.randomValue() + o;
+    }
+
+    @Override
     public double marginal(int v) {
     	return x.marginal(v - o);
     }
@@ -160,6 +169,16 @@ public class IntVarViewOffset implements IntVar {
 	x.setMarginal(v - o, x.marginal(v - o) * b);
     }
 
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+	
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();

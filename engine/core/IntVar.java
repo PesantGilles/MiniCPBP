@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.core;
@@ -163,6 +166,13 @@ public interface IntVar {
     void removeAbove(int v);
 
     /**
+     * Returns a value in the domain chosen uniformly at random.
+     *
+     * @return random value in the domain
+     */
+    int randomValue();
+
+    /**
      * Returns the marginal of the specified value.
      *
      * @param v the value whose marginal is to be returned
@@ -227,4 +237,7 @@ public interface IntVar {
      *            is thrown if the value is not in the domain
      */
     void receiveMessage(int v, double b);
+
+    public String getName();
+    public void setName(String name);
 }

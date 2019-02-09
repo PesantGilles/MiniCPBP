@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.cp;
@@ -130,6 +133,31 @@ public final class BranchingScheme {
                 return EMPTY;
             else {
                 int v = xs.min();
+                return branch(() -> branchEqual(xs, v),
+                        () -> branchNotEqual(xs, v));
+            }
+        };
+    }
+
+    /**
+     * First-Fail strategy + random value selection.
+     * It selects the first variable with a domain larger than one.
+     * Then it creates two branches. The left branch
+     * assigning the variable to a value in its domain, chosen uniformly at random.
+     * The right branch removing this value from the domain.
+     * @param x the variable on which the first fail strategy is applied.
+     * @return a first-fail/random-value branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> firstFailRandomVal(IntVar... x) {
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> xi.size());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.randomValue();
                 return branch(() -> branchEqual(xs, v),
                         () -> branchNotEqual(xs, v));
             }

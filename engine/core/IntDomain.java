@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.core;
@@ -140,6 +143,13 @@ public interface IntDomain {
      *         </ul>
      */
     void removeAbove(int v, DomainListener l);
+
+    /**
+     * Returns a value in the domain chosen uniformly at random
+     *
+     * @return random value in the domain
+     */
+    int randomValue();
 
     /**
      * Returns the marginal of an element from the domain.

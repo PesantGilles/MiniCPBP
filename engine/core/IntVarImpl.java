@@ -29,6 +29,7 @@ import java.util.Set;
  */
 public class IntVarImpl implements IntVar {
 
+    private String name;
     private Solver cp;
     private IntDomain domain;
     private StateStack<Constraint> onDomain;
@@ -204,6 +205,11 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public int randomValue() {
+	return domain.randomValue();
+    }
+
+    @Override
     public double marginal(int v) {
     	return domain.marginal(v);
     }
@@ -241,5 +247,15 @@ public class IntVarImpl implements IntVar {
     @Override
     public void receiveMessage(int v, double b) {
 	domain.setMarginal(v,domain.marginal(v) * b);
+    }
+
+    @Override
+	public String getName() {
+	return this.name;
+    }
+    
+    @Override
+	public void setName(String name) {
+	this.name = name;
     }
 }

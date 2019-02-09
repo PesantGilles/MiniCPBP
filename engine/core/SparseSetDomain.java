@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.core;
@@ -19,6 +22,7 @@ import minicp.state.StateManager;
 import minicp.state.StateSparseWeightedSet;
 
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 
 /**
@@ -28,6 +32,7 @@ public class SparseSetDomain implements IntDomain {
     private StateSparseWeightedSet domain;
     private int[] domainValues; // an array large enough to hold the domain
 
+    static Random rand = new Random();
 
     public SparseSetDomain(StateManager sm, int min, int max) {
         domain = new StateSparseWeightedSet(sm, max - min + 1, min);
@@ -133,6 +138,14 @@ public class SparseSetDomain implements IntDomain {
                     break;
             }
         }
+    }
+
+    @Override
+    public int randomValue() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+	int s = fillArray(domainValues);
+	return domainValues[rand.nextInt(s)];
     }
 
     @Override

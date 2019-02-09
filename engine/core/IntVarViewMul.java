@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 
@@ -27,6 +30,7 @@ public class IntVarViewMul implements IntVar {
 
     private final int a;
     private final IntVar x;
+    private String name;
 
     public IntVarViewMul(IntVar x, int a) {
         assert (a > 0);
@@ -168,6 +172,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public int randomValue() {
+	return x.randomValue() * a;
+    }
+
+    @Override
     public double marginal(int v) {
 	if (v % a == 0) {
 	    return x.marginal(v/a);
@@ -223,4 +232,14 @@ public class IntVarViewMul implements IntVar {
 	}
     }
 
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 }
