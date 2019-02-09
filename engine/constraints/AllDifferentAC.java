@@ -140,8 +140,7 @@ public class AllDifferentAC extends AbstractConstraint {
     public void post() {
 	switch(getSolver().getMode()) {
 	case BP:
-	    if (isExactWCounting())
-		break; // only schedule propagate() if counting is not exact
+	    break;
 	case SP:
 	case SBP:
 	    for (int i = 0; i < nVar; i++) {

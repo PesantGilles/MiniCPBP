@@ -47,7 +47,7 @@ public class MiniCP implements Solver {
     //******** PARAMETERS ********
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
-    // SBP /* both support and belief propagation */
+    // SBP /* first apply support propagation and then belief propagation */
     private static final PropaMode mode = PropaMode.BP;
     private static final int beliefPropaMaxIter = 5;
     private static final double beliefPropaExtremeValueEpsilon = 1.0E-5;

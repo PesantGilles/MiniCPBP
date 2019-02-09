@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.core;
@@ -153,35 +156,23 @@ public abstract class AbstractConstraint implements Constraint {
     }
 
     public void sendMessages() {
-	if (isExactWCounting()) { 
-	    updateBelief(); // no need to call propagate() since it subsumes it
-	    for(int i = 0; i<vars.length; i++){
-		normalizeBelief(i, (j,val) -> localBelief(j,val), 
-				(j,val,b) -> setLocalBelief(j,val,b));
-		int s = vars[i].fillArray(domainValues);
-		for (int j = 0; j < s; j++) {
-		    int val = domainValues[j];
-		    double localB = localBelief(i,val);
-		    if (localB==0) { // no support from this constraint 
-			vars[i].remove(val); // standard domain consistency filtering
-		    }
-		    else if (localB==1) { // backbone var for this constraint (and hence for all of them)
-			vars[i].assign(val);
-		    }
-		    vars[i].receiveMessage(val,localB);
+	updateBelief();
+	// Note: does not discriminate between exact and approximate weighted counting
+	for(int i = 0; i<vars.length; i++){
+	    normalizeBelief(i, (j,val) -> localBelief(j,val), 
+			    (j,val,b) -> setLocalBelief(j,val,b));
+	    int s = vars[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		int val = domainValues[j];
+		double localB = localBelief(i,val);
+		// CAVEAT: approximate weighted counting should be sound wrt returning 0/1 beliefs
+		if (localB==0) { // no support from this constraint 
+		    vars[i].remove(val); // standard domain consistency filtering
 		}
-	    }
-	} else { // approximate weighted counting (incl. default updateBelief())
-	    cp.fixPoint(); // if at least one constraint does not implement exact weighted counting, perform standard propagation
-	    updateBelief();
-	    for(int i = 0; i<vars.length; i++){
-		normalizeBelief(i, (j,val) -> localBelief(j,val), 
-				(j,val,b) -> setLocalBelief(j,val,b));
-		int s = vars[i].fillArray(domainValues);
-		for (int j = 0; j < s; j++) {
-		    int val = domainValues[j];
-		    vars[i].receiveMessage(val,localBelief(i,val));
+		else if (localB==1) { // backbone var for this constraint (and hence for all of them)
+		    vars[i].assign(val);
 		}
+		vars[i].receiveMessage(val,localB);
 	    }
 	}
     }

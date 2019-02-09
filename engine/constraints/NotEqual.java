@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.constraints;
@@ -60,8 +63,7 @@ public class NotEqual extends AbstractConstraint {
             y.remove(x.min() - c);
         else switch(getSolver().getMode()) {
 	    case BP:
-		if (isExactWCounting())
-		    break; // only schedule propagate() if counting is not exact
+		break;
 	    case SP:
 	    case SBP:
 		x.propagateOnBind(this);
