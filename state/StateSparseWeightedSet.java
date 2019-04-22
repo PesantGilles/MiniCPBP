@@ -49,11 +49,11 @@ public class StateSparseWeightedSet extends StateSparseSet {
     protected void exchangePositions(int val1, int val2) {
         int i1 = indexes[val1];
         int i2 = indexes[val2];
-        double w1 = weights[i1].value();
-        double w2 = weights[i2].value();
+	StateDouble w1 = weights[i1];
+        StateDouble w2 = weights[i2];
 	super.exchangePositions(val1,val2);
-        weights[i1].setValue(w2);
-        weights[i2].setValue(w1);
+        weights[i1] = w2;
+        weights[i2] = w1;
     }
 
      /**
