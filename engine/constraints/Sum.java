@@ -147,8 +147,10 @@ public class Sum extends AbstractConstraint {
             throw new InconsistencyException();
         for (int i = nU - 1; i >= 0; i--) {
             int idx = unBounds[i];
-            x[idx].removeAbove(-(sumMin - x[idx].min()));
-            x[idx].removeBelow(-(sumMax - x[idx].max()));
+	    int idxMin = x[idx].min();
+	    int idxMax = x[idx].max();
+ 	    x[idx].removeAbove(-(sumMin - idxMin));
+ 	    x[idx].removeBelow(-(sumMax - idxMax));
         }
     }
 
