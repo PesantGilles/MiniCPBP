@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.search;
@@ -32,10 +35,9 @@ public class SearchStatistics {
     private long startTime = new Date().getTime();
 
     public String toString() {
-	long timeElapsed = new Date().getTime() - startTime;
         return "\n\t#choice: " + nNodes
                 + "\n\t#fail: " + nFailures
-                + "\n\texecution time (ms): " + timeElapsed
+	        + "\n\texecution time (ms): " + timeElapsed()
                 + "\n\t#sols : " + nSolutions
                 + "\n\tcompleted : " + completed + "\n";
     }
@@ -62,6 +64,10 @@ public class SearchStatistics {
 
     public int numberOfNodes() {
         return nNodes;
+    }
+
+    public long timeElapsed() {
+	return new Date().getTime() - startTime;
     }
 
     public int numberOfSolutions() {
