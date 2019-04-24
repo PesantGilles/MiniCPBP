@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation 
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicp.engine.core;
@@ -226,7 +229,7 @@ public class IntVarImpl implements IntVar {
 
     @Override
     public void normalizeMarginals() {
-	domain.normalizeMarginals(cp.getEpsilon());
+	domain.normalizeMarginals();
     }
 
     @Override

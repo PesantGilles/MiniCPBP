@@ -175,9 +175,8 @@ public interface IntDomain {
     /**
      * Normalizes the marginals.
      *
-     * @param epsilon used to limit extreme marginal values
      */
-    void normalizeMarginals(double epsilon);
+    void normalizeMarginals();
 
     /**
      * Returns the largest marginal for a value in the domain.

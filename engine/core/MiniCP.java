@@ -48,9 +48,9 @@ public class MiniCP implements Solver {
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
     // SBP /* first apply support propagation and then belief propagation */
-    private static final PropaMode mode = PropaMode.BP;
+    private static final PropaMode mode = PropaMode.SBP;
+    // nb of BP iterations performed
     private static final int beliefPropaMaxIter = 5;
-    private static final double beliefPropaExtremeValueEpsilon = 1.0E-5;
     //****************************
 
     public MiniCP(StateManager sm) {
@@ -72,10 +72,6 @@ public class MiniCP implements Solver {
     
     public PropaMode getMode() {
 	return mode;
-    }
-
-    public double getEpsilon() {
-	return beliefPropaExtremeValueEpsilon;
     }
 
     public void schedule(Constraint c) {
@@ -129,6 +125,13 @@ public class MiniCP implements Solver {
 	boolean allBound;
 	notifyBeliefPropa();
         try {
+	    // start afresh at each search-tree node
+	    for (int i = 0; i < variables.size(); i++) {
+		variables.get(i).resetMarginals(); 
+	    }
+	    for (int i = 0; i < constraints.size(); i++) {
+		constraints.get(i).resetLocalBelief();
+	    }
 	    int it = 1;
 	    do {
 		allBound = BPiteration();

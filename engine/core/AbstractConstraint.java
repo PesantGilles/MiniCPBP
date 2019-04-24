@@ -129,17 +129,21 @@ public abstract class AbstractConstraint implements Constraint {
 	double sum = 0;
         int s = vars[i].fillArray(domainValues);
         for (int j = 0; j < s; j++) {
-	    int val = domainValues[j];
-	    if ((f1.get(i,val) < cp.getEpsilon()) && (f1.get(i,val) > 0))
-		f2.set(i,val,cp.getEpsilon());
-	    else if ((f1.get(i,val) > 1 -  cp.getEpsilon()) && (f1.get(i,val) < 1))
-		f2.set(i,val,1 - cp.getEpsilon());
 	    sum += f1.get(i,domainValues[j]);
     	}
         if (sum == 0) return; // temporary state of a soon-to-be-empty domain
         for (int j = 0; j < s; j++) {
 	    int val = domainValues[j];
 	    f2.set(i,val,f1.get(i,val)/sum);
+	}
+    }
+
+    public void resetLocalBelief(){
+	for(int i = 0; i<vars.length; i++){
+	    int s = vars[i].fillArray(domainValues);
+	    for (int j = 0; j < s; j++) {
+		setLocalBelief(i,domainValues[j],1);
+	    }
 	}
     }
 

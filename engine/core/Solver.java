@@ -63,11 +63,6 @@ public interface Solver {
     PropaMode getMode();
 
     /**
-     * @return the epsilon used to limit extreme marginal/belief values
-     */
-    double getEpsilon();
-
-    /**
      * Computes the fix-point with all the scheduled constraints.
      */
     void fixPoint();
