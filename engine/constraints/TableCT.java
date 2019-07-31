@@ -35,9 +35,11 @@ import static minicp.cp.Factory.minus;
 public class TableCT extends AbstractConstraint {
     private IntVar[] x; //variables
     private int[][] table; //the table
+    private int[] ofs; //offsets for each variable's domain
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
     private double[] tupleWeight;
+    //supportedTuples is the set of tuples supported by the current domains of the variables
     private BitSet supportedTuples;
     private BitSet supporti;
 
@@ -59,9 +61,11 @@ public class TableCT extends AbstractConstraint {
      */
     public TableCT(IntVar[] x, int[][] table) {
         super(x);
-        this.x = new IntVar[x.length];
+        this.x = x;
         this.table = table;
+	assert( x.length == table[0].length );
     	setExactWCounting(true);
+	ofs = new int[x.length];
 	tupleWeight = new double[table.length];
 	supportedTuples = new BitSet(table.length);
 	supporti = new BitSet(table.length);
@@ -69,17 +73,17 @@ public class TableCT extends AbstractConstraint {
         // Allocate supportedByVarVal
         supports = new BitSet[x.length][];
         for (int i = 0; i < x.length; i++) {
-            this.x[i] = minus(x[i], x[i].min()); // map the variables domain to start at 0
+	    ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
             supports[i] = new BitSet[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < supports[i].length; j++)
                 supports[i][j] = new BitSet();
         }
 
         // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
-        for (int i = 0; i < table.length; i++) { //i is the index of the tuple (in table)
+         for (int i = 0; i < table.length; i++) { //i is the index of the tuple (in table)
             for (int j = 0; j < x.length; j++) { //j is the index of the current variable (in x)
                 if (x[j].contains(table[i][j])) {
-                    supports[j][table[i][j] - x[j].min()].set(i);
+                    supports[j][table[i][j] - ofs[j]].set(i);
                 }
             }
         }
@@ -101,20 +105,16 @@ public class TableCT extends AbstractConstraint {
     @Override
     public void propagate() {
 
-
-        // Bit-set of tuple indices all set to 0
-        BitSet supportedTuples = new BitSet(table.length);
-        supportedTuples.flip(0, table.length);
-
         // Compute supportedTuples as
         // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
+        supportedTuples.set(0, table.length); // set them all to true
         for (int i = 0; i < x.length; i++) {
-            BitSet supporti = new BitSet();
+	    supporti.clear(); // set them all to false
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
-		supporti.or(supports[i][domainValues[j]]);
+		supporti.or(supports[i][domainValues[j]-ofs[i]]);
             }
             supportedTuples.and(supporti);
         }
@@ -125,13 +125,11 @@ public class TableCT extends AbstractConstraint {
 		// The condition for removing the setValue v from x[i] is to check if
 		// there is no intersection between supportedTuples and the support[i][v]
 		int v = domainValues[j];
-		if (!supports[i][v].intersects(supportedTuples)) {
+		if (!supports[i][v-ofs[i]].intersects(supportedTuples)) {
 		    x[i].remove(v);
 		}
             }
         }
-
-
     }
 
     @Override
@@ -146,7 +144,7 @@ public class TableCT extends AbstractConstraint {
 	    supporti.clear(); // set them all to false
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
-		supporti.or(supports[i][domainValues[j]]);
+		supporti.or(supports[i][domainValues[j]-ofs[i]]);
             }
             supportedTuples.and(supporti);
         }
@@ -165,8 +163,9 @@ public class TableCT extends AbstractConstraint {
 	    for (int j = 0; j < s; j++) {
 		int v = domainValues[j];
 		double belief = 0;
+		BitSet support_i_v = supports[i][v-ofs[i]];
 		// Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
-		for (int k = supports[i][v].nextSetBit(0); k >= 0; k = supports[i][v].nextSetBit(k+1)) {
+		for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k+1)) {
 		    if (supportedTuples.get(k)) {
 			belief += tupleWeight[k] / outsideBelief(i,v);
 		    }
