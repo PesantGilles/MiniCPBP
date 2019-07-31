@@ -244,6 +244,7 @@ public class IntVarImpl implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
+	assert b>0 ;
 	return domain.marginal(v) / b;
     }
 
@@ -253,12 +254,12 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
-	public String getName() {
+    public String getName() {
 	return this.name;
     }
     
     @Override
-	public void setName(String name) {
+    public void setName(String name) {
 	this.name = name;
     }
 }

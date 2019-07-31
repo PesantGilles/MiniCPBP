@@ -216,6 +216,7 @@ public class IntVarViewMul implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
+	assert b>0 ;
 	if (v % a == 0) {
 	    return x.marginal(v/a) / b;
         } else {
@@ -232,14 +233,17 @@ public class IntVarViewMul implements IntVar {
 	}
     }
 
-	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
-	
+    @Override
+    public String getName() {
+	if (this.name!=null)
+	    return this.name;
+	else
+	    return x.getName()+"'s view (mul)";
+    }
+    
+    @Override
+    public void setName(String name) {
+	this.name = name;
+    }
+    
 }

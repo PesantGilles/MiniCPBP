@@ -161,6 +161,7 @@ public class IntVarViewOffset implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
+	assert b>0 ;
 	return x.marginal(v - o) / b;
     }
 
@@ -169,16 +170,19 @@ public class IntVarViewOffset implements IntVar {
 	x.setMarginal(v - o, x.marginal(v - o) * b);
     }
 
-	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
-	
+    @Override
+    public String getName() {
+	if (this.name!=null)
+	    return this.name;
+	else
+	    return x.getName()+"'s view (offset)";
+    }
+    
+    @Override
+    public void setName(String name) {
+	this.name = name;
+    }
+    
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();

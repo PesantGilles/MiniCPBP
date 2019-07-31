@@ -159,6 +159,7 @@ public class IntVarViewOpposite implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
+	assert b>0 ;
 	return x.marginal(-v) / b;
     }
 
@@ -166,17 +167,20 @@ public class IntVarViewOpposite implements IntVar {
     public void receiveMessage(int v, double b) {
 	x.setMarginal(-v,x.marginal(-v) * b);
     }
-
-	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
-	
+    
+    @Override
+    public String getName() {
+	if (this.name!=null)
+	    return this.name;
+	else
+	    return x.getName()+"'s view (opposite)";
+    }
+    
+    @Override
+    public void setName(String name) {
+	this.name = name;
+    }
+    
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
