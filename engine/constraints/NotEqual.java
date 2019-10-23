@@ -20,6 +20,7 @@ package minicp.engine.constraints;
 
 import minicp.engine.core.AbstractConstraint;
 import minicp.engine.core.IntVar;
+import minicp.util.*;
 
 /**
  * Not Equal constraint between two variables
@@ -66,8 +67,8 @@ public class NotEqual extends AbstractConstraint {
 		break;
 	    case SP:
 	    case SBP:
-		x.propagateOnBind(this);
-		y.propagateOnBind(this);
+  		x.propagateOnBind(this);
+  		y.propagateOnBind(this);
 	    }
     }
 
@@ -76,7 +77,7 @@ public class NotEqual extends AbstractConstraint {
         if (y.isBound())
             x.remove(y.min() + c);
         else y.remove(x.min() - c);
-        setActive(false);
+	setActive(false);
     }
 
 
@@ -86,18 +87,18 @@ public class NotEqual extends AbstractConstraint {
 	for (int vx = x.min(); vx <= x.max(); vx++) {
 	    if (x.contains(vx)) {
 		if (y.contains(vx-c))
-		    setLocalBelief(0,vx,1 - outsideBelief(1,vx-c));
+		    setLocalBelief(0,vx,beliefRep.complement(outsideBelief(1,vx-c)));
 		else
-		    setLocalBelief(0,vx,1 - 0);
+		    setLocalBelief(0,vx,beliefRep.complement(beliefRep.zero()));
 	    }
 	}
 	// Treatment of y
 	for (int vy = y.min(); vy <= y.max(); vy++) {
 	    if (y.contains(vy)) {
 		if (x.contains(vy+c))
-		    setLocalBelief(1,vy,1 - outsideBelief(0,vy+c));
+		    setLocalBelief(1,vy,beliefRep.complement(outsideBelief(0,vy+c)));
 		else
-		    setLocalBelief(1,vy,1 - 0);
+		    setLocalBelief(1,vy,beliefRep.complement(beliefRep.zero()));
 	    }
 	}
     }

@@ -22,6 +22,7 @@ import minicp.state.StateStack;
 import minicp.util.Procedure;
 import minicp.util.exception.InconsistencyException;
 import minicp.util.exception.NotImplementedException;
+import minicp.util.Belief;
 
 import java.security.InvalidParameterException;
 import java.util.Set;
@@ -34,6 +35,7 @@ public class IntVarImpl implements IntVar {
 
     private String name;
     private Solver cp;
+    private Belief beliefRep;
     private IntDomain domain;
     private StateStack<Constraint> onDomain;
     private StateStack<Constraint> onBind;
@@ -88,7 +90,8 @@ public class IntVarImpl implements IntVar {
     public IntVarImpl(Solver cp, int min, int max) {
         if (min > max) throw new InvalidParameterException("at least one setValue in the domain");
         this.cp = cp;
-        domain = new SparseSetDomain(cp.getStateManager(), min, max);
+	beliefRep = cp.getBeliefRep();
+        domain = new SparseSetDomain(cp, min, max);
         onDomain = new StateStack<>(cp.getStateManager());
         onBind = new StateStack<>(cp.getStateManager());
         onBounds = new StateStack<>(cp.getStateManager());
@@ -244,13 +247,16 @@ public class IntVarImpl implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
-	assert b>0 ;
-	return domain.marginal(v) / b;
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert domain.marginal(v)<=beliefRep.one() && domain.marginal(v)>=beliefRep.zero() : "domain.marginal(v) = "+domain.marginal(v) ;
+	return (beliefRep.isZero(b)? domain.marginal(v) : beliefRep.divide(domain.marginal(v),b));
     }
 
     @Override
     public void receiveMessage(int v, double b) {
-	domain.setMarginal(v,domain.marginal(v) * b);
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert domain.marginal(v)<=beliefRep.one() && domain.marginal(v)>=beliefRep.zero() : "domain.marginal(v) = "+domain.marginal(v) ;
+	domain.setMarginal(v,beliefRep.multiply(domain.marginal(v),b));
     }
 
     @Override

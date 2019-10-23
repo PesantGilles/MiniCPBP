@@ -20,6 +20,7 @@
 package minicp.engine.core;
 
 import minicp.util.Procedure;
+import minicp.util.Belief;
 
 /**
  * A view on a variable of type {@code x+o}
@@ -29,10 +30,12 @@ public class IntVarViewOffset implements IntVar {
     private final IntVar x;
     private final int o;
     private String name;
+    private Belief beliefRep;
 
     public IntVarViewOffset(IntVar x, int offset) { // y = x + o
         this.x = x;
         this.o = offset;
+	beliefRep = x.getSolver().getBeliefRep();
     }
 
     @Override
@@ -161,13 +164,16 @@ public class IntVarViewOffset implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
-	assert b>0 ;
-	return x.marginal(v - o) / b;
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert x.marginal(v - o)<=beliefRep.one() && x.marginal(v - o)>=beliefRep.zero() : "x.marginal(v - o) = "+x.marginal(v - o) ;
+	return (beliefRep.isZero(b)? x.marginal(v - o) : beliefRep.divide(x.marginal(v - o),b));
     }
 
     @Override
     public void receiveMessage(int v, double b) {
-	x.setMarginal(v - o, x.marginal(v - o) * b);
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert x.marginal(v - o)<=beliefRep.one() && x.marginal(v - o)>=beliefRep.zero() : "x.marginal(v - o) = "+x.marginal(v - o) ;
+	x.setMarginal(v - o,beliefRep.multiply(x.marginal(v - o),b));
     }
 
     @Override

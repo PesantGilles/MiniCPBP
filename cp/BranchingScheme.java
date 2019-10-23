@@ -23,6 +23,7 @@ import minicp.engine.core.Solver;
 import minicp.search.LimitedDiscrepancyBranching;
 import minicp.search.Sequencer;
 import minicp.util.Procedure;
+import minicp.util.Belief;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -133,8 +134,15 @@ public final class BranchingScheme {
                 return EMPTY;
             else {
                 int v = xs.min();
-                return branch(() -> branchEqual(xs, v),
-                        () -> branchNotEqual(xs, v));
+                return branch(
+			      () -> {
+// 				  System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+// 				  System.out.println("### branching on "+xs.getName()+"<>"+v);
+				  branchNotEqual(xs, v);
+			      } );
             }
         };
     }
@@ -176,19 +184,22 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalStrength(IntVar... x) {
+	Belief beliefRep = x[0].getSolver().getBeliefRep();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
-		    xi -> 1.0 / xi.size() - xi.maxMarginal());
+		    xi -> 1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()));
             if (xs == null)
                 return EMPTY;
             else {
-                int v = xs.valueWithMaxMarginal(); 
+		int v = xs.valueWithMaxMarginal(); 
                 return branch(
 			      () -> { 
+//  				  System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v); 
 			      },
 			      () -> {
+//   				  System.out.println("### branching on "+xs.getName()+"!="+v+" marginal="+beliefRep.rep2std(xs.maxMarginal()));
 				  branchNotEqual(xs, v);
 			      } );
             }

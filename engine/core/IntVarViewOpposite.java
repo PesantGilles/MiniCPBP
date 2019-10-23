@@ -20,6 +20,7 @@
 package minicp.engine.core;
 
 import minicp.util.Procedure;
+import minicp.util.Belief;
 
 /**
  * A view on a variable of type {@code -x}
@@ -28,9 +29,11 @@ public class IntVarViewOpposite implements IntVar {
 
     private final IntVar x;
     private String name;
+    private Belief beliefRep;
 
     public IntVarViewOpposite(IntVar x) {
         this.x = x;
+	beliefRep = x.getSolver().getBeliefRep();
     }
 
     @Override
@@ -159,13 +162,16 @@ public class IntVarViewOpposite implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
-	assert b>0 ;
-	return x.marginal(-v) / b;
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert x.marginal(-v)<=beliefRep.one() && x.marginal(-v)>=beliefRep.zero() : "x.marginal(-v) = "+x.marginal(-v) ;
+	return (beliefRep.isZero(b)? x.marginal(-v) : beliefRep.divide(x.marginal(-v),b));
     }
 
     @Override
     public void receiveMessage(int v, double b) {
-	x.setMarginal(-v,x.marginal(-v) * b);
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
+	assert x.marginal(-v)<=beliefRep.one() && x.marginal(-v)>=beliefRep.zero() : "x.marginal(-v) = "+x.marginal(-v) ;
+	x.setMarginal(-v,beliefRep.multiply(x.marginal(-v),b));
     }
     
     @Override

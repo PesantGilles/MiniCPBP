@@ -21,6 +21,7 @@ package minicp.engine.constraints;
 import minicp.engine.core.AbstractConstraint;
 import minicp.engine.core.IntVar;
 import minicp.util.exception.NotImplementedException;
+import minicp.util.*;
 
 import java.util.BitSet;
 
@@ -152,9 +153,9 @@ public class TableCT extends AbstractConstraint {
 	// Each tuple has its own weight given by the product of the outside_belief of its elements.
 	// Compute these products, but only for supported tuples.
 	for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k+1)) {
-	    tupleWeight[k] = 1;
+	    tupleWeight[k] = beliefRep.one();
 	    for (int i = 0; i < x.length; i++) { 
-		tupleWeight[k] *= outsideBelief(i,table[k][i]);
+		tupleWeight[k] = beliefRep.multiply(tupleWeight[k],outsideBelief(i,table[k][i]));
 	    }
 	}
 
@@ -162,12 +163,28 @@ public class TableCT extends AbstractConstraint {
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
 		int v = domainValues[j];
-		double belief = 0;
+		double belief = beliefRep.zero();
+		double outsideBelief_i_v = outsideBelief(i,v);
 		BitSet support_i_v = supports[i][v-ofs[i]];
 		// Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
-		for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k+1)) {
-		    if (supportedTuples.get(k)) {
-			belief += tupleWeight[k] / outsideBelief(i,v);
+		if (!beliefRep.isZero(outsideBelief_i_v)) {
+		    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k+1)) {
+			if (supportedTuples.get(k)) {
+			    belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k],outsideBelief_i_v));
+			}
+		    }
+		} else { // special case of null outside belief (avoid division by zero)
+		    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k+1)) {
+			if (supportedTuples.get(k)) {
+			    double weight = beliefRep.one();
+			    for (int i2 = 0; i2 < i; i2++) { 
+				weight = beliefRep.multiply(weight,outsideBelief(i2,table[k][i2]));
+			    }
+			    for (int i2 = i+1; i2 < x.length; i2++) { 
+				weight = beliefRep.multiply(weight,outsideBelief(i2,table[k][i2]));
+			    }
+			    belief = beliefRep.add(belief, weight);
+			}
 		    }
 		}
 		setLocalBelief(i,v,belief);

@@ -24,6 +24,7 @@ import minicp.engine.core.IntVar;
 import minicp.engine.core.IntVarImpl;
 import minicp.state.StateInt;
 import minicp.util.exception.InconsistencyException;
+import minicp.util.*;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -37,8 +38,8 @@ public class Sum extends AbstractConstraint {
     private StateInt sumBounds;
     private IntVar[] x;
     private int n;
-    private double[][] ip;
-    private double[][] op;
+    private double[][] ip; // ip[i][]>0 for partial sums x[0]+x[1]+...+x[i-1]
+    private double[][] op; // op[i][]>0 for partial sums x[i+1]+...+x[n-1]
     private int offset;
     private int mini;
     private int maxi;
@@ -109,6 +110,7 @@ public class Sum extends AbstractConstraint {
 	    bwd += x[i].max();
 	}
 	this.offset = -mini; 
+
 	this.op = new double[n][maxi-mini+1];
 	this.ip = new double[n][maxi-mini+1];
     }
@@ -154,40 +156,43 @@ public class Sum extends AbstractConstraint {
         }
     }
 
-
     @Override
     public void updateBelief(){
+
 	for(int i = 0; i<n; i++){
-	    Arrays.fill(ip[i],0);
+	    Arrays.fill(ip[i],beliefRep.zero());
 	}
 	// Reach forward
-	ip[0][offset] = 1;
+	ip[0][offset] = beliefRep.one();
 	for(int i = 0; i<n-1; i++){
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
 		int v = domainValues[j];
 		for(int k = mini-(v<0?v:0); k <= maxi-(v>0?v:0); k++){
-		    if(ip[i][k+offset]>0) {
-			ip[i+1][k+offset+v] += ip[i][k+offset] * outsideBelief(i,v);
+		    if(!beliefRep.isZero(ip[i][k+offset])) {
+			// add the combination of ip[i][k+offset] and outsideBelief(i,v) to ip[i+1][k+offset+v]
+			ip[i+1][k+offset+v] = beliefRep.add(ip[i+1][k+offset+v], beliefRep.multiply(ip[i][k+offset],outsideBelief(i,v)));
 		    }
 		}
 	    }
 	}
 
 	for(int i = 0; i<n; i++){
-	    Arrays.fill(op[i],0);
+	    Arrays.fill(op[i],beliefRep.zero());
 	}
 	// Reach backward and set local beliefs
-	op[n-1][offset] = 1;
+	op[n-1][offset] = beliefRep.one();
 	for(int i = n-1; i>0; i--){
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
 		int v = domainValues[j];
-		double belief = 0;
+		double belief = beliefRep.zero();
 		for(int k = mini-(v<0?v:0); k <= maxi-(v>0?v:0); k++){
-		    if(op[i][k+offset+v]>0) {
-			op[i-1][k+offset] += op[i][k+offset+v] * outsideBelief(i,v);
-			belief += ip[i][k+offset] * op[i][k+offset+v];
+		    if(!beliefRep.isZero(op[i][k+offset+v])) {
+			// add the combination of op[i][k+offset+v] and outsideBelief(i,v) to op[i-1][k+offset]
+			op[i-1][k+offset] = beliefRep.add(op[i-1][k+offset], beliefRep.multiply(op[i][k+offset+v],outsideBelief(i,v)));
+			// add the combination of ip[i][k+offset] and op[i][k+offset+V] to belief
+			belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k+offset],op[i][k+offset+v]));
 		    }
 		}
 		setLocalBelief(i,v,belief);
@@ -198,6 +203,7 @@ public class Sum extends AbstractConstraint {
 	    int v = domainValues[j];
 	    setLocalBelief(0,v,op[0][offset+v]);
 	}
+
     }
 
 }

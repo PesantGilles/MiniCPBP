@@ -22,6 +22,7 @@ package minicp.engine.core;
 
 import minicp.util.Procedure;
 import minicp.util.exception.InconsistencyException;
+import minicp.util.Belief;
 
 /**
  * A view on a variable of type {@code a*x}
@@ -31,11 +32,13 @@ public class IntVarViewMul implements IntVar {
     private final int a;
     private final IntVar x;
     private String name;
+    private Belief beliefRep;
 
     public IntVarViewMul(IntVar x, int a) {
         assert (a > 0);
         this.a = a;
         this.x = x;
+	beliefRep = x.getSolver().getBeliefRep();
     }
 
     @Override
@@ -216,9 +219,10 @@ public class IntVarViewMul implements IntVar {
 
     @Override
     public double sendMessage(int v, double b) {
-	assert b>0 ;
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	if (v % a == 0) {
-	    return x.marginal(v/a) / b;
+	    assert x.marginal(v/a)<=beliefRep.one() && x.marginal(v/a)>=beliefRep.zero() : "x.marginal(v/a) = "+x.marginal(v/a) ;
+	    return (beliefRep.isZero(b)? x.marginal(v/a) : beliefRep.divide(x.marginal(v/a),b));
         } else {
             throw new InconsistencyException();
 	}
@@ -226,8 +230,10 @@ public class IntVarViewMul implements IntVar {
 
     @Override
     public void receiveMessage(int v, double b) {
+	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	if (v % a == 0) {
-	    x.setMarginal(v/a, x.marginal(v/a) * b);
+	    assert x.marginal(v/a)<=beliefRep.one() && x.marginal(v/a)>=beliefRep.zero() : "x.marginal(v/a) = "+x.marginal(v/a) ;
+	    x.setMarginal(v/a,beliefRep.multiply(x.marginal(v/a),b));
         } else {
             throw new InconsistencyException();
 	}

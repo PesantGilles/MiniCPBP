@@ -92,7 +92,7 @@ public interface Constraint {
     void sendMessages();
 
     /**
-     * Sets the local belief to 1.
+     * Sets the local belief to certainty.
      */
     void resetLocalBelief();
 }

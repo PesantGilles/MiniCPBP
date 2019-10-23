@@ -15,6 +15,9 @@
 
 package minicp.state;
 
+import minicp.engine.core.Solver;
+import minicp.util.Belief;
+
 import java.util.NoSuchElementException;
 
 /**
@@ -31,17 +34,15 @@ public class StateSparseWeightedSet extends StateSparseSet {
      * Creates a set containing the elements {@code {ofs,ofs+1,...,ofs+n-1}},
      * each with a reversible modifiable weight.
      *
-     * @param sm the state manager that will save and restore the set when
-     *        {@link StateManager#saveState()} / {@link StateManager#restoreState()}
-     *           mehtods are called
+     * @param cp the solver
      * @param n  the number of elements in the set
      * @param ofs the minimum value in the set containing {@code {ofs,ofs+1,...,ofs+n-1}}
      */
-    public StateSparseWeightedSet(StateManager sm, int n, int ofs) {
-	super(sm,n,ofs);
+    public StateSparseWeightedSet(Solver cp, int n, int ofs) {
+	super(cp.getStateManager(),n,ofs);
         weights = new StateDouble[n];
         for (int i = 0; i < n; i++) {
-            weights[i] = sm.makeStateDouble(1.0/n); // initialized to equal weights that sum up to 1
+            weights[i] = cp.getStateManager().makeStateDouble(cp.getBeliefRep().one()); // not normalized
         }
     }
 
