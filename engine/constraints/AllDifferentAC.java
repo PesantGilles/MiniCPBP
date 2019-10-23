@@ -24,6 +24,7 @@ import minicp.util.GraphUtil;
 import minicp.util.GraphUtil.Graph;
 import minicp.state.StateSparseSet;
 import minicp.util.exception.InconsistencyException;
+import minicp.util.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -237,15 +238,21 @@ public class AllDifferentAC extends AbstractConstraint {
 		int val = x[i].min();
 		freeVals.remove(val);
 		// set trivial local belief for bound var...
- 		setLocalBelief(i,val,1);
-		// ...and apply basic fwd checking to other vars
-		for (int k = 0; k < j; k++)
-		    x[varIndices[k]].remove(val);
-		for (int k = j+1; k < nbVar; k++)
-		    x[varIndices[k]].remove(val);
+ 		setLocalBelief(i,val,beliefRep.one());
+		// ...and for other vars on that value
+		for (int k = 0; k < j; k++) {
+		    int l = varIndices[k];
+		    if (x[l].contains(val))
+			setLocalBelief(l,val,beliefRep.zero());
+		}
+		for (int k = j+1; k < nbVar; k++) {
+		    int l = varIndices[k];
+		    if (x[l].contains(val))
+			setLocalBelief(l,val,beliefRep.zero());
+		}
 	    }
 	}
- 	// initialize outside beliefs matrix
+ 	// initialize outside beliefs matrix (MUST BE IN STANDARD [0,1] REPRESENTATION)
 	nbVar = freeVars.fillArray(varIndices);
 	nbVal = freeVals.fillArray(vals);
 	for (int j = 0; j < nbVar; j++) {
@@ -253,14 +260,14 @@ public class AllDifferentAC extends AbstractConstraint {
 	    for (int k = 0; k < nbVal; k++) {
 		int val = vals[k];
 		beliefs[j][k] = (x[i].contains(val) ? 
-				 outsideBelief(i,val):
+				 beliefRep.rep2std(outsideBelief(i,val)):
 				 0);
 	    }
 	}
 	// may need to add dummy rows in order to make the beliefs matrix square
 	for (int j = 0; j < nbVal - nbVar; j++) { 
 	    for (int k = 0; k < nbVal; k++) {
-		beliefs[nbVar+j][k] = 1;
+		beliefs[nbVar+j][k] = 1; // (STANDARD REPRESENTATION)
 	    }
 	}
 	// set local beliefs by computing the permanent of beliefs sub-matrices
@@ -273,7 +280,8 @@ public class AllDifferentAC extends AbstractConstraint {
 		    int val = vals[k];
 		    if(x[i].contains(val)) {
 			// note: will be normalized later in AbstractConstraint.sendMessages()
-    			setLocalBelief(i,val,costBasedPermanent_exact(j,k,beliefs,nbVal));
+			// put beliefs back to their original representation
+    			setLocalBelief(i,val,beliefRep.std2rep(costBasedPermanent_exact(j,k,beliefs,nbVal)));
 		    }
 		}
 	    }		
@@ -287,7 +295,8 @@ public class AllDifferentAC extends AbstractConstraint {
 		    int val = vals[k];
 		    if(x[i].contains(val)) {
 			// note: will be normalized later in AbstractConstraint.sendMessages()
-    			setLocalBelief(i,val,costBasedPermanent_UB3(j,k,beliefs,nbVal));
+			// put beliefs back to their original representation
+     			setLocalBelief(i,val,beliefRep.std2rep(costBasedPermanent_UB3(j,k,beliefs,nbVal)));
 		    }
 		}
 	    }
