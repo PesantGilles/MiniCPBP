@@ -18,12 +18,14 @@
 
 package minicp.engine.core;
 
+import minicp.engine.core.Solver;
 import minicp.state.StateManager;
 import minicp.state.StateSparseWeightedSet;
+import minicp.util.Belief;
 
 import java.util.NoSuchElementException;
 import java.util.Random;
-
+import java.util.Arrays;
 
 /**
  * Implementation of a domain with a sparse-set
@@ -31,12 +33,18 @@ import java.util.Random;
 public class SparseSetDomain implements IntDomain {
     private StateSparseWeightedSet domain;
     private int[] domainValues; // an array large enough to hold the domain
+    private double[] beliefValues; // an auxiliary array as large as domainValues
+    private Solver cp;
+    private Belief beliefRep;
 
     static Random rand = new Random();
 
-    public SparseSetDomain(StateManager sm, int min, int max) {
-        domain = new StateSparseWeightedSet(sm, max - min + 1, min);
+    public SparseSetDomain(Solver cp, int min, int max) {
+        domain = new StateSparseWeightedSet(cp, max - min + 1, min);
 	domainValues = new int[max - min + 1];
+	beliefValues = new double[max - min + 1];
+	this.cp = cp;
+	beliefRep = cp.getBeliefRep();
     }
 
     @Override
@@ -162,23 +170,28 @@ public class SparseSetDomain implements IntDomain {
     public void resetMarginals() {
 	int s = fillArray(domainValues);
 	for (int j = 0; j < s; j++) {
-	    int v = domainValues[j];
-	    setMarginal(v,1);
+	    setMarginal(domainValues[j],beliefRep.one());
 	}
     }
 
     @Override
     public void normalizeMarginals() {
-	double sum = 0;
+
 	int s = fillArray(domainValues);
-	for (int j = 0; j < s; j++) {
-	    sum += marginal(domainValues[j]);
+	if (s==1) { // corresponding variable is bound
+	    setMarginal(domainValues[0],beliefRep.one());
+	    return;
 	}
-        assert(sum > 0);
+	for (int j = 0; j < s; j++) {
+	    beliefValues[j] = marginal(domainValues[j]);
+	}
+	double normalizingConstant = beliefRep.summation(beliefValues,s);
+	if (beliefRep.isZero(normalizingConstant)) // all marginals are zero (actOnZeroOneBelief set to false?)
+	    return;
 	for (int j = 0; j < s; j++) {
 	    int v = domainValues[j];
-	    double nm = marginal(v)/sum;
-	    setMarginal(v,nm);
+	    setMarginal(v,beliefRep.divide(marginal(v),normalizingConstant));
+	    assert marginal(v)<=beliefRep.one() && marginal(v)>=beliefRep.zero() : "marginal(v) = "+marginal(v) ;
 	}
     }
 
@@ -186,7 +199,7 @@ public class SparseSetDomain implements IntDomain {
     public double maxMarginal() {
         if (domain.isEmpty())
             throw new NoSuchElementException();
-    	double max = -1;
+    	double max = beliefRep.zero();
 	int s = fillArray(domainValues);
 	for (int j = 0; j < s; j++) {
 	    int v = domainValues[j];
@@ -201,10 +214,10 @@ public class SparseSetDomain implements IntDomain {
     public int valueWithMaxMarginal() {
         if (domain.isEmpty())
             throw new NoSuchElementException();
-    	double max = -1;
-	int valWithMax = -1;
 	int s = fillArray(domainValues);
-	for (int j = 0; j < s; j++) {
+	int valWithMax = domainValues[0];
+    	double max = marginal(valWithMax);
+	for (int j = 1; j < s; j++) {
 	    int v = domainValues[j];
 	    if (marginal(v) > max) {
 		max = marginal(v);
