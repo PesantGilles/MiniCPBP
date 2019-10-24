@@ -21,13 +21,16 @@ package minicp.engine.core;
 import minicp.search.Objective;
 import minicp.state.StateManager;
 import minicp.util.Procedure;
+import minicp.util.Belief;
+
+import java.util.Queue;
 
 public interface Solver {
 
     public enum PropaMode {
 	SP /* support propagation (aka standard constraint propagation) */, 
 	BP /* belief propagation */, 
-	SBP /* first apply support propagation and then belief propagation */
+        SBP /* first apply support propagation, then belief propagation, and finally support propagation again if belief propagation may have assigned or removed domain values */
     } 
 
     /**
@@ -62,6 +65,8 @@ public interface Solver {
      */
     PropaMode getMode();
 
+    boolean actingOnZeroOneBelief();
+
     /**
      * Computes the fix-point with all the scheduled constraints.
      */
@@ -79,6 +84,13 @@ public interface Solver {
      * @return the state manager
      */
     StateManager getStateManager();
+
+    /**
+     * Returns the belief representation being used (Std or Log)
+     *
+     * @return the belief representation
+     */
+    Belief getBeliefRep();
 
     /**
      * Adds a listener called whenever we start fixPoint.

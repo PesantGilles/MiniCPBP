@@ -24,6 +24,9 @@ import minicp.state.StateManager;
 import minicp.state.StateStack;
 import minicp.util.exception.InconsistencyException;
 import minicp.util.Procedure;
+import minicp.util.Belief;
+import minicp.util.StdBelief;
+import minicp.util.LogBelief;
 
 import java.util.ArrayDeque;
 import java.util.LinkedList;
@@ -47,10 +50,16 @@ public class MiniCP implements Solver {
     //******** PARAMETERS ********
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
-    // SBP /* first apply support propagation and then belief propagation */
+    // SBP /* first apply support propagation, then belief propagation, and finally support propagation again if belief propagation may have assigned or removed domain values (actOnZeroOneBelief == true) */
     private static final PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
     private static final int beliefPropaMaxIter = 5;
+    // reset marginals and local beliefs before applying BP at each search-tree node
+    private static final boolean resetMarginalsBeforeBP = true;
+    // take action upon zero/one beliefs: remove/assign the corresponding value
+    private static final boolean actOnZeroOneBelief = true;
+    // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
+    private final Belief beliefRep = new StdBelief();
     //****************************
 
     public MiniCP(StateManager sm) {
@@ -66,12 +75,21 @@ public class MiniCP implements Solver {
     }
 
     @Override
+    public Belief getBeliefRep() {
+        return beliefRep;
+    }
+
+    @Override
     public void registerVar(IntVar x) {
 	variables.push(x);
     }
     
     public PropaMode getMode() {
 	return mode;
+    }
+
+    public boolean actingOnZeroOneBelief() {
+	return actOnZeroOneBelief;
     }
 
     public void schedule(Constraint c) {
@@ -122,25 +140,31 @@ public class MiniCP implements Solver {
      */
     @Override
     public void beliefPropa() {
-	boolean allBound;
 	notifyBeliefPropa();
         try {
-	    // start afresh at each search-tree node
-	    for (int i = 0; i < variables.size(); i++) {
-		variables.get(i).resetMarginals(); 
+	    if (resetMarginalsBeforeBP) {
+		// start afresh at each search-tree node
+		for (int i = 0; i < variables.size(); i++) {
+		    variables.get(i).resetMarginals(); 
+		}
+		for (int i = 0; i < constraints.size(); i++) {
+		    constraints.get(i).resetLocalBelief();
+		}
 	    }
-	    for (int i = 0; i < constraints.size(); i++) {
-		constraints.get(i).resetLocalBelief();
-	    }
-	    int it = 1;
-	    do {
-		allBound = BPiteration();
-		it++;
- 	    } while (it<=beliefPropaMaxIter && !allBound);
 
-	    if (allBound)
-		BPiteration(); // one last iteration to ensure feasibility
+	    for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
+		BPiteration();
+ 	    }
+
+	    if (actOnZeroOneBelief && (mode == PropaMode.SBP)) {
+		// may have assigned or removed domain values, thereby putting propagators in propagation queue; call fixPoint()
+		fixPoint();
+	    }
+
         } catch (InconsistencyException e) {
+            // empty the queue and unset the scheduled status
+            while (!propagationQueue.isEmpty())
+                propagationQueue.remove().setScheduled(false);
             throw e;
         }
     }
@@ -148,11 +172,8 @@ public class MiniCP implements Solver {
     /**
      * a single iteration of Belief Propagation:
      * from variables to constraints, and then from constraints to variables
-     *
-     * @return true iff all variables are bound
      */
-    private boolean BPiteration() {
-	boolean allBound = true;
+    private void BPiteration() {
 	for (int i = 0; i < constraints.size(); i++) {
 	    constraints.get(i).receiveMessages();
 	}
@@ -163,10 +184,8 @@ public class MiniCP implements Solver {
 	    constraints.get(i).sendMessages();
 	}
 	for (int i = 0; i < variables.size(); i++) {
-	    variables.get(i).normalizeMarginals();
-	    allBound = allBound && variables.get(i).isBound(); 
+   	    variables.get(i).normalizeMarginals();
 	}
-	return allBound;
     }
 
     private void propagate(Constraint c) {
