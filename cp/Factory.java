@@ -29,6 +29,8 @@ import minicp.util.Procedure;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -723,5 +725,36 @@ public final class Factory {
      */
     public static Constraint allDifferentAC(IntVar[] x) {
         return new AllDifferentAC(x);
+    }
+
+    /**
+     * Returns a regular constraint.
+     * This relation is enforced by the {@link Regular} constraint
+     * posted by calling this method.
+     *
+     * @param x an array of variables
+     * @param A a 2D array giving the transition function of the automaton: {states} x {domain values} -> {states} (domain values are nonnegative and start at 0)
+     * @param s is the initial state
+     * @param f a list of accepting states
+     * @return a constraint so that {@code x is a word recognized by automaton A}
+     */
+    public static Constraint regular(IntVar[] x, int[][] A, int s, List<Integer> f) {
+        return new Regular(x,A,s,f);
+    }
+    /**
+     * special case with 0 being the initial state
+     */
+    public static Constraint regular(IntVar[] x, int[][] A, List<Integer> f) {
+        return new Regular(x,A,0,f);
+    }
+    /**
+     * special case with 0 being the initial state and all states being accepting
+     */
+    public static Constraint regular(IntVar[] x, int[][] A) {
+	List<Integer> f=new ArrayList<Integer>();
+        for (int i = 0; i < A.length; i++) {
+            f.add(i);
+        }
+        return new Regular(x,A,0,f);
     }
 }
