@@ -757,4 +757,54 @@ public final class Factory {
         }
         return new Regular(x,A,0,f);
     }
+
+    /**
+     * Returns an among constraint.
+     * This relation is enforced by the {@link Among} constraint
+     * posted by calling this method.
+     *
+     * @param x an array of variables whose instantiations belonging to V we count
+     * @param V an array of values whose occurrences in x we count
+     * @param o the variable corresponding to the number of occurrences of values from V in x
+     * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
+     */
+    public static Constraint among(IntVar[] x, int[] V, IntVar o) {
+        Solver cp = x[0].getSolver();
+        IntVar[] vars = Arrays.copyOf(x,2*x.length);
+        IntVar[] y = new IntVar[x.length]; // indicator variables: (y[i] == 1) iff (x[i] \in V)
+        for (int i = 0; i < y.length; i++) {
+	    y[i] = makeIntVar(cp, 0, 1); 
+	    y[i].setName("y"+"["+i+"]");
+	    vars[x.length+i] = y[i];
+	}
+        return new Among(x, V, o, y, vars);
+    }
+    /**
+     * special cases with fixed (limit on) nb of occurrences
+     */
+    public static Constraint atleast(IntVar[] x, int[] V, int lb) {
+	return among(x, V, makeIntVar(x[0].getSolver(), lb, Math.max(lb,x.length)));
+    }
+    public static Constraint atmost(IntVar[] x, int[] V, int ub) {
+        return among(x, V, makeIntVar(x[0].getSolver(), Math.min(0,ub), ub));
+    }
+    public static Constraint exactly(IntVar[] x, int[] V, int o) {
+        return among(x, V, makeIntVar(x[0].getSolver(), o, o));
+    }
+    /**
+     * special cases with a single value in V
+     */
+    public static Constraint among(IntVar[] x, int v, IntVar o) {
+	return among(x, new int[]{v}, o);
+    }
+    public static Constraint atleast(IntVar[] x, int v, int lb) {
+        return among(x, new int[]{v}, makeIntVar(x[0].getSolver(), lb, Math.max(lb,x.length)));
+    }
+    public static Constraint atmost(IntVar[] x, int v, int ub) {
+        return among(x, new int[]{v}, makeIntVar(x[0].getSolver(), Math.min(0,ub), ub));
+    }
+    public static Constraint exactly(IntVar[] x, int v, int o) {
+        return among(x, new int[]{v}, makeIntVar(x[0].getSolver(), o, o));
+    }
+
 }
