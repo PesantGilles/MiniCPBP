@@ -728,6 +728,30 @@ public final class Factory {
     }
 
     /**
+     * Returns a table constraint.
+     * This relation is enforced by the {@link Regular} constraint
+     * posted by calling this method.
+     *
+     * <p>The table constraint ensures that
+     * {@code x} is a row from the given table.
+     * More exactly, there exist some row <i>i</i>
+     * such that
+     * {@code x[0]==table[i][0], x[1]==table[i][1], etc}.
+     *
+     * <p>This constraint is sometimes called <i>in extension</i> constraint
+     * as the user enumerates the set of solutions that can be taken
+     * by the variables.
+     *
+     * @param x  the non empty set of variables to constraint
+     * @param table the possible set of solutions for x.
+     *              The second dimension must be of the same size as the array x.
+     * @return a table constraint
+     */
+    public static Constraint table(IntVar[] x, int[][] table) {
+        return new TableCT(x,table);
+    }
+    
+    /**
      * Returns a regular constraint.
      * This relation is enforced by the {@link Regular} constraint
      * posted by calling this method.
@@ -805,6 +829,32 @@ public final class Factory {
     }
     public static Constraint exactly(IntVar[] x, int v, int o) {
         return among(x, new int[]{v}, makeIntVar(x[0].getSolver(), o, o));
+    }
+
+    /**
+     * Returns a cardinality constraint.
+     * This relation is currently enforced by decomposing it into {@link Among} constraints; hence it is not domain consistent
+     *
+     * @param x an array of variables
+     * @param vals an array of values whose occurrences in x we count
+     * @param o an array of variables corresponding to the number of occurrences of vals in x
+     * @return a cardinality constraint
+     */
+    public static Constraint cardinality(IntVar[] x, int[] vals, IntVar[] o) {
+	assert(vals.length == o.length);
+        return new Cardinality(x,vals,o);
+    }
+    /**
+     * special case with fixed nb of occurrences
+     */
+    public static Constraint cardinality(IntVar[] x, int[] vals, int[] o) {
+	assert(vals.length == o.length);
+        IntVar[] oVar = new IntVar[o.length];
+	Solver cp = x[0].getSolver();
+        for (int i = 0; i < o.length; i++) {
+	    oVar[i] = makeIntVar(cp, o[i], o[i]);
+	}
+        return new Cardinality(x,vals,oVar);
     }
 
 }
