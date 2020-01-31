@@ -62,6 +62,11 @@ public class MiniCP implements Solver {
     private final Belief beliefRep = new StdBelief();
     //****************************
 
+    //***** TRACING SWITCHES *****
+    private static final boolean traceBP = false;
+    private static final boolean traceSearch = false;
+    //****************************
+
     public MiniCP(StateManager sm) {
         this.sm = sm;
         vars = new StateStack<>(sm);
@@ -90,6 +95,10 @@ public class MiniCP implements Solver {
 
     public boolean actingOnZeroOneBelief() {
 	return actOnZeroOneBelief;
+    }
+
+    public boolean tracingSearch() {
+	return traceSearch;
     }
 
     public void schedule(Constraint c) {
@@ -154,6 +163,12 @@ public class MiniCP implements Solver {
 
 	    for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
 		BPiteration();
+		if (traceBP) {
+		    System.out.println("##### after BP iteration "+iter+" #####");
+		    for (int i = 0; i < variables.size(); i++) {
+			System.out.println(variables.get(i).getName()+variables.get(i).toString());
+		    }
+		}
  	    }
 
 	    if (actOnZeroOneBelief && (mode == PropaMode.SBP)) {
@@ -177,9 +192,9 @@ public class MiniCP implements Solver {
 	for (int i = 0; i < constraints.size(); i++) {
 	    constraints.get(i).receiveMessages();
 	}
-	for (int i = 0; i < variables.size(); i++) {
-	    variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
-	}
+ 	for (int i = 0; i < variables.size(); i++) {
+ 	    variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
+ 	}
 	for (int i = 0; i < constraints.size(); i++) {
 	    constraints.get(i).sendMessages();
 	}

@@ -218,6 +218,20 @@ public interface IntVar {
     int valueWithMaxMarginal();
 
     /**
+     * Returns the smallest marginal for a value in the domain.
+     *
+     * @return the smallest marginal
+     */
+    double minMarginal();
+
+    /**
+     * Returns the value in the domain that has the smallest marginal.
+     *
+     * @return the value with the smallest marginal
+     */
+    int valueWithMinMarginal();
+
+    /**
      * Returns the marginal of the specified value after cancelling 
      * out the local belief of a constraint.
      *

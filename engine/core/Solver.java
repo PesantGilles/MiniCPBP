@@ -65,7 +65,15 @@ public interface Solver {
      */
     PropaMode getMode();
 
+    /**
+     * @return whether we should take action upon zero/one beliefs i.e. remove/assign the corresponding value
+     */
     boolean actingOnZeroOneBelief();
+
+    /**
+     * @return whether search should be traced
+     */
+    boolean tracingSearch();
 
     /**
      * Computes the fix-point with all the scheduled constraints.

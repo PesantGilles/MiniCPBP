@@ -161,6 +161,16 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public double minMarginal() {
+	return x.minMarginal();
+    }
+
+    @Override
+    public int valueWithMinMarginal() {
+	return -x.valueWithMinMarginal();
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
 	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	assert x.marginal(-v)<=beliefRep.one() && x.marginal(-v)>=beliefRep.zero() : "x.marginal(-v) = "+x.marginal(-v) ;

@@ -246,6 +246,16 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public double minMarginal() {
+	return domain.minMarginal();
+    }
+
+    @Override
+    public int valueWithMinMarginal() {
+	return domain.valueWithMinMarginal();
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
 	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	assert domain.marginal(v)<=beliefRep.one() && domain.marginal(v)>=beliefRep.zero() : "domain.marginal(v) = "+domain.marginal(v) ;

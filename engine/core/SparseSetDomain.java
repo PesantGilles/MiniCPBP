@@ -228,6 +228,38 @@ public class SparseSetDomain implements IntDomain {
     }
 
     @Override
+    public double minMarginal() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+    	double min = beliefRep.one();
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int v = domainValues[j];
+	    if (marginal(v) < min) {
+		min = marginal(v);
+	    }
+    	}
+    	return min;
+    }
+
+    @Override
+    public int valueWithMinMarginal() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+	int s = fillArray(domainValues);
+	int valWithMin = domainValues[0];
+    	double min = marginal(valWithMin);
+	for (int j = 1; j < s; j++) {
+	    int v = domainValues[j];
+	    if (marginal(v) < min) {
+		min = marginal(v);
+		valWithMin = v;
+	    }
+    	}
+    	return valWithMin;
+    }
+
+    @Override
     public String toString() {
 	return domain.toString();
     }

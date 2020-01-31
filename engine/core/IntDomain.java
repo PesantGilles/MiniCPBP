@@ -193,6 +193,20 @@ public interface IntDomain {
     int valueWithMaxMarginal();
 
     /**
+     * Returns the smallest marginal for a value in the domain.
+     *
+     * @return the smallest marginal
+     */
+    double minMarginal();
+
+    /**
+     * Returns the value in the domain that has the smallest marginal.
+     *
+     * @return the value with the smallest marginal
+     */
+    int valueWithMinMarginal();
+
+    /**
      * Copies the values of the domain into an array.
      *
      * @param dest an array large enough {@code dest.length >= size()}
