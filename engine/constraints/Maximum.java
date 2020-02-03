@@ -38,6 +38,7 @@ public class Maximum extends AbstractConstraint {
      */
     public Maximum(IntVar[] x, IntVar y, IntVar[] vars) {
         super(vars);
+	setName("Maximum");
         assert (x.length > 0);
         this.x = x;
         this.y = y;
@@ -46,8 +47,11 @@ public class Maximum extends AbstractConstraint {
 
     @Override
     public void post() {
-        // TODO
-         throw new NotImplementedException("Maximum");
+        for (IntVar xi : x) {
+            xi.propagateOnBoundChange(this);
+        }
+        y.propagateOnBoundChange(this);
+        propagate();
     }
 
 

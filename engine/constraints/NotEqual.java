@@ -39,6 +39,7 @@ public class NotEqual extends AbstractConstraint {
      */
     public NotEqual(IntVar x, IntVar y, int c, IntVar[] vars) { // x != y + c
         super(vars);
+	setName("NotEqual");
         this.x = x;
         this.y = y;
         this.c = c;

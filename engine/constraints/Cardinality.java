@@ -37,6 +37,7 @@ public class Cardinality extends AbstractConstraint {
 
     public Cardinality(IntVar[] x, int[] vals, IntVar[] o) {
         super(new IntVar[]{makeIntVar(x[0].getSolver(),0,0)}); // not a real constraint so we want a minimal footprint in the superclass' constructor
+	setName("Cardinality");
         this.x = x;
 	this.vals = vals;
 	this.o = o;

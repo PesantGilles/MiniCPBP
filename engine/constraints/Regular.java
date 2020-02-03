@@ -58,6 +58,7 @@ public class Regular extends AbstractConstraint {
      */
     public Regular(IntVar[] x, int[][] A, int s, List<Integer> f) {
         super(x);
+	setName("Regular");
         this.x = x;
         n = x.length;
 	transitionFct = A;

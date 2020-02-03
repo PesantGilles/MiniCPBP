@@ -28,6 +28,7 @@ public class LessOrEqual extends AbstractConstraint { // x <= y
 
     public LessOrEqual(IntVar x, IntVar y, IntVar[] vars) {
         super(vars);
+	setName("LessOrEqual");
         this.x = x;
         this.y = y;
    	setExactWCounting(true);

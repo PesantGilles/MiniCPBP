@@ -79,6 +79,7 @@ public class Sum extends AbstractConstraint {
      */
     public Sum(IntVar[] x) {
         super(x);
+	setName("Sum");
         this.x = x;
         this.n = x.length;
         nUnBounds = getSolver().getStateManager().makeStateInt(n);

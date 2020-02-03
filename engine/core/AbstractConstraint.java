@@ -35,6 +35,7 @@ import minicp.engine.core.Solver;
  */
 public abstract class AbstractConstraint implements Constraint {
 
+    private String name;
     /**
      * The solver in which the constraint is created
      */
@@ -221,6 +222,7 @@ public abstract class AbstractConstraint implements Constraint {
      * CAVEAT: may set zero/one beliefs but should not directly remove domain values (only done in sendMessages() if actOnZeroOneBelief flag is set)
      */
     protected void updateBelief() {
+	System.out.println("Warning: method updateBelief not implemented yet for "+getName()+" constraint. Using uniform belief instead.");
 	for(int i = 0; i<vars.length; i++){
 	    for(int j = 0; j<localBelief[i].length; j++){
 		localBelief[i][j].setValue(beliefRep.one()); // will be normalized
@@ -228,4 +230,13 @@ public abstract class AbstractConstraint implements Constraint {
 	}
     }
 
+    @Override
+    public String getName() {
+	return this.name;
+    }
+    
+    @Override
+    public void setName(String name) {
+	this.name = name;
+    }
 }

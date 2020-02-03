@@ -77,6 +77,8 @@ public interface Constraint {
      */
     boolean isActive();
 
+    String getName();
+    void setName(String name);
 
     /************* BP services *************/
 

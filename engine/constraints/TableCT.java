@@ -62,6 +62,7 @@ public class TableCT extends AbstractConstraint {
      */
     public TableCT(IntVar[] x, int[][] table) {
         super(x);
+	setName("TableCT");
         this.x = x;
         this.table = table;
 	assert( x.length == table[0].length );

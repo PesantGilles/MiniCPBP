@@ -85,6 +85,7 @@ public class AllDifferentAC extends AbstractConstraint {
 
     public AllDifferentAC(IntVar... x) {
         super(x);
+	setName("AllDifferentAC");
         this.x = x;
         maximumMatching = new MaximumMatching(x);
         match = new int[x.length];

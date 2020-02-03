@@ -53,6 +53,7 @@ public class Among extends AbstractConstraint {
      */
     public Among(IntVar[] x, int[] V, IntVar o, IntVar[] y, IntVar[] vars) {
         super(vars);
+	setName("Among");
         this.x = x;
 	this.o = o;
 	this.y = y;
