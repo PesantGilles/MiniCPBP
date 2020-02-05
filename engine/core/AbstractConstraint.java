@@ -52,6 +52,7 @@ public abstract class AbstractConstraint implements Constraint {
     protected int[] domainValues; // an array large enough to hold any domain of vars
     protected double[] beliefValues; // an auxiliary array as large as domainValues
     private boolean exactWCounting = false;
+    private boolean updateBeliefWarningPrinted = false;
 
     public AbstractConstraint(IntVar[] vars) {
         this.cp = vars[0].getSolver();
@@ -222,7 +223,10 @@ public abstract class AbstractConstraint implements Constraint {
      * CAVEAT: may set zero/one beliefs but should not directly remove domain values (only done in sendMessages() if actOnZeroOneBelief flag is set)
      */
     protected void updateBelief() {
-	System.out.println("Warning: method updateBelief not implemented yet for "+getName()+" constraint. Using uniform belief instead.");
+	if (!updateBeliefWarningPrinted) {
+	    System.out.println("Warning: method updateBelief not implemented yet for "+getName()+" constraint. Using uniform belief instead.");
+	    updateBeliefWarningPrinted = true;
+	}
 	for(int i = 0; i<vars.length; i++){
 	    for(int j = 0; j<localBelief[i].length; j++){
 		localBelief[i][j].setValue(beliefRep.one()); // will be normalized
