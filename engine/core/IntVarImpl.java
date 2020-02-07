@@ -105,7 +105,16 @@ public class IntVarImpl implements IntVar {
      * @param values the initial values in the domain, it must be nonempty
      */
     public IntVarImpl(Solver cp, Set<Integer> values) {
-         throw new NotImplementedException();
+        this(cp, values.stream().min(Integer::compare).get(), values.stream().max(Integer::compare).get());
+        if (values.isEmpty()) throw new InvalidParameterException("at least one setValue in the domain");
+        for (int i = min(); i <= max(); i++) {
+            if (!values.contains(i)) {
+                try {
+                    this.remove(i);
+                } catch (InconsistencyException e) {
+                }
+            }
+        }
     }
 
     @Override
