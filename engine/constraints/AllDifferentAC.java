@@ -115,6 +115,10 @@ public class AllDifferentAC extends AbstractConstraint {
 		}
 	    }
 	}
+	if (freeVars.isEmpty()) {
+	    freeVals = new StateSparseSet(getSolver().getStateManager(),0,0); // make it empty as well
+	    return; // special case of all variables in its scope already being bound
+	}
 	freeVals = new StateSparseSet(getSolver().getStateManager(),allVals.last().intValue()-allVals.first().intValue()+1,allVals.first().intValue());	
 	// remove missing intermediate values from interval domain
 	for (int i = allVals.first().intValue()+1; i < allVals.last().intValue(); i++){
