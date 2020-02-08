@@ -611,9 +611,9 @@ public final class Factory {
         }
         Solver cp = x[0].getSolver();
         IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = makeIntVar(cp, sumMin, sumMax);
+        vars[x.length] = makeIntVar(cp, -sumMax, -sumMin);
         cp.post(new Sum(vars));
-        return vars[x.length];
+        return minus(vars[x.length]);
     }
 
     /**
@@ -639,9 +639,9 @@ public final class Factory {
         for (int i = 0; i < x.length; i++) {
             vars[i] = mul(x[i],c[i]);
         }
-        vars[x.length] = makeIntVar(cp, sumMin, sumMax);
+        vars[x.length] = makeIntVar(cp, -sumMax, -sumMin);
         cp.post(new Sum(vars));
-        return vars[x.length];
+        return minus(vars[x.length]);
     }
 
     /**
