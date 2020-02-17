@@ -301,7 +301,7 @@ public class AllDifferentAC extends AbstractConstraint {
 		    if(x[i].contains(val)) {
 			// note: will be normalized later in AbstractConstraint.sendMessages()
 			// put beliefs back to their original representation
-     			setLocalBelief(i,val,beliefRep.std2rep(costBasedPermanent_UB3(j,k,beliefs,nbVal)));
+     			setLocalBelief(i,val,beliefRep.std2rep(costBasedPermanent_UB3(j,k,beliefs,nbVal,nbVal-nbVar)));
 		    }
 		}
 	    }
@@ -310,21 +310,27 @@ public class AllDifferentAC extends AbstractConstraint {
 
     // precompute gamma function up to n+1, to account for small floating-point errors
     private void precompute_gamma(int n) {
+	int gamma_threshold = 100; // value of n beyond which we approximate n!
 	double factorial=1.0;
 	gamma = new double[n+2];
 	gamma[0]=1.0;
-	for(int i=1; i<=n+1; i++){
+	for(int i=1; (i<=n+1) && (i<=gamma_threshold); i++){
 	    factorial *= (double) i;
 	    gamma[i] = Math.pow( factorial, 1.0/((double) i));
 	}
+	for(int i=gamma_threshold+1; i<=n+1; i++){
+	    // from n>gamma_threshold, Stirling's formula is a decent approximation of factorial which will avoid intermediate overflow
+	    gamma[i] = (double) i / Math.E * Math.pow( 2*Math.PI*i, 1.0/((double) 2*i));
+	}
     }
 
-    private double costBasedPermanent_UB3(int var, int val, double[][] m, int dim){
+    private double costBasedPermanent_UB3(int var, int val, double[][] m, int dim, int nbDummyRows){
 	// permanent upper bound U^3 for nonnegative matrices (from Soules 2003) 
 	// for matrix m without row of var and column of val
 	double U3 = 1.0; 
 	double rowSum, rowMax, tmp;
 	int tmpFloor, tmpCeil;
+	int dummyRowCount = nbDummyRows;
 
 	for(int i=0; i<dim; i++){
 	    if(i!=var){ // exclude row of var whose belief we are computing
@@ -343,9 +349,14 @@ public class AllDifferentAC extends AbstractConstraint {
 		tmpFloor = (int) Math.floor(tmp);
 		tmpCeil = (int) Math.ceil(tmp);
 		U3 *= rowMax * (gamma[tmpFloor] + (tmp-tmpFloor)*(gamma[tmpCeil]-gamma[tmpFloor]));
+		if (dummyRowCount>1) {
+		    // that upper bound should be divided by (# dummy rows)!
+		    U3 /= dummyRowCount;
+		    dummyRowCount--;
+		}
 	    }
 	}
-	return U3; // that upper bound should actually be divided by (# dummy rows)!
+	return U3;
     }
 
     private double costBasedPermanent_exact(int var, int val, double[][] m, int dim){
