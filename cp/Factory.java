@@ -610,10 +610,33 @@ public final class Factory {
             sumMax += x[i].max();
         }
         Solver cp = x[0].getSolver();
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = makeIntVar(cp, -sumMax, -sumMin);
+	// merge repeated variables among x
+	int nbUnique = 0;
+	int[] nbOcc = new int[x.length];
+	for (int i = 0; i < x.length; i++)
+	    nbOcc[i] = 1;
+	for (int i = 0; i < x.length; i++)
+	    if (nbOcc[i] == 1) {
+		nbUnique++;
+		for (int j = i+1; j < x.length; j++)
+		    if (x[i] == x[j]) { // repeated var
+			nbOcc[i]++;
+			nbOcc[j] = 0;
+		    }
+	    }
+        IntVar[] vars = new IntVar[nbUnique + 1];
+        for (int i = 0; i < x.length; i++) 
+	    switch (nbOcc[i]) {
+	    case 0: break;
+	    case 1: vars[nbUnique] = x[i];
+		    nbUnique--;
+		    break;
+	    default: vars[nbUnique] = mul(x[i],nbOcc[i]);
+		     nbUnique--;
+	    }
+        vars[0] = makeIntVar(cp, -sumMax, -sumMin);
         cp.post(new Sum(vars));
-        return minus(vars[x.length]);
+        return minus(vars[0]);
     }
 
     /**
