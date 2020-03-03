@@ -610,7 +610,7 @@ public final class Factory {
             sumMax += x[i].max();
         }
         Solver cp = x[0].getSolver();
-	// merge repeated variables among x
+	// merge repeated variables among x (so that beliefs are computed correctly)
 	int nbUnique = 0;
 	int[] nbOcc = new int[x.length];
 	for (int i = 0; i < x.length; i++)
@@ -775,7 +775,7 @@ public final class Factory {
 
     /**
      * Returns a table constraint.
-     * This relation is enforced by the {@link Regular} constraint
+     * This relation is enforced by the {@link TableCT} constraint
      * posted by calling this method.
      *
      * <p>The table constraint ensures that
@@ -826,6 +826,88 @@ public final class Factory {
             f.add(i);
         }
         return new Regular(x,A,0,f);
+    }
+
+    /**
+     * Returns a costRegular constraint.
+     * This relation is enforced by the {@link CostRegular} constraint
+     * posted by calling this method.
+     *
+     * @param x an array of variables
+     * @param A a 2D array giving the transition function of the automaton: {states} x {domain values} -> {states} (domain values are nonnegative and start at 0)
+     * @param s is the initial state
+     * @param f a list of accepting states
+     * @param c a 3D array giving integer costs for each combination of variable, state, and domain value (in that order)
+     * @param tc the total cost of word x computed as the sum of the corresponding integer costs from array c
+     *
+     * @return a constraint so that {@code x is a word recognized by automaton A and of total cost tc}
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][][]c, IntVar tc) {
+        return new CostRegular(x,A,s,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][][]c, IntVar tc) {
+        return new CostRegular(x,A,0,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state and all states being accepting
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int[][][]c, IntVar tc) {
+	List<Integer> f=new ArrayList<Integer>();
+        for (int i = 0; i < A.length; i++) {
+            f.add(i);
+        }
+        return new CostRegular(x,A,0,f,c,tc);
+    }
+    /**
+     *
+     * special case with 2D cost matrix: state x domain value
+     *
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][]c, IntVar tc) {
+        return new CostRegular(x,A,s,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][]c, IntVar tc) {
+        return new CostRegular(x,A,0,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state and all states being accepting
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int[][]c, IntVar tc) {
+	List<Integer> f=new ArrayList<Integer>();
+        for (int i = 0; i < A.length; i++) {
+            f.add(i);
+        }
+        return new CostRegular(x,A,0,f,c,tc);
+    }
+    /**
+     *
+     * special case with 1D cost matrix: domain value
+     *
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[]c, IntVar tc) {
+        return new CostRegular(x,A,s,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[]c, IntVar tc) {
+        return new CostRegular(x,A,0,f,c,tc);
+    }
+    /**
+     * special case with 0 being the initial state and all states being accepting
+     */
+    public static Constraint costRegular(IntVar[] x, int[][] A, int[]c, IntVar tc) {
+	List<Integer> f=new ArrayList<Integer>();
+        for (int i = 0; i < A.length; i++) {
+            f.add(i);
+        }
+        return new CostRegular(x,A,0,f,c,tc);
     }
 
     /**
