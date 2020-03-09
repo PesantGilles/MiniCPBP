@@ -51,13 +51,27 @@ public class LimitedDiscrepancyBranching implements Supplier<Procedure[]> {
 
     @Override
     public Procedure[] get() {
-        // Hint:
         // Filter-out alternatives from that would exceed maxD
         // Therefore wrap each alternative
         // such that the call method of the wrapped alternatives
         // augment the curD depending on its position
         // +0 for alts[0], ..., +i for alts[i]
+        Procedure[] branches = bs.get();
 
-         throw new NotImplementedException();
+        int k = Math.min(maxD - curD + 1, branches.length);
+
+        if (k == 0) return BranchingScheme.EMPTY;
+
+        Procedure[] kFirstBranches = new Procedure[k];
+        for (int i = 0; i < k; i++) {
+            int bi = i;
+            int d = curD + bi; // branch index
+            kFirstBranches[i] = () -> {
+                curD = d; // update discrepancy
+                branches[bi].call();
+            };
+        }
+
+        return kFirstBranches;
     }
 }

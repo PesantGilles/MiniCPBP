@@ -21,6 +21,7 @@ package minicp.cp;
 import minicp.engine.constraints.*;
 import minicp.engine.core.*;
 import minicp.search.DFSearch;
+import minicp.search.LDSearch;
 import minicp.search.Objective;
 import minicp.state.Copier;
 import minicp.state.Trailer;
@@ -214,6 +215,42 @@ public final class Factory {
 	    break;
 	}
         return new DFSearch(cp.getStateManager(), branching);
+    }
+
+    /**
+     * Creates a Limited Discrepancy Search with custom branching heuristic
+     * @param cp the solver that will be used for the search
+     * @param branching a generator that is called at each node of the search
+     *                 tree to generate an array of {@link Procedure} objects
+     *                 that will be used to commit to child nodes.
+     *                 It should return {@link BranchingScheme#EMPTY} whenever the current state
+     *                  is a solution.
+     * @param geometric to indicate whether the progression of maxDiscrepancy is geometric
+     *
+     * @return the limited discrepancy search object ready to execute with
+     *         {@link DFSearch#solve()} or
+     *         {@link DFSearch#optimize(Objective)}
+     *         using the given branching scheme
+     * @see BranchingScheme#firstFail(IntVar...)
+     * @see BranchingScheme#branch(Procedure...)
+     */
+    public static LDSearch makeLds(Solver cp, Supplier<Procedure[]> branching, boolean geometric) {
+	switch(cp.getMode()) { // initial propagation at root node
+	case SP: 
+	    cp.fixPoint();
+	    break;
+	case BP: 
+	    cp.beliefPropa();
+	    break;
+	case SBP: 
+	    cp.fixPoint();
+	    cp.beliefPropa();
+	    break;
+	}
+        return new LDSearch(cp.getStateManager(), branching, geometric);
+    }
+    public static LDSearch makeLds(Solver cp, Supplier<Procedure[]> branching) {
+	return makeLds(cp, branching, true);
     }
 
     // -------------- constraints -----------------------
