@@ -28,6 +28,7 @@ import minicp.util.Belief;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.Random;
 
 import static minicp.cp.Factory.equal;
 import static minicp.cp.Factory.notEqual;
@@ -62,6 +63,8 @@ import static minicp.cp.Factory.branchNotEqual;
  * @see Factory#makeDfs(Solver, Supplier)
  */
 public final class BranchingScheme {
+
+    static Random rand = new Random();
 
     private BranchingScheme() {
         throw new UnsupportedOperationException();
@@ -116,11 +119,54 @@ public final class BranchingScheme {
     }
 
     /**
+     * Minimum selector with randomized tie-breaking.
+     * <p>Example of usage.
+     * <pre>
+     * {@code
+     * IntVar xs = selectMinRandomTieBreak(x,xi -> xi.size() > 1,xi -> xi.size());
+     * }
+     * </pre>
+     *
+     * @param x the array on which the minimum value is searched
+     * @param p the predicate that filters the element eligible for selection
+     * @param f the evaluation function that returns a comparable when applied on an element of x
+     * @param <T> the type of the elements in x, for instance {@link IntVar}
+     * @param <N> the type on which the minimum is computed, for instance {@link Integer}
+     * @return a minimum element in x that satisfies the predicate p, chosen uniformly at random,
+     *         or null if no element satisfies the predicate.
+     */
+    public static <T, N extends Comparable<N>> T selectMinRandomTieBreak(T[] x, Predicate<T> p, Function<T, N> f) {
+	int nbTied = 0;
+        T sel = null;
+        for (T xi : x) {
+            if (p.test(xi)) {
+		if (sel == null) {
+		    sel = xi;
+		    nbTied = 1;
+		} 
+		else {
+		    int comparison = f.apply(xi).compareTo(f.apply(sel));
+		    if (comparison < 0) {
+			sel = xi;
+			nbTied = 1;
+		    } 
+		    else if (comparison == 0) {
+			nbTied++;
+			if (rand.nextInt(nbTied) == 0) // with probability 1/nbTied
+			    sel = xi;
+		    }
+		}
+            }
+        }
+        return sel;
+    }
+    
+    /**
      * First-Fail strategy.
      * It selects the first variable with a domain larger than one.
-     * Then it creates two branches. The left branch
-     * assigning the variable to its minimum value.
-     * The right branch removing this minimum value from the domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to its minimum value;
+     * the right branch removing this minimum value from the domain.
      * @param x the variable on which the first fail strategy is applied.
      * @return a first-fail branching strategy
      * @see Factory#makeDfs(Solver, Supplier)
@@ -153,9 +199,9 @@ public final class BranchingScheme {
     /**
      * First-Fail strategy + random value selection.
      * It selects the first variable with a domain larger than one.
-     * Then it creates two branches. The left branch
-     * assigning the variable to a value in its domain, chosen uniformly at random.
-     * The right branch removing this value from the domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to a value in its domain, chosen uniformly at random;
+     * the right branch removing this value from the domain.
      * @param x the variable on which the first fail strategy is applied.
      * @return a first-fail/random-value branching strategy
      * @see Factory#makeDfs(Solver, Supplier)
@@ -189,18 +235,55 @@ public final class BranchingScheme {
      * Maximum Marginal Strength strategy.
      * It selects an unbound variable with the largest marginal strength 
      * on one of the values in its domain.
-     * Then it creates two branches. The left branch
-     * assigning the variable to that value.
-     * The right branch removing this value from the domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to that value;
+     * the right branch removing this value from the domain.
      * @param x the variable on which the max marginal strength strategy is applied.
      * @return maxMarginalStrength branching strategy
      * @see Factory#makeDfs(Solver, Supplier)
      */
-    public static Supplier<Procedure[]> maxMarginalStrength(IntVar... x) {
+    public static Supplier<Procedure[]> maxMarginalStrength(IntVar[] x) {
 	boolean tracing = x[0].getSolver().tracingSearch();
 	Belief beliefRep = x[0].getSolver().getBeliefRep();
         return () -> {
-            IntVar xs = selectMin(x,
+	    IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+		    xi -> 1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()));
+            if (xs == null)
+                return EMPTY;
+            else {
+		int v = xs.valueWithMaxMarginal(); 
+                return branch(
+			      () -> { 
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.maxMarginal()));
+				  branchEqual(xs, v); 
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v+" marginal="+(1-beliefRep.rep2std(xs.maxMarginal())));
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
+     * Maximum Marginal Strength strategy with random tie breaking.
+     * It selects an unbound variable with the largest marginal strength 
+     * on one of the values in its domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to that value;
+     * the right branch removing this value from the domain.
+     * @param x the variable on which the max marginal strength strategy is applied.
+     * @return maxMarginalStrengthRandomTieBreak branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalStrengthRandomTieBreak(IntVar[] x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+	Belief beliefRep = x[0].getSolver().getBeliefRep();
+        return () -> {
+	    IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
 		    xi -> 1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()));
             if (xs == null)
@@ -263,9 +346,9 @@ public final class BranchingScheme {
      * Maximum Marginal strategy.
      * It selects an unbound variable with the largest marginal
      * on one of the values in its domain.
-     * Then it creates two branches. The left branch
-     * assigning the variable to that value.
-     * The right branch removing this value from the domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to that value;
+     * the right branch removing this value from the domain.
      * @param x the variable on which the max marginal strategy is applied.
      * @return maxMarginal branching strategy
      * @see Factory#makeDfs(Solver, Supplier)
@@ -359,5 +442,4 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> limitedDiscrepancy(Supplier<Procedure[]> branching, int maxDiscrepancy) {
         return new LimitedDiscrepancyBranching(branching, maxDiscrepancy);
     }
-
 }
