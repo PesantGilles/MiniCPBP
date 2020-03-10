@@ -42,8 +42,6 @@ public class MiniCP implements Solver {
 
     private final StateManager sm;
 
-    private final StateStack<IntVar> vars;
-
     private StateStack<IntVar> variables;
     private StateStack<Constraint> constraints;
 
@@ -57,7 +55,7 @@ public class MiniCP implements Solver {
     // reset marginals and local beliefs before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
-    private static final boolean actOnZeroOneBelief = true;
+    private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     //****************************
@@ -69,7 +67,6 @@ public class MiniCP implements Solver {
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
-        vars = new StateStack<>(sm);
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
     }
@@ -77,6 +74,11 @@ public class MiniCP implements Solver {
     @Override
     public StateManager getStateManager() {
         return sm;
+    }
+
+    @Override
+    public StateStack<IntVar> getVariables() {
+        return variables;
     }
 
     @Override

@@ -247,7 +247,12 @@ public final class Factory {
 	    cp.beliefPropa();
 	    break;
 	}
-        return new LDSearch(cp.getStateManager(), branching, geometric);
+	// compute an upper bound on the number of discrepancies in the rightmost branch of a complete search tree
+	int discrepancyUB = 0;
+	for (int i = 0; i < cp.getVariables().size(); i++) {
+	    discrepancyUB += cp.getVariables().get(i).size()-1; 
+	}
+        return new LDSearch(cp.getStateManager(), branching, geometric, discrepancyUB);
     }
     public static LDSearch makeLds(Solver cp, Supplier<Procedure[]> branching) {
 	return makeLds(cp, branching, true);

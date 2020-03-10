@@ -20,6 +20,7 @@ package minicp.engine.core;
 
 import minicp.search.Objective;
 import minicp.state.StateManager;
+import minicp.state.StateStack;
 import minicp.util.Procedure;
 import minicp.util.Belief;
 
@@ -92,6 +93,13 @@ public interface Solver {
      * @return the state manager
      */
     StateManager getStateManager();
+
+    /**
+     * Returns the variables registered in the solver.
+     *
+     * @return the variables
+     */
+    StateStack<IntVar> getVariables();
 
     /**
      * Returns the belief representation being used (Std or Log)

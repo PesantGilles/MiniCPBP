@@ -37,6 +37,7 @@ public class LDSearch {
     private Supplier<Procedure[]> branching;
     private Supplier<Procedure[]> LDSbranching;
     private boolean geometric; // true if the sequence of max discrepancies follows a geometric progression (with ratio=2); false if it follows an arithmetic progression (with difference=1)
+    private int discrepancyUB;
     private StateManager sm;
 
     private List<Procedure> solutionListeners = new LinkedList<Procedure>();
@@ -54,11 +55,13 @@ public class LDSearch {
      *                  A backtrack occurs when a {@link InconsistencyException}
      *                  is thrown.
      * @param geometric to indicate whether the progression of maxDiscrepancy is geometric
+     * @param discrepancyUB an upper bound on the number of discrepancies in the rightmost branch of a complete search tree
      */
-    public LDSearch(StateManager sm, Supplier<Procedure[]> branching, boolean geometric) {
+    public LDSearch(StateManager sm, Supplier<Procedure[]> branching, boolean geometric, int discrepancyUB) {
         this.sm = sm;
         this.branching = branching;
 	this.geometric = geometric;
+	this.discrepancyUB = discrepancyUB;
     }
 	
     /**
@@ -95,9 +98,9 @@ public class LDSearch {
         sm.withNewState(() -> {
 	    int maxDiscrepancy = 1;
             try {
-                while(maxDiscrepancy<Integer.MAX_VALUE) { // really, nb discrepancies of rightmost branch in O(nb vars * domain size) --- in practice, this will not stop on an unsatisfiable instance
+                while(maxDiscrepancy <= discrepancyUB) { // nb discrepancies of rightmost branch <= nb vars * (domain size - 1)
 		    LDSbranching = new LimitedDiscrepancyBranching(branching, maxDiscrepancy);
-//  		    System.out.println("LDS: on search tree with max discrepancy = "+maxDiscrepancy);
+//   		    System.out.println("LDS: on search tree with max discrepancy = "+maxDiscrepancy);
 		    lds(statistics, limit);
 // 		    System.out.println(statistics);
 		    if (geometric)
@@ -107,7 +110,7 @@ public class LDSearch {
 		}
                 statistics.setCompleted();
             } catch (StopSearchException ignored) {
-		System.out.println("LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
+ 		System.out.println("LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
             } catch (StackOverflowError e) {
                 throw new NotImplementedException("lds with explicit stack needed to pass this test");
             }
