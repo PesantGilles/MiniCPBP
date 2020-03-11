@@ -186,7 +186,7 @@ public class Sum extends AbstractConstraint {
 		bwd_hi -= x[idx].min();
 		bwd_lo -= x[idx].max();
 	    }
-	    for (int i = 0 ; i <= nUnBounds.value(); i++) {
+	    for (int i = 0 ; i < nUnBounds.value(); i++) {
 		minState[i] = Math.max(fwd_lo,bwd_lo);
 		maxState[i] = Math.min(fwd_hi,bwd_hi);
 		idx = unBounds[i];
@@ -195,6 +195,8 @@ public class Sum extends AbstractConstraint {
 		bwd_hi += x[idx].min();
 		bwd_lo += x[idx].max();
 	    }
+	    minState[nUnBounds.value()] = Math.max(fwd_lo,bwd_lo);
+	    maxState[nUnBounds.value()] = Math.min(fwd_hi,bwd_hi);
 	    // Reach forward
 	    ip[0][minState[0]] = beliefRep.one();
 	    for (int i = 0; i < nUnBounds.value()-1; i++) {
