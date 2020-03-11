@@ -291,10 +291,10 @@ public class CostRegular extends AbstractConstraint {
 	    int v = domainValues[j];
 	    int newState = transitionFct[initialState][v];
 	    if ( (newState>=0) && (op[0][newState]>0) &&
-		 (cost[0][newState][v] + ominp[0][newState] <= totalCost.max()) && // cost-based reasoning
-		 (cost[0][newState][v] + omaxp[0][newState] >= totalCost.min()) ) { 
-		shortestPath = Math.min(shortestPath, cost[0][newState][v] + ominp[0][newState]);
-		longestPath = Math.max(longestPath, cost[0][newState][v] + omaxp[0][newState]);
+		 (cost[0][initialState][v] + ominp[0][newState] <= totalCost.max()) && // cost-based reasoning
+		 (cost[0][initialState][v] + omaxp[0][newState] >= totalCost.min()) ) { 
+		shortestPath = Math.min(shortestPath, cost[0][initialState][v] + ominp[0][newState]);
+		longestPath = Math.max(longestPath, cost[0][initialState][v] + omaxp[0][newState]);
 	    }
 	    else
 		x[0].remove(v);
