@@ -30,7 +30,7 @@ public class Absolute extends AbstractConstraint {
     /**
      * Creates the absolute value constraint {@code y = |x|}.
      *
-     * @param x the input variable such that its absolut value is equal to y
+     * @param x the input variable such that its absolute value is equal to y
      * @param y the variable that represents the absolute value of x
      */
     public Absolute(IntVar x, IntVar y, IntVar[] vars) {
