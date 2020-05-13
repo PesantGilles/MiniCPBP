@@ -39,6 +39,7 @@ public class TableDecomp extends AbstractConstraint {
      */
     public TableDecomp(IntVar[] x, int[][] table) {
         super(x);
+	setName("TableDecomp");
         this.x = x;
         this.table = table;
     }

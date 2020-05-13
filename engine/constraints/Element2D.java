@@ -68,6 +68,7 @@ public class Element2D extends AbstractConstraint {
      */
     public Element2D(int[][] mat, IntVar x, IntVar y, IntVar z, IntVar[] vars) {
         super(vars);
+	setName("Element2D");
         this.matrix = mat;
         this.x = x;
         this.y = y;

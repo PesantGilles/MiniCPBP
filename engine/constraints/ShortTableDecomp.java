@@ -37,6 +37,7 @@ public class ShortTableDecomp extends AbstractConstraint {
      */
     public ShortTableDecomp(IntVar[] x, int[][] table, int star) {
         super(x);
+	setName("ShortTableDecomp");
         this.x = x;
         this.table = table;
         this.star = star;

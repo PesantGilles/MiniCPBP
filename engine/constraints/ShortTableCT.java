@@ -44,6 +44,7 @@ public class ShortTableCT extends AbstractConstraint {
      */
     public ShortTableCT(IntVar[] x, int[][] table, int star) {
         super(x);
+	setName("ShortTableCT");
         this.x = x;
         this.table = table;
 

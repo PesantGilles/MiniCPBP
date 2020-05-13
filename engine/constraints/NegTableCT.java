@@ -46,8 +46,8 @@ public class NegTableCT extends AbstractConstraint {
      */
     public NegTableCT(IntVar[] x, int[][] table) {
         super(x);
+	setName("NegTableCT");
         this.x = new IntVar[x.length];
-
 
         // remove duplicate (the negative ct algo does not support it)
         ArrayList<int[]> tableList = new ArrayList<>();
@@ -91,14 +91,44 @@ public class NegTableCT extends AbstractConstraint {
 
     @Override
     public void post() {
-        // TODO
-         throw new NotImplementedException("NegTableCT");
+        for (IntVar var : x)
+            var.propagateOnDomainChange(this);
+        propagate();
     }
 
     @Override
     public void propagate() {
-        // TODO
-         throw new NotImplementedException("NegTableCT");
+        // Bit-set of tuple indices all set to 0
+        BitSet menacing = new BitSet(table.length);
+        menacing.flip(0, table.length);
+
+        for (int i = 0; i < x.length; i++) {
+            BitSet conflictsi = new BitSet();
+            for (int v = x[i].min(); v <= x[i].max(); v++) {
+                if (x[i].contains(v)) {
+                    conflictsi.or(conflicts[i][v]);
+                }
+            }
+            menacing.and(conflictsi);
+        }
+
+        Long prodDomains = 1L;
+        for (int i = 0; i < x.length; i++) {
+            prodDomains *= x[i].size();
+        }
+
+        for (int i = 0; i < x.length; i++) {
+            int prodDomainsi = (int) (prodDomains / x[i].size());
+            for (int v = x[i].min(); v <= x[i].max(); v++) {
+                if (x[i].contains(v)) {
+                     BitSet menacingIntersect = (BitSet) menacing.clone();
+                    menacingIntersect.and(conflicts[i][v]);
+                    if (menacingIntersect.cardinality() >= prodDomainsi) {
+                        x[i].remove(v);
+                    }
+                }
+            }
+        }
     }
 
 }

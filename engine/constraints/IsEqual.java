@@ -41,6 +41,7 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
      */
     public IsEqual(BoolVar b, IntVar x, int c, IntVar[] vars) {
         super(vars);
+	setName("IsEqual");
         this.b = b;
         this.x = x;
         this.c = c;

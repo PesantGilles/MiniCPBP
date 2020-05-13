@@ -28,6 +28,7 @@ public class Element1DVar extends AbstractConstraint {
 
     public Element1DVar(IntVar[] array, IntVar y, IntVar z, IntVar[] vars) {
         super(vars);
+	setName("Element1DVar");
         this.array = array;
         this.y = y;
         this.z = z;

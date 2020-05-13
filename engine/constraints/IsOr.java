@@ -47,6 +47,7 @@ public class IsOr extends AbstractConstraint { // b <=> x1 or x2 or ... xn
      */
     public IsOr(BoolVar b, BoolVar[] x, IntVar[] vars) {
         super(vars);
+	setName("IsOr");
         this.b = b;
         this.x = x;
         this.n = x.length;

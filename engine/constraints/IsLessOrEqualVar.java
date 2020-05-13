@@ -41,6 +41,7 @@ public class IsLessOrEqualVar extends AbstractConstraint {
      */
     public IsLessOrEqualVar(BoolVar b, IntVar x, IntVar y, IntVar[] vars) {
         super(vars);
+	setName("IsLessOrEqualVar");
         this.b = b;
         this.x = x;
         this.y = y;

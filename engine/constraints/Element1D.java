@@ -42,6 +42,7 @@ public class Element1D extends AbstractConstraint {
      */
     public Element1D(int[] array, IntVar y, IntVar z, IntVar[] vars) {
         super(vars);
+	setName("Element1D");
         this.t = array;
         this.y = y;
         this.z = z;
@@ -49,7 +50,10 @@ public class Element1D extends AbstractConstraint {
 
     @Override
     public void post() {
-         throw new NotImplementedException("Element1D");
+        int[][] t2 = new int[1][t.length];
+        System.arraycopy(t, 0, t2[0], 0, t.length);
+        Constraint c = new Element2D(t2, Factory.makeIntVar(getSolver(), 0, 0), y, z, new IntVar[]{y,z});
+        getSolver().post(c, false);
     }
 
 }

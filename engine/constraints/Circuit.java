@@ -42,6 +42,7 @@ public class Circuit extends AbstractConstraint {
      */
     public Circuit(IntVar... x) {
         super(x);
+	setName("Circuit");
         assert (x.length > 0);
         this.x = x;
         dest = new StateInt[x.length];

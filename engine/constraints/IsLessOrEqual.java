@@ -41,6 +41,7 @@ public class IsLessOrEqual extends AbstractConstraint { // b <=> x <= c
      */
     public IsLessOrEqual(BoolVar b, IntVar x, int c, IntVar[] vars) {
         super(vars);
+	setName("IsLessOrEqual");
         this.b = b;
         this.x = x;
         this.c = c;

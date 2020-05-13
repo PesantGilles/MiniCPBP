@@ -42,6 +42,7 @@ public class Or extends AbstractConstraint { // x1 or x2 or ... xn
      */
     public Or(BoolVar[] x, IntVar[] vars) {
         super(vars);
+	setName("Or");
         this.x = x;
         this.n = x.length;
         wL = getSolver().getStateManager().makeStateInt(0);

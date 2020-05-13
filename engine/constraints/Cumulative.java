@@ -57,6 +57,7 @@ public class Cumulative extends AbstractConstraint {
 
     private Cumulative(IntVar[] start, int[] duration, int[] demand, int capa, boolean postMirror) {
         super(start);
+	setName("Cumulative");
         this.start = start;
         this.duration = duration;
         this.end = Factory.makeIntVarArray(start.length, i -> plus(start[i], duration[i]));
