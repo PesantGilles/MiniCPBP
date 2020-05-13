@@ -786,11 +786,31 @@ public final class Factory {
      */
     public static Constraint sum(int[] c, IntVar[] x, int y) {
         Solver cp = x[0].getSolver();
-        IntVar[] vars = new IntVar[x.length + 1];
-        for (int i = 0; i < x.length; i++) {
-            vars[i] = mul(x[i],c[i]);
-        }
-        vars[x.length] = makeIntVar(cp, -y, -y);
+	// merge repeated variables among x
+	int nbUnique = 0;
+	int[] coef = new int[x.length];
+	for (int i = 0; i < x.length; i++)
+	    coef[i] = c[i];
+	for (int i = 0; i < x.length; i++)
+	    if (coef[i] != 0) {
+		nbUnique++;
+		for (int j = i+1; j < x.length; j++)
+		    if (x[i] == x[j]) { // repeated var
+			coef[i] += coef[j];
+			coef[j] = 0;
+		    }
+	    }
+        IntVar[] vars = new IntVar[nbUnique + 1];
+        for (int i = 0; i < x.length; i++) 
+	    switch (coef[i]) {
+	    case 0: break;
+	    case 1: vars[nbUnique] = x[i];
+		    nbUnique--;
+		    break;
+	    default: vars[nbUnique] = mul(x[i],coef[i]);
+		     nbUnique--;
+	    }
+        vars[0] = makeIntVar(cp, -y, -y);
         return new Sum(vars);
     }
 
