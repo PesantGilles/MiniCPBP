@@ -98,16 +98,21 @@ public class LDSearch {
         sm.withNewState(() -> {
 	    int maxDiscrepancy = 1;
             try {
-                while(maxDiscrepancy <= discrepancyUB) { // nb discrepancies of rightmost branch <= nb vars * (domain size - 1)
-		    LDSbranching = new LimitedDiscrepancyBranching(branching, maxDiscrepancy);
-//   		    System.out.println("LDS: on search tree with max discrepancy = "+maxDiscrepancy);
+		if (discrepancyUB==0) { // special case of all vars already being fixed
+		    LDSbranching = new LimitedDiscrepancyBranching(branching, 0);
 		    lds(statistics, limit);
-// 		    System.out.println(statistics);
-		    if (geometric)
-			maxDiscrepancy *= 2;
-		    else
-			maxDiscrepancy++;
 		}
+                else 
+		    while(maxDiscrepancy <= discrepancyUB) { // nb discrepancies of rightmost branch <= nb vars * (domain size - 1)
+			LDSbranching = new LimitedDiscrepancyBranching(branching, maxDiscrepancy);
+			// System.out.println("LDS: on search tree with max discrepancy = "+maxDiscrepancy);
+			lds(statistics, limit);
+			// System.out.println(statistics);
+			if (geometric)
+			    maxDiscrepancy *= 2;
+			else
+			    maxDiscrepancy++;
+		    }
                 statistics.setCompleted();
             } catch (StopSearchException ignored) {
  		System.out.println("LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
