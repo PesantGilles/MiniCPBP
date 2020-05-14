@@ -228,6 +228,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public double maxMarginalRegret() {
+	return x.maxMarginalRegret();
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
 	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	if (v % a == 0) {
