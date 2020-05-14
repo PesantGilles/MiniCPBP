@@ -1032,19 +1032,27 @@ public final class Factory {
      */
     public static Constraint cardinality(IntVar[] x, int[] vals, IntVar[] o) {
 	assert(vals.length == o.length);
-        return new Cardinality(x,vals,o);
+	int maxDomainSize = 0;
+        for (int i = 0; i < x.length; i++) {
+	    maxDomainSize = Math.max(maxDomainSize, x[i].size());
+	}
+        return new Cardinality(x,vals,o,makeIntVar(x[0].getSolver(),1,maxDomainSize));
     }
     /**
      * special case with fixed nb of occurrences
      */
     public static Constraint cardinality(IntVar[] x, int[] vals, int[] o) {
 	assert(vals.length == o.length);
+	int maxDomainSize = 0;
+        for (int i = 0; i < x.length; i++) {
+	    maxDomainSize = Math.max(maxDomainSize, x[i].size());
+	}
         IntVar[] oVar = new IntVar[o.length];
 	Solver cp = x[0].getSolver();
         for (int i = 0; i < o.length; i++) {
 	    oVar[i] = makeIntVar(cp, o[i], o[i]);
 	}
-        return new Cardinality(x,vals,oVar);
+        return new Cardinality(x,vals,oVar,makeIntVar(cp,1,maxDomainSize));
     }
 
 }
