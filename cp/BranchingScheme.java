@@ -65,7 +65,8 @@ import static minicp.cp.Factory.branchNotEqual;
 public final class BranchingScheme {
 
     static Random rand = new Random();
-
+    static int nbTied;
+    static final int precisionForTie = 10000; // 4 decimal places
     private BranchingScheme() {
         throw new UnsupportedOperationException();
     }
@@ -136,7 +137,7 @@ public final class BranchingScheme {
      *         or null if no element satisfies the predicate.
      */
     public static <T, N extends Comparable<N>> T selectMinRandomTieBreak(T[] x, Predicate<T> p, Function<T, N> f) {
-	int nbTied = 0;
+	nbTied = 0;
         T sel = null;
         for (T xi : x) {
             if (p.test(xi)) {
@@ -198,7 +199,7 @@ public final class BranchingScheme {
 
     /**
      * First-Fail strategy.
-     * It selects the first variable with a domain larger than one.
+     * It selects the first unbound variable with a smallest domain.
      * Then it creates two branches:
      * the left branch assigning the variable to its minimum value;
      * the right branch removing this minimum value from the domain.
@@ -233,7 +234,7 @@ public final class BranchingScheme {
 
     /**
      * First-Fail strategy + random value selection.
-     * It selects the first variable with a domain larger than one.
+     * It selects the first unbound variable with a smallest domain.
      * Then it creates two branches:
      * the left branch assigning the variable to a value in its domain, chosen uniformly at random;
      * the right branch removing this value from the domain.
@@ -255,6 +256,42 @@ public final class BranchingScheme {
 			      () -> {
 				  if (tracing)
 				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+	    }
+	};
+    }
+
+    /**
+     * First-Fail strategy with random tie-breaking + random value selection.
+     * It selects an unbound variable with a smallest domain uniformly at random.
+     * It selects the first variable with a domain larger than one.
+     * Then it creates two branches:
+     * the left branch assigning the variable to a value in its domain, chosen uniformly at random;
+     * the right branch removing this value from the domain.
+     * @param x the variable on which the first fail strategy is applied.
+     * @return a first-fail/random-value branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> firstFailRandomTieBreakRandomVal(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+                    xi -> xi.size());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.randomValue();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v+"; nb of ties="+nbTied);
 				  branchEqual(xs, v);
 			      },
 			      () -> {
@@ -291,12 +328,12 @@ public final class BranchingScheme {
                 return branch(
 			      () -> { 
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.maxMarginal()));
+ 				      System.out.println("### branching on "+xs.getName()+"="+v+"; marginal="+beliefRep.rep2std(xs.maxMarginal())+"; strength="+(beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
 				  branchEqual(xs, v); 
 			      },
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v+" marginal="+(1-beliefRep.rep2std(xs.maxMarginal())));
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -317,10 +354,11 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalStrengthRandomTieBreak(IntVar[] x) {
 	boolean tracing = x[0].getSolver().tracingSearch();
 	Belief beliefRep = x[0].getSolver().getBeliefRep();
+       
         return () -> {
 	    IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-		    xi -> 1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()));
+		    xi -> Math.floor( precisionForTie*(1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal())) ) / precisionForTie); // tie = same first few decimal places
             if (xs == null)
                 return EMPTY;
             else {
@@ -328,12 +366,50 @@ public final class BranchingScheme {
                 return branch(
 			      () -> { 
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.maxMarginal()));
+ 				      System.out.println("### branching on "+xs.getName()+"="+v+"; marginal="+beliefRep.rep2std(xs.maxMarginal())+"; strength="+(beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size())+"; nb of ties="+nbTied);
 				  branchEqual(xs, v); 
 			      },
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v+" marginal="+(1-beliefRep.rep2std(xs.maxMarginal())));
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
+     * Maximum Marginal Regret strategy with random tie breaking.
+     * It selects an unbound variable with the largest marginal regret
+     * on one of the values in its domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to that value;
+     * the right branch removing this value from the domain.
+     * @param x the variable on which the max marginal regret strategy is applied.
+     * @return maxMarginalRegretRandomTieBreak branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalRegretRandomTieBreak(IntVar[] x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+	Belief beliefRep = x[0].getSolver().getBeliefRep();
+       
+        return () -> {
+	    IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+		    xi -> Math.floor( precisionForTie*(- beliefRep.rep2std(xi.maxMarginalRegret())) ) / precisionForTie); // tie = same first few decimal places
+            if (xs == null)
+                return EMPTY;
+            else {
+		int v = xs.valueWithMaxMarginal(); 
+                return branch(
+			      () -> { 
+				  if (tracing)
+ 				      System.out.println("### branching on "+xs.getName()+"="+v+"; marginal="+beliefRep.rep2std(xs.maxMarginal())+"; regret="+(beliefRep.rep2std(xs.maxMarginalRegret()))+"; nb of ties="+nbTied);
+				  branchEqual(xs, v); 
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -370,7 +446,7 @@ public final class BranchingScheme {
 			      },
 			      () -> { 
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.minMarginal()));
+				      System.out.println("### branching on "+xs.getName()+"="+v);
 				  branchEqual(xs, v); 
 			      } );
             }
@@ -407,7 +483,7 @@ public final class BranchingScheme {
 			      },
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v+" marginal="+(1-beliefRep.rep2std(xs.maxMarginal())));
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -444,7 +520,7 @@ public final class BranchingScheme {
 			      },
 			      () -> { 
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v+" marginal="+beliefRep.rep2std(xs.minMarginal()));
+				      System.out.println("### branching on "+xs.getName()+"="+v);
 				  branchEqual(xs, v); 
 			      } );
             }
