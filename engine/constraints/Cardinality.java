@@ -82,47 +82,13 @@ public class Cardinality extends AbstractConstraint {
 	    vars[vals.length] = x[i];
 	    cp.post(table(vars,indicatorTable[i]));
 	}
-	// check for special case: all nb of occurrences are fixed and sum to the number of x[i]
-	int nbOcc = 0;
-	int k;
-        for (k = 0; k < o.length; k++) {
-	    if (o[k].isBound())
-		nbOcc += o[k].min();
-	    else
-		break;
-	}
-	if (k==o.length && nbOcc==x.length) {
-	    Set<Integer> V = new HashSet<Integer>();
-	    for (int j = 0; j < vals.length; j++) {
-		V.add(vals[j]);
-	    }
+	for (int j = 0; j < vals.length; j++) {
+	    IntVar[] vars = new IntVar[x.length];
 	    for (int i = 0; i < x.length; i++) {
-		int s = x[i].fillArray(domainValues);
-		for (int j = 0; j < s; j++) {
-		    int v = domainValues[j];
-		    if (!V.contains(v))
-			x[i].remove(v); // all variables must take a value among vals
-		}
+		vars[i] = y[i][j];
 	    }
-	    // one of the sum constraints is redundant; wlog leave out the first one;
-	    // this appears to help convergence of the marginals over such decomposition
-	    for (int j = 1; j < vals.length; j++) {
-		IntVar[] vars = new IntVar[x.length];
-		for (int i = 0; i < x.length; i++) {
-		    vars[i] = y[i][j];
-		}
-		cp.post(sum(vars,o[j]));
-	    }
-	}
-	else {
-	    for (int j = 0; j < vals.length; j++) {
-		IntVar[] vars = new IntVar[x.length];
-		for (int i = 0; i < x.length; i++) {
-		    vars[i] = y[i][j];
-		}
-		cp.post(sum(vars,o[j]));
-	    }
+	    cp.post(sum(vars,o[j]));
 	}
     }
-
+    
 }
