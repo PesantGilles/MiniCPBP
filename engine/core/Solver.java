@@ -67,6 +67,21 @@ public interface Solver {
     PropaMode getMode();
 
     /**
+     * @return whether message damping is applied
+     */
+    boolean dampingMessages();
+
+    /**
+     * @return damping factor
+     */
+    double dampingFactor();
+
+    /**
+     * @return whether previous outside belief has been recorded
+     */
+    boolean prevOutsideBeliefRecorded();
+
+    /**
      * @return whether we should take action upon zero/one beliefs i.e. remove/assign the corresponding value
      */
     boolean actingOnZeroOneBelief();
