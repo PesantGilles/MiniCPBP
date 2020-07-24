@@ -52,7 +52,11 @@ public class MiniCP implements Solver {
     private static final PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
     private static final int beliefPropaMaxIter = 5;
-    // reset marginals and local beliefs before applying BP at each search-tree node
+    // apply damping to variable-to-constraint messages
+    private static final boolean damping = false;
+    // damping factor in interval [0,1] where 1 is equivalent to no damping
+    private static final double dampingFactor = 0.5;
+    // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
@@ -64,6 +68,9 @@ public class MiniCP implements Solver {
     private static final boolean traceBP = false;
     private static final boolean traceSearch = false;
     //****************************
+
+    // for message damping
+    private boolean prevOutsideBeliefRecorded = false;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -93,6 +100,18 @@ public class MiniCP implements Solver {
     
     public PropaMode getMode() {
 	return mode;
+    }
+
+    public boolean dampingMessages() {
+	return damping;
+    }
+
+    public double dampingFactor() {
+	return dampingFactor;
+    }
+
+    public boolean prevOutsideBeliefRecorded() {
+	return prevOutsideBeliefRecorded;
     }
 
     public boolean actingOnZeroOneBelief() {
@@ -161,10 +180,13 @@ public class MiniCP implements Solver {
 		for (int i = 0; i < constraints.size(); i++) {
 		    constraints.get(i).resetLocalBelief();
 		}
+		prevOutsideBeliefRecorded = false;
 	    }
 
 	    for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
 		BPiteration();
+		if (dampingMessages()) 
+		    prevOutsideBeliefRecorded = true;
 		if (traceBP) {
 		    System.out.println("##### after BP iteration "+iter+" #####");
 		    for (int i = 0; i < variables.size(); i++) {

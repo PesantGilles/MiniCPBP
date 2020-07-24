@@ -45,6 +45,7 @@ public abstract class AbstractConstraint implements Constraint {
 
     private StateDouble[][] localBelief;
     private double[][] outsideBelief;
+    private StateDouble[][] prevOutsideBelief; // needed for message damping
     protected Belief beliefRep;
     private int[] ofs;
     private IntVar[] vars; // all the variables in the scope of the constraint
@@ -63,14 +64,17 @@ public abstract class AbstractConstraint implements Constraint {
 	localBelief = new StateDouble[vars.length][];
 	ofs = new int[vars.length];
 	outsideBelief = new double[vars.length][];
+	prevOutsideBelief = new StateDouble[vars.length][];
 	
 	maxDomainSize = 0;
 	for(int i = 0; i<vars.length; i++){
 	    ofs[i] = vars[i].min();
 	    localBelief[i] = new StateDouble[vars[i].max() - vars[i].min() + 1];
 	    outsideBelief[i] = new double[vars[i].max() - vars[i].min() + 1];
+	    prevOutsideBelief[i] = new StateDouble[outsideBelief[i].length];
 	    for(int j = 0; j<localBelief[i].length; j++){
 		localBelief[i][j] = cp.getStateManager().makeStateDouble(beliefRep.one()); // no belief yet; initialized to ONE (certainly true) in order to retrieve the first var-to-constraint msg correctly
+		prevOutsideBelief[i][j] = cp.getStateManager().makeStateDouble(beliefRep.one()); // arbitrary
 	    }
 	    maxDomainSize = Math.max(maxDomainSize, vars[i].max() - vars[i].min() + 1);
 	}
@@ -129,6 +133,14 @@ public abstract class AbstractConstraint implements Constraint {
 	return b;
     }
 
+    protected double prevOutsideBelief(int i, int val) {
+	return prevOutsideBelief[i][val-ofs[i]].value();
+    }
+
+    protected double setPrevOutsideBelief(int i, int val, double b) {
+	return prevOutsideBelief[i][val-ofs[i]].setValue(b);
+    }
+
     interface getBelief {
 	double get(int i, int val);
     }
@@ -165,11 +177,23 @@ public abstract class AbstractConstraint implements Constraint {
 	}
     }
 
+    private void dampenMessages(int i) {
+	double lambda = beliefRep.std2rep(cp.dampingFactor());
+	double oneMinusLambda = beliefRep.complement(lambda);
+	int s = vars[i].fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    int val = domainValues[j];
+	    setOutsideBelief(i, val, beliefRep.add( beliefRep.multiply(lambda,outsideBelief(i, val)), beliefRep.multiply(oneMinusLambda,prevOutsideBelief(i, val)) ) );
+	}
+	normalizeBelief(i, (j, val) -> outsideBelief(j, val), (j, val, b) -> setOutsideBelief(j, val, b));
+    }
+
     public void receiveMessages() {
 	for(int i = 0; i<vars.length; i++){
 	    if (vars[i].isBound()) {
 		setOutsideBelief(i,vars[i].min(),beliefRep.one());
-	    } else {
+	    }
+	    else {
 		int s = vars[i].fillArray(domainValues);
 		for (int j = 0; j < s; j++) {
 		    int val = domainValues[j];
@@ -178,7 +202,15 @@ public abstract class AbstractConstraint implements Constraint {
 		}
    		normalizeBelief(i, (j,val) -> outsideBelief(j,val), 
    				(j,val,b) -> setOutsideBelief(j,val,b));
-	    }
+		if (cp.dampingMessages()) {
+		    if (cp.prevOutsideBeliefRecorded())
+			dampenMessages(i);
+		    for (int j = 0; j < s; j++) {
+			int val = domainValues[j];
+			setPrevOutsideBelief(i,val,outsideBelief(i,val));
+		    }
+		}
+	    } 
 	}
     }
 

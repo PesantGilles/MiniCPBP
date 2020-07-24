@@ -260,6 +260,26 @@ public class SparseSetDomain implements IntDomain {
     }
 
     @Override
+    public double maxMarginalRegret() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+    	double max = beliefRep.zero();
+    	double nextMax = beliefRep.zero();
+	int s = fillArray(domainValues);
+	for (int j = 0; j < s; j++) {
+	    double m = marginal(domainValues[j]);
+	    if (m > max) {
+		nextMax = max;
+		max = m;
+	    }
+	    else if (m > nextMax) {
+		nextMax = m;
+	    }
+    	}
+    	return max - nextMax;
+    }
+
+    @Override
     public String toString() {
 	return domain.toString();
     }

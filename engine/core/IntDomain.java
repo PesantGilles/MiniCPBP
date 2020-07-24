@@ -215,6 +215,13 @@ public interface IntDomain {
      */
     int fillArray(int[] dest);
 
+    /**
+     * Returns the largest marginal regret for the domain.
+     *
+     * @return the largest marginal regret
+     */
+    double maxMarginalRegret();
+
     @Override
     String toString();
 }

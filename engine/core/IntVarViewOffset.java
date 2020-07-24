@@ -173,6 +173,11 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public double maxMarginalRegret() {
+	return x.maxMarginalRegret();
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
 	assert b<=beliefRep.one() && b>=beliefRep.zero() : "b = "+b ;
 	assert x.marginal(v - o)<=beliefRep.one() && x.marginal(v - o)>=beliefRep.zero() : "x.marginal(v - o) = "+x.marginal(v - o) ;
