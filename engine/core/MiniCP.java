@@ -48,7 +48,7 @@ public class MiniCP implements Solver {
     //******** PARAMETERS ********
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
-    // SBP /* first apply support propagation, then belief propagation, and finally support propagation again if belief propagation may have assigned or removed domain values (actOnZeroOneBelief == true) */
+    // SBP /* first apply support propagation, then belief propagation */
     private static final PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
     private static final int beliefPropaMaxIter = 5;
@@ -194,11 +194,6 @@ public class MiniCP implements Solver {
 		    }
 		}
  	    }
-
-	    if (actOnZeroOneBelief && (mode == PropaMode.SBP)) {
-		// may have assigned or removed domain values, thereby putting propagators in propagation queue; call fixPoint()
-		fixPoint();
-	    }
 
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status

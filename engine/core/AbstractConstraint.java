@@ -229,12 +229,14 @@ public abstract class AbstractConstraint implements Constraint {
 		    if (getSolver().actingOnZeroOneBelief()) {
 			// CAVEAT: approximate weighted counting should be sound wrt returning certainty beliefs
 			if (beliefRep.isZero(localB)) { // no support from this constraint
-// 			    System.out.println("constraint.sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
+//  			    System.out.println(getName()+".sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
 			    vars[i].remove(val); // standard domain consistency filtering
+			    getSolver().fixPoint();
 			}
 			else if (beliefRep.isOne(localB)) { // backbone var for this constraint (and hence for all of them)
-// 			    System.out.println("constraint.sendMessages(): assigning value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ONE");
+//  			    System.out.println(getName()+".sendMessages(): assigning value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ONE");
 			    vars[i].assign(val);
+			    getSolver().fixPoint();
 			    break; // all other values in this loop will have been removed from the domain
 			}
 			else 
