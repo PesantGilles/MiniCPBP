@@ -304,6 +304,41 @@ public final class BranchingScheme {
     }
 
     /**
+     * Random variable selection + random value selection.
+     * It selects an unbound variable uniformly at random.
+     * Then it creates two branches:
+     * the left branch assigning the variable to a value in its domain, chosen uniformly at random;
+     * the right branch removing this value from the domain.
+     * @param x the branching variables
+     * @return a random-variable/random-value branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> randomVarRandomVal(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+		    xi -> 1); // any constant value
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.randomValue();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v+"; nb of ties="+nbTied);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+	    }
+	};
+    }
+
+    /**
      * Maximum Marginal Strength strategy.
      * It selects an unbound variable with the largest marginal strength 
      * on one of the values in its domain.

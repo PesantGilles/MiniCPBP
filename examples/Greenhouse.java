@@ -137,7 +137,7 @@ public class Greenhouse {
 
 		//###########################################
 		// define the search
-     		LDSearch search = makeLds(cp, maxMarginal(operation));
+      		LDSearch search = makeLds(cp, maxMarginal(operation));
 		search.onSolution(() -> {
  			System.out.println(Arrays.toString(operation));
  			System.out.println(planCost.toString());
