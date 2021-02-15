@@ -177,7 +177,10 @@ public class DFSearch {
      */
     public SearchStatistics optimize(Objective obj, Predicate<SearchStatistics> limit) {
         SearchStatistics statistics = new SearchStatistics();
-        onSolution(() -> obj.tighten());
+//         onSolution(() -> obj.tighten());
+        onSolution(() -> {
+		System.out.println(" (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
+		obj.tighten();});
         return solve(statistics, limit);
     }
 
