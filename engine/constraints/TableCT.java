@@ -35,7 +35,9 @@ import static minicp.cp.Factory.minus;
  */
 public class TableCT extends AbstractConstraint {
     private IntVar[] x; //variables
+    private int xLength;
     private int[][] table; //the table
+    private int tableLength;
     private int[] ofs; //offsets for each variable's domain
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
@@ -60,21 +62,22 @@ public class TableCT extends AbstractConstraint {
      * @param table the possible set of solutions for x.
      *              The second dimension must be of the same size as the array x.
      */
-    public TableCT(IntVar[] x, int[][] table) {
+    public TableCT(IntVar[] x, int[][] table, int tableLength) {
         super(x);
 	setName("TableCT");
         this.x = x;
+	this.xLength = x.length;
         this.table = table;
-	assert( x.length == table[0].length );
+	this.tableLength = tableLength;
     	setExactWCounting(true);
-	ofs = new int[x.length];
-	tupleWeight = new double[table.length];
-	supportedTuples = new BitSet(table.length);
-	supporti = new BitSet(table.length);
+	ofs = new int[xLength];
+	tupleWeight = new double[tableLength];
+	supportedTuples = new BitSet(tableLength);
+	supporti = new BitSet(tableLength);
 
         // Allocate supportedByVarVal
-        supports = new BitSet[x.length][];
-        for (int i = 0; i < x.length; i++) {
+        supports = new BitSet[xLength][];
+        for (int i = 0; i < xLength; i++) {
 	    ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
             supports[i] = new BitSet[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < supports[i].length; j++)
@@ -82,8 +85,8 @@ public class TableCT extends AbstractConstraint {
         }
 
         // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
-         for (int i = 0; i < table.length; i++) { //i is the index of the tuple (in table)
-            for (int j = 0; j < x.length; j++) { //j is the index of the current variable (in x)
+         for (int i = 0; i < tableLength; i++) { //i is the index of the tuple (in table)
+            for (int j = 0; j < xLength; j++) { //j is the index of the current variable (in x)
                 if (x[j].contains(table[i][j])) {
                     supports[j][table[i][j] - ofs[j]].set(i);
                 }
@@ -111,8 +114,8 @@ public class TableCT extends AbstractConstraint {
         // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
-        supportedTuples.set(0, table.length); // set them all to true
-        for (int i = 0; i < x.length; i++) {
+        supportedTuples.set(0, tableLength); // set them all to true
+        for (int i = 0; i < xLength; i++) {
 	    supporti.clear(); // set them all to false
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
@@ -121,7 +124,7 @@ public class TableCT extends AbstractConstraint {
             supportedTuples.and(supporti);
         }
 
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < xLength; i++) {
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
 		// The condition for removing the setValue v from x[i] is to check if
@@ -141,8 +144,8 @@ public class TableCT extends AbstractConstraint {
         // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
-        supportedTuples.set(0, table.length); // set them all to true
-        for (int i = 0; i < x.length; i++) {
+        supportedTuples.set(0, tableLength); // set them all to true
+        for (int i = 0; i < xLength; i++) {
 	    supporti.clear(); // set them all to false
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
@@ -155,12 +158,12 @@ public class TableCT extends AbstractConstraint {
 	// Compute these products, but only for supported tuples.
 	for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k+1)) {
 	    tupleWeight[k] = beliefRep.one();
-	    for (int i = 0; i < x.length; i++) { 
+	    for (int i = 0; i < xLength; i++) { 
 		tupleWeight[k] = beliefRep.multiply(tupleWeight[k],outsideBelief(i,table[k][i]));
 	    }
 	}
 
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < xLength; i++) {
 	    int s = x[i].fillArray(domainValues);
 	    for (int j = 0; j < s; j++) {
 		int v = domainValues[j];
@@ -181,7 +184,7 @@ public class TableCT extends AbstractConstraint {
 			    for (int i2 = 0; i2 < i; i2++) { 
 				weight = beliefRep.multiply(weight,outsideBelief(i2,table[k][i2]));
 			    }
-			    for (int i2 = i+1; i2 < x.length; i2++) { 
+			    for (int i2 = i+1; i2 < xLength; i2++) { 
 				weight = beliefRep.multiply(weight,outsideBelief(i2,table[k][i2]));
 			    }
 			    belief = beliefRep.add(belief, weight);
