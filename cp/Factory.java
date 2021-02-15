@@ -318,7 +318,7 @@ public final class Factory {
      * @return a variable that represents the absolute value of x
      */
     public static IntVar abs(IntVar x) {
-        IntVar r = makeIntVar(x.getSolver(), 0, x.max());
+        IntVar r = makeIntVar(x.getSolver(), 0, Math.max(x.max(), -x.min()));
         x.getSolver().post(new Absolute(x, r, new IntVar[]{x,r}));
         return r;
     }
@@ -341,6 +341,19 @@ public final class Factory {
  	vars[x.length] = y;
         cp.post(new Maximum(x, y, vars));
         return y;
+    }
+
+    /**
+     * Returns a maximum constraint.
+     *
+     * @param x an array of variables
+     * @param y a variable
+     * @return a constraint so that {@code y = max{x[0],x[1],...,x[n-1]}}
+     */
+    public static Constraint maximum(IntVar[] x, IntVar y) {
+        IntVar[] vars = Arrays.copyOf(x,x.length+1);
+ 	vars[x.length] = y;
+        return new Maximum(x, y, vars);
     }
 
     /**
@@ -856,7 +869,13 @@ public final class Factory {
      * @return a table constraint
      */
     public static Constraint table(IntVar[] x, int[][] table) {
-        return new TableCT(x,table);
+        return new TableCT(x,table,table.length);
+    }
+    /**
+     * special case using only the first "tableLength" tuples
+     */
+    public static Constraint table(IntVar[] x, int[][] table, int tableLength) {
+        return new TableCT(x,table,tableLength);
     }
     
     /**
