@@ -1,0 +1,25 @@
+Input format of the instances (each value is white-space separated)
+
+min plan length to try
+max plan length to try
+nb of actions
+action costs flag (0/1/2/3 corresponding to none/same/sum/max to combine automata objectives)
+if flag>0
+   lower bound on objective to minimize, given by two integers b and c: the bound is b+c*(current plan length)
+nb of automata
+for each automaton
+    nb of local states (numbered consecutively starting from 0)
+    initial state id
+    nb of goal states
+    for each goal state
+    	goal state id
+    nb of local actions (numbered consecutively starting from 0)
+    for each (original) action (map it to a local action)
+    	id of corresponding local action
+    for each local state s
+    	for each local action o
+	    id of state to which we transition from s on o (any negative value indicates no transition)
+    local action costs flag (1 if local actions have different costs; 0 otherwise)
+    if flag=1
+       for each local action
+       	   its integer cost
