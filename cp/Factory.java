@@ -1074,4 +1074,96 @@ public final class Factory {
         return new Cardinality(x,vals,oVar,makeIntVar(cp,1,maxDomainSize));
     }
 
+    /**
+     * Returns a sum modulo p constraint.
+     *
+     * @param x an array of variables
+     * @param y a constant
+     * @param p the modulus
+     * @return a constraint so that {@code y = x[0]+x[1]+...+x[n-1] (mod p)}
+     */
+    public static Constraint sumModP(IntVar[] x, int y, int p) {
+        Solver cp = x[0].getSolver();
+	// merge repeated variables among x
+	int nbUnique = 0;
+	int[] nbOcc = new int[x.length];
+	for (int i = 0; i < x.length; i++)
+	    nbOcc[i] = 1;
+	for (int i = 0; i < x.length; i++)
+	    if (nbOcc[i] == 1) {
+		nbUnique++;
+		for (int j = i+1; j < x.length; j++)
+		    if (x[i] == x[j]) { // repeated var
+			nbOcc[i]++;
+			nbOcc[j] = 0;
+		    }
+	    }
+        IntVar[] vars = new IntVar[nbUnique + 1];
+        for (int i = 0; i < x.length; i++) 
+	    switch (nbOcc[i]) {
+	    case 0: break;
+	    case 1: vars[nbUnique] = x[i];
+		    nbUnique--;
+		    break;
+	    default: vars[nbUnique] = mul(x[i],nbOcc[i]);
+		     nbUnique--;
+	    }
+        vars[0] = makeIntVar(cp, -y, -y);
+        return new SumModP(vars,p);
+    }
+
+    /**
+     * Returns a weighted sum modulo p constraint.
+     *
+     * @param c an array of integer coefficients
+     * @param x an array of variables
+     * @param y a constant
+     * @param p the modulus
+     * @return a constraint so that {@code y = c[0]*x[0]+c[1]*x[1]+...+c[n-1]*x[n-1] (mod p)}
+     */
+
+    public static Constraint sumModP(int[] c, IntVar[] x, int y, int p) {
+	assert( c.length == x.length );
+        Solver cp = x[0].getSolver();
+	// merge repeated variables among x
+	int nbUnique = 0;
+	int[] coef = new int[x.length];
+	for (int i = 0; i < x.length; i++)
+	    coef[i] = c[i];
+	for (int i = 0; i < x.length; i++)
+	    if (coef[i] != 0) {
+		nbUnique++;
+		for (int j = i+1; j < x.length; j++)
+		    if (x[i] == x[j]) { // repeated var
+			coef[i] += coef[j];
+			coef[j] = 0;
+		    }
+	    }
+        IntVar[] vars = new IntVar[nbUnique + 1];
+        for (int i = 0; i < x.length; i++) 
+	    switch (coef[i]) {
+	    case 0: break;
+	    case 1: vars[nbUnique] = x[i];
+		    nbUnique--;
+		    break;
+	    default: vars[nbUnique] = mul(x[i],coef[i]);
+		     nbUnique--;
+	    }
+        vars[0] = makeIntVar(cp, -y, -y);
+        return new SumModP(vars,p);
+    }
+
+    /**
+     * Returns a LinEqSystemModP constraint.
+     *
+     * @param A the mxn matrix of coefficients
+     * @param x the column vector of n variables
+     * @param b the column vector of m rhs values
+     * @param p the prime modulus
+     * @return a constraint so that {@code Ax == b (mod p)}.
+     */
+    public static Constraint linEqSystemModP(int[][] A, IntVar[] x, int[] b, int p) {
+        return new LinEqSystemModP(A,x,b,p);
+    }
+
 }
