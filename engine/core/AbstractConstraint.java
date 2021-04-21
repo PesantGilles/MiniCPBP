@@ -258,7 +258,8 @@ public abstract class AbstractConstraint implements Constraint {
      */
     protected void updateBelief() {
 	if (!updateBeliefWarningPrinted) {
-	    System.out.println("Warning: method updateBelief not implemented yet for "+getName()+" constraint. Using uniform belief instead.");
+	    if (getName() != null) // do not print warning for unnamed constraint
+		System.out.println("Warning: method updateBelief not implemented yet for "+getName()+" constraint. Using uniform belief instead.");
 	    updateBeliefWarningPrinted = true;
 	}
 	for(int i = 0; i<vars.length; i++){
