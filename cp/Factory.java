@@ -1166,4 +1166,17 @@ public final class Factory {
         return new LinEqSystemModP(A,x,b,p);
     }
 
+    /**
+     * Oracle unary constraint providing fixed marginals (possibly through ML)
+     * Does not perform any filtering
+     *
+     * @param x the variable
+     * @param v the values
+     * @param m the marginals for v
+     * Note: any domain value not appearing in v will be assigned a zero marginal
+     */
+    public static Constraint oracle(IntVar x, int[] v, double[] m) {
+        return new Oracle(x, v, m, new IntVar[]{x});
+    }
+
 }
