@@ -62,12 +62,16 @@ public class MiniCP implements Solver {
     private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
+    // SAME   /* constraints all have the same weight; = 1.0 (default) */
+    // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
+    private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
     //****************************
 
     //***** TRACING SWITCHES *****
     private static final boolean traceBP = false;
     private static final boolean traceSearch = false;
     //****************************
+
 
     // for message damping
     private boolean prevOutsideBeliefRecorded = false;
@@ -100,6 +104,10 @@ public class MiniCP implements Solver {
     
     public PropaMode getMode() {
 	return mode;
+    }
+
+    public ConstraintWeighingScheme getWeighingScheme() {
+	return Wscheme;
     }
 
     public boolean dampingMessages() {

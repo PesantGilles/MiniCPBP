@@ -98,4 +98,8 @@ public class LogBelief implements Belief {
 	}
      	return largestBelief + Math.log1p(sum);
     }
+
+    public  double pow(double a, double b) {
+	return (b == 1.0) ? a : b*a;
+    }
 }

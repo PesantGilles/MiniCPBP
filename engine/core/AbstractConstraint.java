@@ -46,6 +46,7 @@ public abstract class AbstractConstraint implements Constraint {
     private StateDouble[][] localBelief;
     private double[][] outsideBelief;
     private StateDouble[][] prevOutsideBelief; // needed for message damping
+    private double weight; // an optional nonnegative weight applied to the constraint's local belief
     protected Belief beliefRep;
     private int[] ofs;
     private IntVar[] vars; // all the variables in the scope of the constraint
@@ -60,7 +61,15 @@ public abstract class AbstractConstraint implements Constraint {
         active = cp.getStateManager().makeStateBool(true);
 	beliefRep = cp.getBeliefRep();
 	this.vars = vars;
-
+	switch(cp.getWeighingScheme()) {
+	case SAME:
+	    weight = 1.0;
+	    break; 
+	case ARITY:
+	    // assumes all model variables have already been declared/registered
+	    weight = 1.0 + ((double) vars.length) / ((double) cp.getVariables().size());
+	    break; 
+	}
 	localBelief = new StateDouble[vars.length][];
 	ofs = new int[vars.length];
 	outsideBelief = new double[vars.length][];
@@ -114,6 +123,15 @@ public abstract class AbstractConstraint implements Constraint {
 
     protected boolean isExactWCounting() {
         return exactWCounting;
+    }
+
+    public void setWeight(double w) {
+	assert w >= 0 : "A constraint's weight should be nonnegative";
+        weight = w;
+    }
+
+    public double weight() {
+        return weight;
     }
 
     protected double localBelief(int i, int val) {
@@ -198,7 +216,7 @@ public abstract class AbstractConstraint implements Constraint {
 		for (int j = 0; j < s; j++) {
 		    int val = domainValues[j];
 		    assert localBelief(i,val)<=beliefRep.one() && localBelief(i,val)>=beliefRep.zero() : "Should be normalized! localBelief(i,val) = "+localBelief(i,val) ;
-		    setOutsideBelief(i,val,vars[i].sendMessage(val,localBelief(i,val)));
+		    setOutsideBelief(i,val,vars[i].sendMessage(val,beliefRep.pow(localBelief(i,val),weight)));
 		}
    		normalizeBelief(i, (j,val) -> outsideBelief(j,val), 
    				(j,val,b) -> setOutsideBelief(j,val,b));
@@ -240,10 +258,10 @@ public abstract class AbstractConstraint implements Constraint {
 			    break; // all other values in this loop will have been removed from the domain
 			}
 			else 
-			    vars[i].receiveMessage(val,localB);
+			    vars[i].receiveMessage(val,beliefRep.pow(localB,weight));
 		    }
 		    else
-			vars[i].receiveMessage(val,localB);
+			vars[i].receiveMessage(val,beliefRep.pow(localB,weight));
 		}
 	    }
 	}

@@ -34,6 +34,11 @@ public interface Solver {
         SBP /* first apply support propagation, then belief propagation, and finally support propagation again if belief propagation may have assigned or removed domain values */
     } 
 
+    public enum ConstraintWeighingScheme {
+	SAME   /* constraints all have the same weight; = 1.0 (default) */,
+	ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
+    } 
+
     /**
      * Posts the constraint, that is call {@link Constraint#post()} and
      * DOES NOT compute the fix-point.
@@ -65,6 +70,11 @@ public interface Solver {
      * @return the propagation mode
      */
     PropaMode getMode();
+
+    /**
+     * @return the constraint weighing scheme
+     */
+    ConstraintWeighingScheme getWeighingScheme();
 
     /**
      * @return whether message damping is applied

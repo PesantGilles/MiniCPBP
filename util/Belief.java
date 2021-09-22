@@ -78,4 +78,9 @@ public interface Belief {
      * returns the sum of beliefs in array a of given size 
      */
     double summation(double a[], int size);
+
+    /**
+     * returns the elevation of belief a to the power b
+     */
+    double pow(double a, double b);
 }
