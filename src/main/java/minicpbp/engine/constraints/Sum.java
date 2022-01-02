@@ -1,0 +1,312 @@
+/*
+ * mini-cp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License  v3
+ * as published by the Free Software Foundation.
+ *
+ * mini-cp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY.
+ * See the GNU Lesser General Public License  for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
+ *
+ * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation
+ * Copyright (c)  2019. by Gilles Pesant
+ */
+
+package minicpbp.engine.constraints;
+
+import minicpbp.cp.Factory;
+import minicpbp.engine.core.AbstractConstraint;
+import minicpbp.engine.core.IntVar;
+import minicpbp.state.StateInt;
+import minicpbp.util.ArrayUtil;
+import minicpbp.util.exception.InconsistencyException;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.stream.IntStream;
+
+/**
+ * Sum Constraint
+ */
+public class Sum extends AbstractConstraint {
+    private Integer[] unBounds;
+    private StateInt nUnBounds;
+    private StateInt sumBounds;
+    private IntVar[] x;
+    private int n;
+    private double[][] ip; // ip[i][]>0 for partial sums x[0]+x[1]+...+x[i-1]; layer i (i.e. before x[i])
+    private double[][] op; // op[i][]>0 for partial sums x[i+1]+...+x[n-1]; layer i+1 (i.e. after x[i])
+    private int[] minState; // minState[i] = lowest-numbered feasible state in layer i
+    private int[] maxState; // maxState[i] = highest-numbered feasible state in layer i
+    private int offset;
+    private int mini;
+    private int maxi;
+    private boolean incrementalUpdateBelief;
+    private DomRangeComparator domRangeComparator;
+
+    public class DomRangeComparator implements Comparator<Integer> {
+
+        @Override
+        public int compare(Integer i, Integer j) {
+            return (x[i].max() - x[i].min()) - (x[j].max() - x[j].min());
+        }
+    }
+
+    /**
+     * Creates a sum constraint.
+     * <p> This constraint holds iff
+     * {@code x[0]+x[1]+...+x[x.length-1] == y}.
+     *
+     * @param x the non empty left hand side of the sum
+     * @param y the right hand side of the sum
+     */
+    public Sum(IntVar[] x, IntVar y) {
+        this(ArrayUtil.append(x,Factory.minus(y)));
+    }
+
+    /**
+     * Creates a sum constraint.
+     * <p> This constraint holds iff
+     * {@code x[0]+x[1]+...+x[x.length-1] == y}.
+     *
+     * @param x the non empty left hand side of the sum
+     * @param y the right hand side of the sum
+     */
+    public Sum(IntVar[] x, int y) {
+        this(ArrayUtil.append(x,Factory.makeIntVar(x[0].getSolver(), -y, -y)));
+    }
+
+    /**
+     * Creates a sum constraint.
+     * <p> This constraint holds iff
+     * {@code x[0]+x[1]+...+x[x.length-1] == 0}.
+     *
+     * @param x the non empty set of variables that should sum to zero
+     */
+    public Sum(IntVar[] x) {
+        super(x[0].getSolver(), x);
+        setName("Sum");
+        this.x = x;
+        n = x.length;
+        nUnBounds = getSolver().getStateManager().makeStateInt(n);
+        sumBounds = getSolver().getStateManager().makeStateInt(0);
+        unBounds = IntStream.range(0, n).boxed().toArray(Integer[]::new);
+        setExactWCounting(true);
+        switch (getSolver().getMode()) {
+            case BP:
+                incrementalUpdateBelief = false; // will not be able to use SP's updated unBounds[]
+                break;
+            case SP:
+            case SBP:
+                incrementalUpdateBelief = true;
+        }
+        // compute the extent of the dynamic programming tables ip and op
+        if (incrementalUpdateBelief) {
+            maxi = 0;
+            for (int i = 0; i < n; i++) {
+                if (x[i].max() > 0)
+                    maxi += x[i].max();
+            }
+            offset = maxi;
+            op = new double[n][2 * maxi + 1]; // TODO : doesn't handle big integers
+            ip = new double[n][2 * maxi + 1];
+            minState = new int[n + 1];
+            maxState = new int[n + 1];
+            domRangeComparator = new DomRangeComparator();
+        } else { // exploits the fact that variables appear in order from x[0] to x[n-1] to reduce the extent
+            int fwd = 0;
+            int bwd = 0;
+            for (int i = 0; i < n; i++) {
+                bwd -= x[i].min();
+            }
+            maxi = 0;
+            for (int i = 0; i < n; i++) {
+                maxi = Math.max(maxi, Math.min(fwd, bwd));
+                fwd += x[i].max();
+                bwd += x[i].min();
+            }
+            fwd = 0;
+            bwd = 0;
+            for (int i = 0; i < n; i++) {
+                bwd -= x[i].max();
+            }
+            mini = 0;
+            for (int i = 0; i < n; i++) {
+                mini = Math.min(mini, Math.max(fwd, bwd));
+                fwd += x[i].min();
+                bwd += x[i].max();
+            }
+            offset = -mini;
+            op = new double[n][maxi - mini + 1];
+            ip = new double[n][maxi - mini + 1];
+        }
+    }
+
+    @Override
+    public void post() {
+        switch (getSolver().getMode()) {
+            case BP:
+                break;
+            case SP:
+            case SBP:
+                for (IntVar var : x)
+                    var.propagateOnBoundChange(this);
+        }
+        propagate();
+    }
+
+    @Override
+    public void propagate() {
+        // Filter the unbound vars and update the partial sum
+        int nU = nUnBounds.value();
+        int sumMin = sumBounds.value(), sumMax = sumBounds.value();
+        for (int i = nU - 1; i >= 0; i--) {
+            int idx = unBounds[i];
+            sumMin += x[idx].min(); // Update partial sum
+            sumMax += x[idx].max();
+            if (x[idx].isBound()) {
+                sumBounds.setValue(sumBounds.value() + x[idx].min());
+                unBounds[i] = unBounds[nU - 1]; // Swap the variables
+                unBounds[nU - 1] = idx;
+                nU--;
+            }
+        }
+        nUnBounds.setValue(nU);
+        if (sumMin > 0 || sumMax < 0)
+            throw new InconsistencyException();
+        for (int i = nU - 1; i >= 0; i--) {
+            int idx = unBounds[i];
+            int idxMin = x[idx].min();
+            int idxMax = x[idx].max();
+            x[idx].removeAbove(-(sumMin - idxMin));
+            x[idx].removeBelow(-(sumMax - idxMax));
+        }
+        if (incrementalUpdateBelief) {
+            // In an effort to keep the range of DP states small, we order vars by increasing domain range.
+            Arrays.sort(unBounds, 0, nU, domRangeComparator);
+        }
+    }
+
+    @Override
+    public void updateBelief() {
+        int idx, s, v;
+        if (incrementalUpdateBelief) { // incremental version using unBounds[]
+            // NOTE: we do not explicitly set the local belief of bound variables: handled by normalizeMarginals()
+            if (nUnBounds.value() == 0)
+                return;
+            // compute the range of feasible states for each layer
+            int fwd_hi = offset + sumBounds.value();
+            int fwd_lo = fwd_hi;
+            int bwd_hi = offset;
+            int bwd_lo = bwd_hi;
+            for (int i = 0; i < nUnBounds.value(); i++) {
+                idx = unBounds[i];
+                bwd_hi -= x[idx].min();
+                bwd_lo -= x[idx].max();
+            }
+            for (int i = 0; i < nUnBounds.value(); i++) {
+                minState[i] = Math.max(fwd_lo, bwd_lo);
+                maxState[i] = Math.min(fwd_hi, bwd_hi);
+                idx = unBounds[i];
+                fwd_hi += x[idx].max();
+                fwd_lo += x[idx].min();
+                bwd_hi += x[idx].min();
+                bwd_lo += x[idx].max();
+            }
+            minState[nUnBounds.value()] = Math.max(fwd_lo, bwd_lo);
+            maxState[nUnBounds.value()] = Math.min(fwd_hi, bwd_hi);
+            // Reach forward
+            ip[0][minState[0]] = beliefRep.one();
+            for (int i = 0; i < nUnBounds.value() - 1; i++) {
+                idx = unBounds[i];
+                Arrays.fill(ip[i + 1], minState[i + 1], maxState[i + 1] + 1, beliefRep.zero());
+                s = x[idx].fillArray(domainValues);
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    for (int k = Math.max(minState[i], minState[i + 1] - v); k <= Math.min(maxState[i], maxState[i + 1] - v); k++) {
+                        if (!beliefRep.isZero(ip[i][k])) {
+                            // add the combination of ip[i][k] and outsideBelief(idx,v) to ip[i+1][k+v]
+                            ip[i + 1][k + v] = beliefRep.add(ip[i + 1][k + v], beliefRep.multiply(ip[i][k], outsideBelief(idx, v)));
+                        }
+                    }
+                }
+            }
+            // Reach backward and set local beliefs
+            op[nUnBounds.value() - 1][minState[nUnBounds.value()]] = beliefRep.one();
+            for (int i = nUnBounds.value() - 1; i > 0; i--) {
+                idx = unBounds[i];
+                Arrays.fill(op[i - 1], minState[i], maxState[i] + 1, beliefRep.zero());
+                s = x[idx].fillArray(domainValues);
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    double belief = beliefRep.zero();
+                    for (int k = Math.max(minState[i + 1], minState[i] + v); k <= Math.min(maxState[i + 1], maxState[i] + v); k++) {
+                        if (!beliefRep.isZero(op[i][k])) {
+                            // add the combination of op[i][k] and outsideBelief(idx,v) to op[i-1][k-v]
+                            op[i - 1][k - v] = beliefRep.add(op[i - 1][k - v], beliefRep.multiply(op[i][k], outsideBelief(idx, v)));
+                            // add the combination of ip[i][k-v] and op[i][k] to belief
+                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k - v], op[i][k]));
+                        }
+                    }
+                    setLocalBelief(idx, v, belief);
+                }
+            }
+            idx = unBounds[0];
+            s = x[idx].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                v = domainValues[j];
+                setLocalBelief(idx, v, op[0][minState[0] + v]);
+            }
+        } else { // non-incremental version
+            for (int i = 0; i < n; i++) {
+                Arrays.fill(ip[i], beliefRep.zero());
+            }
+            // Reach forward
+            ip[0][offset] = beliefRep.one();
+            for (int i = 0; i < n - 1; i++) {
+                s = x[i].fillArray(domainValues);
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
+                        if (!beliefRep.isZero(ip[i][k + offset])) {
+                            // add the combination of ip[i][k+offset] and outsideBelief(i,v) to ip[i+1][k+offset+v]
+                            ip[i + 1][k + offset + v] = beliefRep.add(ip[i + 1][k + offset + v], beliefRep.multiply(ip[i][k + offset], outsideBelief(i, v)));
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < n; i++) {
+                Arrays.fill(op[i], beliefRep.zero());
+            }
+            // Reach backward and set local beliefs
+            op[n - 1][offset] = beliefRep.one();
+            for (int i = n - 1; i > 0; i--) {
+                s = x[i].fillArray(domainValues);
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    double belief = beliefRep.zero();
+                    for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
+                        if (!beliefRep.isZero(op[i][k + offset + v])) {
+                            // add the combination of op[i][k+offset+v] and outsideBelief(i,v) to op[i-1][k+offset]
+                            op[i - 1][k + offset] = beliefRep.add(op[i - 1][k + offset], beliefRep.multiply(op[i][k + offset + v], outsideBelief(i, v)));
+                            // add the combination of ip[i][k+offset] and op[i][k+offset+V] to belief
+                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k + offset], op[i][k + offset + v]));
+                        }
+                    }
+                    setLocalBelief(i, v, belief);
+                }
+            }
+            s = x[0].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                v = domainValues[j];
+                setLocalBelief(0, v, op[0][offset + v]);
+            }
+
+        }
+    }
+}
