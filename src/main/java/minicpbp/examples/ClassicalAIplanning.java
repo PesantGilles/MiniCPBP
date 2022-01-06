@@ -55,7 +55,7 @@ public class ClassicalAIplanning {
 
 	//###########################################
 	// read the instance, whose name is the first argument
-	InputReader reader = new InputReader("minicpbp/examples/data/ClassicalAIplanning/" +args[0]);
+	InputReader reader = new InputReader("./src/main/java/minicpbp/examples/data/ClassicalAIplanning/" +args[0]);
 	minPlanLength = reader.getInt();
 	maxPlanLength = reader.getInt();
 	nbActions = reader.getInt();

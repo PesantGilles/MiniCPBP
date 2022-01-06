@@ -74,7 +74,7 @@ public class MagicSquare {
 
 	public static void partialAssignments(IntVar[][] vars, int n, int nbFilled, int nbFile){
 	    try {
-		Scanner scanner = new Scanner(new FileReader("minicpbp/examples/data/MagicSquare/magicSquare" +n+"-filled"+nbFilled+"-"+nbFile+".dat"));
+		Scanner scanner = new Scanner(new FileReader("./src/main/java/minicpbp/examples/data/MagicSquare/magicSquare" +n+"-filled"+nbFilled+"-"+nbFile+".dat"));
 		
 		scanner.nextInt();
 		scanner.nextInt();
