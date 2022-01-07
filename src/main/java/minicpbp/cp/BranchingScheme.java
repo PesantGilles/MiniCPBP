@@ -66,7 +66,8 @@ public final class BranchingScheme {
     // TODO
     static Random rand = new Random();
     static int nbTied;
-    static final int precisionForTie = 10000; // 4 decimal places
+    // static final int precisionForTie = 10000; // 4 decimal places
+    static final int precisionForTie = 100; // 2 decimal places
 
     private BranchingScheme() {
         throw new UnsupportedOperationException();
@@ -200,6 +201,42 @@ public final class BranchingScheme {
     }
 
     /**
+     * Lexicographic variable selection and  maxMarginal value selection.
+     * It selects the first variable with a domain larger than one.
+     * Then it creates two branches:
+     * the left branch assigning the variable to its value with the largest marginal;
+     * the right branch removing this minimum value from the domain.
+     *
+     * @param x the variable on which the lexicographic/maxMarginalValue strategy is applied.
+     * @return a lexicographic/maxMarginalValue branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> lexicoMaxMarginalValue(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+		    xi -> 1); // any constant value
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
      * First-Fail strategy.
      * It selects the first unbound variable with a smallest domain.
      * Then it creates two branches:
@@ -307,6 +344,79 @@ public final class BranchingScheme {
             }
         };
     }
+
+    /**
+     * First-Fail strategy + maxMarginal value selection.
+     * It selects the first unbound variable with a smallest domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to its value with the largest marginal;
+     * the right branch removing this minimum value from the domain.
+     *
+     * @param x the variable on which the minDomain/maxMarginalValue strategy is applied.
+     * @return a FF/maxMarginalValue branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> firstFailMaxMarginalValue(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+		    xi -> xi.size());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
+     * First-Fail strategy with random tie-breaking + maxMarginal value selection.
+     * It selects an unbound variable with a smallest domain uniformly at random.
+     * Then it creates two branches:
+     * the left branch assigning the variable to its value with the largest marginal;
+     * the right branch removing this minimum value from the domain.
+     *
+     * @param x the variable on which the minDomain/maxMarginalValue strategy is applied.
+     * @return a FF/maxMarginalValue branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> firstFailRandomTieBreakMaxMarginalValue(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+		    xi -> xi.size());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
 
     /**
      * Random variable selection + random value selection.
