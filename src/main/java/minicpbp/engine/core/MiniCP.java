@@ -22,6 +22,7 @@ import minicpbp.cp.Factory;
 import minicpbp.search.Objective;
 import minicpbp.state.StateManager;
 import minicpbp.state.StateStack;
+import minicpbp.util.LogBelief;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Procedure;
 import minicpbp.util.Belief;
@@ -59,7 +60,7 @@ public class MiniCP implements Solver {
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
-    private final Belief beliefRep = new StdBelief();
+    private final Belief beliefRep;
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
     private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
@@ -75,9 +76,19 @@ public class MiniCP implements Solver {
     private boolean prevOutsideBeliefRecorded = false;
 
     public MiniCP(StateManager sm) {
+        this(sm,false);
+    }
+
+    public MiniCP(StateManager sm, boolean logBelief) {
         this.sm = sm;
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
+        if (logBelief) {
+            this.beliefRep = new LogBelief();
+        } else {
+            this.beliefRep = new StdBelief();
+        }
+
     }
 
     @Override

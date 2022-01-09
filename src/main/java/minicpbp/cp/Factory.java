@@ -79,10 +79,14 @@ public final class Factory {
      * @param byCopy a value that should be true to specify
      *               copy-based state management
      *               or falso for a trail-based memory management
+     * @param logBelief true if logarithmic believes should be used
      * @return a constraint programming solver
      */
+    public static Solver makeSolver(boolean byCopy, boolean logBelief) {
+        return new MiniCP(byCopy ? new Copier() : new Trailer(), logBelief);
+    }
     public static Solver makeSolver(boolean byCopy) {
-        return new MiniCP(byCopy ? new Copier() : new Trailer());
+        return makeSolver(byCopy, false);
     }
 
     /**
