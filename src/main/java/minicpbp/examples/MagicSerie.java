@@ -54,8 +54,8 @@ public class MagicSerie {
             if (sv == null) return EMPTY;
             else {
                 int v = sv.min();
-                return branch(() -> equal(sv, v),
-                        () -> notEqual(sv, v));
+                return branch(() -> branchEqual(sv, v),
+                        () -> branchNotEqual(sv, v));
             }
         });
 

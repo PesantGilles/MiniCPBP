@@ -78,7 +78,7 @@ public final class Factory {
      *
      * @param byCopy a value that should be true to specify
      *               copy-based state management
-     *               or falso for a trail-based memory management
+     *               or false for a trail-based memory management
      * @return a constraint programming solver
      */
     public static Solver makeSolver(boolean byCopy) {
@@ -239,7 +239,7 @@ public final class Factory {
         return makeLds(cp, branching, true);
     }
 
-    // -------------- constraints -----------------------
+    // -------------- views -----------------------
 
     /**
      * A variable that is a view of {@code x*a}.
@@ -289,6 +289,46 @@ public final class Factory {
     public static IntVar minus(IntVar x, int v) {
         return new IntVarViewOffset(x, -v);
     }
+
+    // -------------- branches -----------------------
+
+    /**
+     * Branches on x=v  
+     * and performs propagation according to the mode.
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqual(IntVar x, int v) {
+        x.assign(v);
+        x.getSolver().propagateSolver();
+    }
+
+    /**
+     * Branches on x<=v  
+     * and performs propagation according to the mode.
+     *
+     * @param x the variable that is constrained bo be less or equal to v
+     * @param v the value that must be the upper bound on x
+     */
+    public static void branchLessOrEqual(IntVar x, int v) {
+        x.removeAbove(v);
+        x.getSolver().propagateSolver();
+    }
+
+    /**
+     * Branches on x!=v 
+     * and performs propagation according to the mode.
+     *
+     * @param x the variable that is constrained bo be different from v
+     * @param v the value that must be different from x
+     */
+    public static void branchNotEqual(IntVar x, int v) {
+        x.remove(v);
+        x.getSolver().propagateSolver();
+    }
+
+    // -------------- constraints -----------------------
 
     /**
      * Computes a variable that is the absolute value of the given variable.
@@ -348,56 +388,6 @@ public final class Factory {
     }
 
     /**
-     * Forces the variable to be equal to some given value and
-     * performs propagation.
-     *
-     * @param x the variable to be assigned to v
-     * @param v the value that must be assigned to x
-     */
-    public static Constraint equal(IntVar x, int v) {
-        return new AbstractConstraint(x.getSolver(), new IntVar[]{x}) {
-            @Override
-            public void post() {
-                x.assign(v);
-            }
-        };
-    }
-
-    /**
-     * Returns a constraint imposing that the variable less or
-     * equal to some given value.
-     *
-     * @param x the variable that is constrained bo be less or equal to v
-     * @param v the value that must be the upper bound on x
-     * @return a constraint so that {@code x <= v}
-     */
-    public static Constraint lessOrEqual(IntVar x, int v) {
-        return new AbstractConstraint(x.getSolver(), new IntVar[]{x}) {
-            @Override
-            public void post() {
-                x.removeAbove(v);
-            }
-        };
-    }
-
-    /**
-     * Forces the variable to be different to some given value and
-     * performs propagation.
-     *
-     * @param x the variable that is constrained bo be different from v
-     * @param v the value that must be different from x
-     */
-    public static Constraint notEqual(IntVar x, int v) {
-        return new AbstractConstraint(x.getSolver(), new IntVar[]{x}) {
-            @Override
-            public void post() {
-                x.remove(v);
-            }
-        };
-    }
-
-
-    /**
      * Returns a constraint imposing that the two different variables
      * must take different values.
      *
@@ -411,7 +401,7 @@ public final class Factory {
 
     /**
      * Returns a constraint imposing that the two different variables
-     * must take the value.
+     * must take the same value.
      *
      * @param x a variable
      * @param y a variable

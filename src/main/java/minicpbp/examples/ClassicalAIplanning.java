@@ -132,7 +132,7 @@ public class ClassicalAIplanning {
 		// express planCost as combination of automataCost
 		switch(objectiveCombinator) {
 		case 0: // no objective
-		    equal(planCost,length);
+		    planCost.assign(length);
 		    break;
 		case 1: // same; already taken care of
 		    break;

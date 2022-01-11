@@ -176,7 +176,7 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexico(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch(); // TODO set in every search ?
+        boolean tracing = x[0].getSolver().tracingSearch();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -189,12 +189,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -261,12 +261,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -297,12 +297,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -334,12 +334,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + "; nb of ties=" + nbTied);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -443,12 +443,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + "; nb of ties=" + nbTied);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -481,12 +481,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -520,12 +520,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()) + "; nb of ties=" + nbTied);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -559,12 +559,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; regret=" + (beliefRep.rep2std(xs.maxMarginalRegret())) + "; nb of ties=" + nbTied);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -597,12 +597,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         });
             }
         };
@@ -635,12 +635,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.maxMarginal()));
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v);
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         });
             }
         };
@@ -673,12 +673,12 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
-                            xs.getSolver().post(notEqual(xs, v),true);
+                            branchNotEqual(xs, v);
                         },
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v);
-                            xs.getSolver().post(equal(xs, v),true);
+                            branchEqual(xs, v);
                         });
             }
         };

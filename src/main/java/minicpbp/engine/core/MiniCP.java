@@ -26,6 +26,7 @@ import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Procedure;
 import minicpbp.util.Belief;
 import minicpbp.util.StdBelief;
+import minicpbp.util.LogBelief;
 
 import java.util.ArrayDeque;
 import java.util.LinkedList;
@@ -268,11 +269,11 @@ public class MiniCP implements Solver {
     }
 
     @Override
-    public void post(Constraint c, boolean enforcePropagation) {
+    public void post(Constraint c, boolean enforceFixpoint) {
         constraints.push(c);
         c.post();
-        if (enforcePropagation) {
-            this.propagateSolver();
+        if (enforceFixpoint) {
+            this.fixPoint();
         }
     }
 
@@ -282,10 +283,10 @@ public class MiniCP implements Solver {
     }
 
     @Override
-    public void post(BoolVar b, boolean enforcePropagation){
+    public void post(BoolVar b, boolean enforceFixpoint){
         b.assign(true);
-        if (enforcePropagation) {
-            this.propagateSolver();
+        if (enforceFixpoint) {
+            this.fixPoint();
         }
     }
 }

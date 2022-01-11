@@ -38,8 +38,8 @@ public interface Solver {
     } 
 
     /**
-     * Posts the constraint, that is call {@link Constraint#post()} and
-     * DOES NOT compute the propagation. (Different to MiniCP)
+     * Posts the constraint, that is call {@link Constraint#post()}, and
+     * DOES NOT compute the propagation fix-point. (Different from MiniCP)
      * A {@link minicpbp.util.exception.InconsistencyException} is thrown
      * if by posting the constraint it is proven that there is no solution.
      *
@@ -55,14 +55,14 @@ public interface Solver {
     void schedule(Constraint c);
 
     /**
-     * Posts the constraint that is call {@link Constraint#post()}
-     * and optionally computes the fix-point and/or belief propagation depending on the mode.
+     * Posts the constraint, that is call {@link Constraint#post()},
+     * and optionally computes the propagation fix-point.
      * A {@link minicpbp.util.exception.InconsistencyException} is thrown
      * if by posting the constraint it is proven that there is no solution.
      * @param c the constraint to be posted
-     * @param enforcePropagation if one wants to compute the propagation after
+     * @param enforceFixpoint if one wants to compute the propagation fix-point after
      */
-    void post(Constraint c, boolean enforcePropagation);
+    void post(Constraint c, boolean enforceFixpoint);
 
     /**
      * @return the propagation mode
@@ -177,7 +177,7 @@ public interface Solver {
 
     /**
      * Forces the boolean variable to be true and then
-     * DOES NOT compute the propagation. (Different to MiniCP)
+     * DOES NOT compute the propagation fix-point. (Different from MiniCP)
      *
      * @param b the variable that must be set to true
      */
@@ -185,10 +185,11 @@ public interface Solver {
 
     /**
      * Forces the boolean variable to be true
-     * and optionally computes the fix-point and/or belief propagation depending on the mode.
+     * and optionally computes the propagation fix-point.
      *
      * @param b the variable that must be set to true
+     * @param enforceFixpoint if one wants to compute the propagation fix-point after
      */
-    void post(BoolVar b,boolean enforcePropagation);
+    void post(BoolVar b,boolean enforceFixpoint);
 }
 

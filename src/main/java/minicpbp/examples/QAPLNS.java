@@ -117,7 +117,7 @@ public class QAPLNS {
                         for (int j = 0; j < n; j++) {
                             if (rand.nextInt(100) < 5) {
                                 // after the solveSubjectTo those constraints are removed
-                                equal(x[j], xBest[j]);
+                                x[j].assign(xBest[j]);
                             }
                         }
                     }
