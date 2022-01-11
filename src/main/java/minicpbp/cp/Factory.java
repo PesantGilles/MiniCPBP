@@ -305,10 +305,22 @@ public final class Factory {
     }
 
     /**
+     * Branches on x!=v 
+     * and performs propagation according to the mode.
+     *
+     * @param x the variable that is constrained to be different from v
+     * @param v the value that must be different from x
+     */
+    public static void branchNotEqual(IntVar x, int v) {
+        x.remove(v);
+        x.getSolver().propagateSolver();
+    }
+
+    /**
      * Branches on x<=v  
      * and performs propagation according to the mode.
      *
-     * @param x the variable that is constrained bo be less or equal to v
+     * @param x the variable that is constrained to be less or equal to v
      * @param v the value that must be the upper bound on x
      */
     public static void branchLessOrEqual(IntVar x, int v) {
@@ -317,14 +329,14 @@ public final class Factory {
     }
 
     /**
-     * Branches on x!=v 
+     * Branches on x>v  
      * and performs propagation according to the mode.
      *
-     * @param x the variable that is constrained bo be different from v
-     * @param v the value that must be different from x
+     * @param x the variable that is constrained to be greater than v
+     * @param v 
      */
-    public static void branchNotEqual(IntVar x, int v) {
-        x.remove(v);
+    public static void branchGreater(IntVar x, int v) {
+        x.removeBelow(v+1);
         x.getSolver().propagateSolver();
     }
 
