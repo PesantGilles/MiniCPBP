@@ -1126,6 +1126,34 @@ public final class Factory {
     }
 
     /**
+     * Returns a LinIneqSystemModP constraint.
+     *
+     * @param A the mxn matrix of coefficients
+     * @param x the column vector of n variables
+     * @param b the column vector of m rhs values
+     * @param p the prime modulus
+     * @return a constraint so that {@code Ax <= b (mod p)}.
+     */
+    public static Constraint linIneqSystemModP(int[][] A, IntVar[] x, int[] b, int p) {
+        return new LinIneqSystemModP(A, x, b, p);
+    }
+
+    /**
+     * Returns a LinSystemModP constraint.
+     *
+     * @param Ae the mexn matrix of coefficients
+     * @param Ai the mixn matrix of coefficients
+     * @param x the column vector of n variables
+     * @param be the column vector of me rhs values
+     * @param bi the column vector of mi rhs values
+     * @param p the prime modulus
+     * @return a constraint so that {@code Aex = be and Aix <= bi (mod p)}.
+     */
+    public static Constraint linSystemModP(int[][] Ae, int[][] Ai, IntVar[] x, int[] be, int[] bi, int p) {
+        return new LinSystemModP(Ae, Ai, x, be, bi, p);
+    }
+
+    /**
      * Oracle unary constraint providing fixed marginals (possibly through ML)
      * Does not perform any filtering
      *
