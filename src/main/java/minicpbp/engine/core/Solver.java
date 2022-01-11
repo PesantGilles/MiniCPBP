@@ -190,6 +190,15 @@ public interface Solver {
      * @param b the variable that must be set to true
      * @param enforceFixpoint if one wants to compute the propagation fix-point after
      */
-    void post(BoolVar b,boolean enforceFixpoint);
+    void post(BoolVar b, boolean enforceFixpoint);
+
+    /**
+     * Samples solutions by restricting the search space using randomly-generated linear modular constraints
+     *
+     * @param fraction the fraction of the number of solutions we wish to retain (0<fraction<1)
+     * @param vars the original branching variables of the model
+     * @return an array of branching variables
+     */
+    IntVar[] sample(double fraction, IntVar[] vars);
 }
 
