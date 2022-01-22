@@ -64,10 +64,11 @@ public class AbsoluteTest extends SolverTest {
             Solver cp = solverFactory.get();
             IntVar x = makeIntVar(cp, -5, 5);
             IntVar y = makeIntVar(cp, -10, 10);
+	    
+	    x.remove(0);
+	    x.remove(5);
+	    x.remove(-5);
 
-            cp.post(notEqual(x, 0),true);
-            cp.post(notEqual(x, 5),true);
-            cp.post(notEqual(x, -5),true);
 
             cp.post(new Absolute(x, y),true);
 
@@ -137,13 +138,15 @@ public class AbsoluteTest extends SolverTest {
             assertEquals(7, x.max());
             assertEquals(-5, x.min());
 
-            cp.post(notEqual(y, 0),true);
+	        y.remove(0);
 
-            cp.post(lessOrEqual(x,4),true);
+            x.removeAbove(4);
+            cp.fixPoint();
 
             assertEquals(5, y.max());
 
-            cp.post(lessOrEqual(x,-2),true);
+            x.removeAbove(-2);
+            cp.fixPoint();
 
             assertEquals(2, y.min());
 

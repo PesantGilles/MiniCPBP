@@ -43,7 +43,8 @@ public class AllDifferentTest extends SolverTest {
 
         try {
             cp.post(allDifferent(x),true);
-            cp.post(equal(x[0], 0),true);
+            x[0].assign(0);
+            cp.fixPoint();
             for (int i = 1; i < x.length; i++) {
                 assertEquals(4, x[i].size());
                 assertEquals(1, x[i].min());

@@ -38,7 +38,8 @@ public class NotEqualTest extends SolverTest {
         try {
             cp.post(notEqual(x, y),true);
 
-            cp.post(equal(x, 6),true);
+            x.assign(6);
+            cp.fixPoint();
 
             assertFalse(y.contains(6));
             assertEquals(9, y.size());

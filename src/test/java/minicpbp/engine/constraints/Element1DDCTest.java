@@ -86,12 +86,12 @@ public class Element1DDCTest extends SolverTest {
                 if (!y.isBound() && (z.isBound() || rand.nextBoolean())) {
                     //select a random y
                     int val = possibleY[rand.nextInt(possibleY.length)];
-                    return branch(() -> cp.post(equal(y, val),true),
-                            () -> cp.post(notEqual(y, val),true));
+                    return branch(() -> branchEqual(y, val),
+                            () -> branchNotEqual(y, val));
                 } else {
                     int val = possibleZ[rand.nextInt(possibleZ.length)];
-                    return branch(() -> cp.post(equal(z, val),true),
-                            () -> cp.post(notEqual(z, val),true));
+                    return branch(() -> branchEqual(z, val),
+                            () -> branchNotEqual(z, val));
                 }
             };
 

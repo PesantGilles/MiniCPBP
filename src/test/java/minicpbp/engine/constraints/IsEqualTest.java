@@ -68,12 +68,14 @@ public class IsEqualTest extends SolverTest {
             BoolVar b = isEqual(x, -2);
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 1),true);
+            b.assign(1);
+            cp.fixPoint();
             assertEquals(-2, x.min());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 0),true);
+            b.assign(0);
+            cp.fixPoint();
             assertFalse(x.contains(-2));
             cp.getStateManager().restoreState();
 
@@ -90,7 +92,7 @@ public class IsEqualTest extends SolverTest {
         try {
             Solver cp = solverFactory.get();
             IntVar x = makeIntVar(cp, -4, 7);
-            cp.post(equal(x, -2),true);
+            x.assign(-2);
 
             {
                 BoolVar b = makeBoolVar(cp);
@@ -119,13 +121,13 @@ public class IsEqualTest extends SolverTest {
             BoolVar b = makeBoolVar(cp);
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 1),true);
+            b.assign(1);
             cp.post(new IsEqual(b, x, -2),true);
             assertEquals(-2, x.min());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 0),true);
+            b.assign(0);
             cp.post(new IsEqual(b, x, -2),true);
             assertFalse(x.contains(-2));
             cp.getStateManager().restoreState();
