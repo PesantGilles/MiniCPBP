@@ -23,7 +23,6 @@ import minicpbp.engine.core.IntVar;
 
 public class Equal extends AbstractConstraint {
     private final IntVar x, y;
-    private int[] domVal;
 
 
     /**
@@ -46,15 +45,12 @@ public class Equal extends AbstractConstraint {
     public void post() {
         if (y.isBound()) {
             x.assign(y.min());
-            domVal = new int[1];
 	}
 	else if (x.isBound()) {
             y.assign(x.min());
-            domVal = new int[1];
 	}
         else {
             boundsIntersect();
-            domVal = new int[Math.max(x.size(), y.size())];
             pruneEquals(y, x);
             pruneEquals(x, y);
 	    switch (getSolver().getMode()) {
@@ -77,11 +73,10 @@ public class Equal extends AbstractConstraint {
     // dom consistent filtering in the direction from -> to
     // every value of to has a support in from
     private void pruneEquals(IntVar from, IntVar to) {
-        // dump the domain of to into domVal
-        int nVal = to.fillArray(domVal);
+        int nVal = to.fillArray(domainValues);
         for (int k = 0; k < nVal; k++)
-            if (!from.contains(domVal[k]))
-                to.remove(domVal[k]);
+            if (!from.contains(domainValues[k]))
+                to.remove(domainValues[k]);
     }
 
     // make sure bound of variables are the same
@@ -97,18 +92,18 @@ public class Equal extends AbstractConstraint {
     @Override
     public void updateBelief() {
         // Treatment of x
-        int nVal = x.fillArray(domVal);
+        int nVal = x.fillArray(domainValues);
         for (int k = 0; k < nVal; k++) {
-	    int vx = domVal[k];
+	    int vx = domainValues[k];
             if (y.contains(vx))
 		setLocalBelief(0, vx, outsideBelief(1, vx));
 	    else
 		setLocalBelief(0, vx, beliefRep.zero());
 	}
         // Treatment of y
-        nVal = y.fillArray(domVal);
+        nVal = y.fillArray(domainValues);
         for (int k = 0; k < nVal; k++) {
-	    int vy = domVal[k];
+	    int vy = domainValues[k];
             if (x.contains(vy))
 		setLocalBelief(1, vy, outsideBelief(0, vy));
 	    else
