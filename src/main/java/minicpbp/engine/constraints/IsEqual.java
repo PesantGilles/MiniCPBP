@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicpbp.engine.constraints;
@@ -73,6 +76,21 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
             b.assign(true);
             setActive(false);
         }
+    }
+
+    @Override
+    public void updateBelief() {
+        // Treatment of b
+	setLocalBelief(0, 1, outsideBelief(1, c));
+	setLocalBelief(0, 0, beliefRep.complement(outsideBelief(1, c)));
+        // Treatment of x
+        int nVal = x.fillArray(domainValues);
+	for (int k = 0; k < nVal; k++) {
+	    setLocalBelief(1, domainValues[k], outsideBelief(0, 0));
+	}
+	if (x.contains(c)) { // set correctly for c
+	    setLocalBelief(1, c, outsideBelief(0, 1));
+	}
     }
 
 }
