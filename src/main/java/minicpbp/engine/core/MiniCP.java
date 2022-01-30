@@ -61,7 +61,7 @@ public class MiniCP implements Solver {
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
-    private static final boolean actOnZeroOneBelief = false;
+    private static final boolean actOnZeroOneBelief = true;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
