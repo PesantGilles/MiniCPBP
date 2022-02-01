@@ -152,6 +152,14 @@ public interface IntDomain {
     int randomValue();
 
     /**
+     * Returns a value in the domain chosen randomly according to the marginal distribution.
+     * Based on the stochastic acceptance algorithm described in http://arxiv.org/abs/1109.3627
+     *
+     * @return random value in the domain according to marginal distribution
+     */
+    int biasedWheelValue();
+
+    /**
      * Returns the marginal of an element from the domain.
      *
      * @param v is an element in the domain
@@ -221,6 +229,13 @@ public interface IntDomain {
      * @return the largest marginal regret
      */
     double maxMarginalRegret();
+
+    /**
+     * Returns the entropy of the marginal distribution
+     *
+     * @return the entropy
+     */
+    double entropy();
 
     @Override
     String toString();

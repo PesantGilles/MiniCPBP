@@ -185,6 +185,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public int biasedWheelValue() {
+	return x.biasedWheelValue() * a;
+    }
+
+    @Override
     public double marginal(int v) {
 	if (v % a == 0) {
 	    return x.marginal(v/a);
@@ -235,6 +240,11 @@ public class IntVarViewMul implements IntVar {
     @Override
     public double maxMarginalRegret() {
 	return x.maxMarginalRegret();
+    }
+
+    @Override
+    public double entropy() {
+	return x.entropy();
     }
 
     @Override

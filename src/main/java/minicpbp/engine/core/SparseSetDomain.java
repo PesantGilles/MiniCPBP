@@ -153,6 +153,29 @@ public class SparseSetDomain implements IntDomain {
         return domainValues[rand.nextInt(s)];
     }
 
+
+    @Override
+    public int biasedWheelValue() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+        int s = fillArray(domainValues);
+	// to avoid this linear-time step, could replace max by upper bound 1
+	// alternatively, could decide to maintain max marginal of domain
+        double max = beliefRep.zero();
+        for (int j = 0; j < s; j++) {
+            int v = domainValues[j];
+            if (marginal(v) > max) {
+                max = marginal(v);
+            }
+        }
+	// stochastic acceptance algorithm
+	while (true) {
+            int v = domainValues[rand.nextInt(s)];
+	    if (Math.random() < marginal(v)/max)
+		return v;
+	}
+    }
+
     @Override
     public double marginal(int v) {
         return domain.weight(v);
@@ -273,6 +296,18 @@ public class SparseSetDomain implements IntDomain {
             }
         }
         return max - nextMax;
+    }
+
+    @Override
+    public double entropy() {
+        double H = 0;
+        int s = fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+            double m = beliefRep.rep2std(marginal(domainValues[j]));
+	    if (m > 0)
+		H += m * Math.log(m);
+        }
+        return -H;
     }
 
     @Override

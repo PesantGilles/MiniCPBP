@@ -455,6 +455,82 @@ public final class BranchingScheme {
     }
 
     /**
+     * Minimum entropy strategy.
+     * It selects an unbound variable with the smallest entropy
+     * of its marginal distribution.
+     * Then it creates two branches:
+     * the left branch assigning the variable to the value with the largest marginal;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the min entropy strategy is applied.
+     * @return minEntropy branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> minEntropy(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> xi.entropy());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
+     * Minimum entropy + biased wheel selection of value.
+     * It selects an unbound variable with the smallest entropy
+     * of its marginal distribution.
+     * Then it creates two branches:
+     * the left branch assigning the variable nondeterministically using biased wheel selection based on marginal distribution;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the min entropy strategy is applied.
+     * @return minEntropyBiasedWheelSelectVal branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> minEntropyBiasedWheelSelectVal(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> xi.entropy());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.biasedWheelValue();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
      * Maximum Marginal Strength strategy.
      * It selects an unbound variable with the largest marginal strength
      * on one of the values in its domain.
