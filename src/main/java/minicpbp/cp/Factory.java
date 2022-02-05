@@ -208,6 +208,7 @@ public final class Factory {
         return new DFSearch(cp.getStateManager(), branching);
     }
 
+
     /**
      * Creates a Limited Discrepancy Search with custom branching heuristic
      *
@@ -219,8 +220,8 @@ public final class Factory {
      *                  is a solution.
      * @param geometric to indicate whether the progression of maxDiscrepancy is geometric
      * @return the limited discrepancy search object ready to execute with
-     * {@link DFSearch#solve()} or
-     * {@link DFSearch#optimize(Objective)}
+     * {@link LDSearch#solve()} or
+     * {@link LDSearch#optimize(Objective)}
      * using the given branching scheme
      * @see BranchingScheme#firstFail(IntVar...)
      * @see BranchingScheme#branch(Procedure...)
@@ -784,19 +785,19 @@ public final class Factory {
      * @param x an array of variables
      * @return a constraint so that {@code x[i] != x[j] for all i < j}
      */
-    public static Constraint allDifferent(IntVar[] x) {
+    public static Constraint allDifferentBinary(IntVar[] x) {
         return new AllDifferentBinary(x);
     }
 
     /**
      * Returns an allDifferent constraint that enforces
-     * global arc consistency.
+     * domain consistency.
      *
      * @param x an array of variables
      * @return a constraint so that {@code x[i] != x[j] for all i < j}
      */
-    public static Constraint allDifferentAC(IntVar[] x) {
-        return new AllDifferentAC(x);
+    public static Constraint allDifferent(IntVar[] x) {
+        return new AllDifferentDC(x);
     }
 
     /**
