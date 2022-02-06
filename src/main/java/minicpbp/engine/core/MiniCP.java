@@ -55,13 +55,13 @@ public class MiniCP implements Solver {
     // nb of BP iterations performed
     private static final int beliefPropaMaxIter = 5;
     // apply damping to variable-to-constraint messages
-    private static final boolean damping = false;
+    private static final boolean damping = true;
     // damping factor in interval [0,1] where 1 is equivalent to no damping
     private static final double dampingFactor = 0.5;
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
-    private static final boolean actOnZeroOneBelief = true;
+    private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
