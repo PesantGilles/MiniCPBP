@@ -636,7 +636,7 @@ public final class Factory {
                     nbUnique--;
             }
         vars[0] = makeIntVar(cp, -sumMax, -sumMin);
-        cp.post(new Sum(vars));
+        cp.post(new SumDC(vars));
         return minus(vars[0]);
     }
 
@@ -664,7 +664,7 @@ public final class Factory {
             vars[i] = mul(x[i], c[i]);
         }
         vars[x.length] = makeIntVar(cp, -sumMax, -sumMin);
-        cp.post(new Sum(vars));
+        cp.post(new SumDC(vars));
         return minus(vars[x.length]);
     }
 
@@ -678,7 +678,7 @@ public final class Factory {
     public static Constraint sum(IntVar[] x, IntVar y) {
         IntVar[] vars = Arrays.copyOf(x, x.length + 1);
         vars[x.length] = minus(y);
-        return new Sum(vars);
+        return new SumDC(vars);
     }
 
     /**
@@ -695,7 +695,7 @@ public final class Factory {
             vars[i] = mul(x[i], c[i]);
         }
         vars[x.length] = minus(y);
-        return new Sum(vars);
+        return new SumDC(vars);
     }
 
     /**
@@ -735,7 +735,7 @@ public final class Factory {
                     nbUnique--;
             }
         vars[0] = makeIntVar(cp, -y, -y);
-        return new Sum(vars);
+        return new SumDC(vars);
     }
 
     /**
@@ -776,7 +776,7 @@ public final class Factory {
                     nbUnique--;
             }
         vars[0] = makeIntVar(cp, -y, -y);
-        return new Sum(vars);
+        return new SumDC(vars);
     }
 
     /**
