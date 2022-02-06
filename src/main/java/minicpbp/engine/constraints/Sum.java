@@ -208,6 +208,8 @@ public class Sum extends AbstractConstraint {
                 bwd_hi -= x[idx].min();
                 bwd_lo -= x[idx].max();
             }
+            if (fwd_lo > bwd_hi || fwd_hi < bwd_lo)
+                throw new InconsistencyException(); // sum constraint cannot be satisfied
             for (int i = 0; i < nUnBounds.value(); i++) {
                 minState[i] = Math.max(fwd_lo, bwd_lo);
                 maxState[i] = Math.min(fwd_hi, bwd_hi);
