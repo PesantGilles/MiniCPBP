@@ -60,18 +60,22 @@ public class NotEqual extends AbstractConstraint {
 
     @Override
     public void post() {
-        if (y.isBound())
+        if (y.isBound()) {
             x.remove(y.min() + c);
-        else if (x.isBound())
+            setActive(false);
+        }
+        else if (x.isBound()) {
             y.remove(x.min() - c);
+            setActive(false);
+        }
         else switch (getSolver().getMode()) {
-                case BP:
-                    break;
-                case SP:
-                case SBP:
-                    x.propagateOnBind(this);
-                    y.propagateOnBind(this);
-            }
+            case BP:
+                break;
+            case SP:
+            case SBP:
+                x.propagateOnBind(this);
+                y.propagateOnBind(this);
+        }
     }
 
     @Override

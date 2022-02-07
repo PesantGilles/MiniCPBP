@@ -235,14 +235,19 @@ public class MiniCP implements Solver {
      * from variables to constraints, and then from constraints to variables
      */
     private void BPiteration() {
+        Constraint c;
         for (int i = 0; i < constraints.size(); i++) {
-            constraints.get(i).receiveMessages();
-        }
+            c = constraints.get(i);
+            if (c.isActive())
+                c.receiveMessages();
+       }
         for (int i = 0; i < variables.size(); i++) {
             variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
         }
         for (int i = 0; i < constraints.size(); i++) {
-            constraints.get(i).sendMessages();
+            c = constraints.get(i);
+            if (c.isActive())
+                c.sendMessages();
         }
         for (int i = 0; i < variables.size(); i++) {
             variables.get(i).normalizeMarginals();
