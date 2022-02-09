@@ -180,8 +180,6 @@ public class SumDC extends AbstractConstraint {
 	// filter variable domains, reusing code from updateBelief() but without beliefs (thus no danger of numerical precision roundoff error)
         int idx, s, v;
         if (incrementalUpdateBelief) { // incremental version using unBounds[]
-            if (nUnBounds.value() == 0)
-                return;
             // compute the range of feasible states for each layer
             int fwd_hi = offset + sumBounds.value();
             int fwd_lo = fwd_hi;
@@ -194,6 +192,10 @@ public class SumDC extends AbstractConstraint {
             }
             if (fwd_lo > bwd_hi || fwd_hi < bwd_lo)
                 throw new InconsistencyException(); // sum constraint cannot be satisfied
+            if (nUnBounds.value() == 0) {// sum constraint is satisfied and all variables are bound
+                setActive(false);
+                return;
+            }
             for (int i = 0; i < nUnBounds.value(); i++) {
                 minState[i] = Math.max(fwd_lo, bwd_lo);
                 maxState[i] = Math.min(fwd_hi, bwd_hi);
