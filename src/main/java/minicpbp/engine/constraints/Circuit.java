@@ -22,6 +22,7 @@ import minicpbp.state.StateInt;
 import minicpbp.util.exception.NotImplementedException;
 
 import static minicpbp.cp.Factory.allDifferent;
+import static minicpbp.cp.Factory.allDifferentBinary;
 
 /**
  * Hamiltonian Circuit Constraint with a successor model
@@ -58,9 +59,10 @@ public class Circuit extends AbstractConstraint {
 
     @Override
     public void post() {
-        getSolver().post(allDifferent(x));
+        getSolver().post(allDifferentBinary(x));
         if (x.length == 1) {
             x[0].assign(0);
+            setActive(false);
             return;
         }
         for (int i = 0; i < x.length; i++) {

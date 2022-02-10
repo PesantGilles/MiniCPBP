@@ -45,10 +45,12 @@ public class Equal extends AbstractConstraint {
     public void post() {
         if (y.isBound()) {
             x.assign(y.min());
-	}
-	else if (x.isBound()) {
+            setActive(false);
+	    }
+	    else if (x.isBound()) {
             y.assign(x.min());
-	}
+            setActive(false);
+	    }
         else {
             boundsIntersect();
             pruneEquals(y, x);
@@ -67,7 +69,7 @@ public class Equal extends AbstractConstraint {
 			pruneEquals(y, x);
 		    });
 	    }
-	}
+	    }
     }
             
     // dom consistent filtering in the direction from -> to
@@ -94,21 +96,21 @@ public class Equal extends AbstractConstraint {
         // Treatment of x
         int nVal = x.fillArray(domainValues);
         for (int k = 0; k < nVal; k++) {
-	    int vx = domainValues[k];
+	        int vx = domainValues[k];
             if (y.contains(vx))
-		setLocalBelief(0, vx, outsideBelief(1, vx));
-	    else
-		setLocalBelief(0, vx, beliefRep.zero());
-	}
+		        setLocalBelief(0, vx, outsideBelief(1, vx));
+	        else
+		        setLocalBelief(0, vx, beliefRep.zero());
+	    }
         // Treatment of y
         nVal = y.fillArray(domainValues);
         for (int k = 0; k < nVal; k++) {
-	    int vy = domainValues[k];
+	        int vy = domainValues[k];
             if (x.contains(vy))
-		setLocalBelief(1, vy, outsideBelief(0, vy));
-	    else
-		setLocalBelief(1, vy, beliefRep.zero());
-	}
+		        setLocalBelief(1, vy, outsideBelief(0, vy));
+	        else
+		        setLocalBelief(1, vy, beliefRep.zero());
+	    }
     }
 
 }
