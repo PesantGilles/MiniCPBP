@@ -23,6 +23,7 @@ public class SolveXCSPFZN {
 		MNMS, // minimum marginal strength
 		MXM, // maximum marginal
 		MNM, // minimum marginal
+		MNE, //minimum entropy
 	}
 
 	private static Map<String, BranchingHeuristic> branchingMap = new HashMap<String, BranchingHeuristic>() {
@@ -33,6 +34,7 @@ public class SolveXCSPFZN {
 			put("min-marginal-strength", BranchingHeuristic.MNMS);
 			put("max-marginal", BranchingHeuristic.MXM);
 			put("min-marginal", BranchingHeuristic.MNM);
+			put("min-entropy", BranchingHeuristic.MNE);
 		}
 	};
 

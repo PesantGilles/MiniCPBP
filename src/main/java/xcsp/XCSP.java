@@ -61,6 +61,7 @@ import static minicpbp.cp.BranchingScheme.maxMarginalStrength;
 import static minicpbp.cp.BranchingScheme.maxMarginal;
 import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
+import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -1041,6 +1042,9 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case MNM:
 			search = makeSearch(minMarginal(vars));
+			break;
+		case MNE:
+			search = makeSearch(minEntropy(vars));
 			break;
 		default:
 			System.out.println("unknown search strategy");
