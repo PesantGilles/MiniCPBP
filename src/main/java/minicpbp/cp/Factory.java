@@ -401,6 +401,24 @@ public final class Factory {
     }
 
     /**
+	 * Forces the variable to be different to some given value and performs
+	 * propagation.
+	 *
+	 * @param x the variable that is constrained bo be different from v
+	 * @param v the value that must be different from x
+	 */
+	public static void notEqual(IntVar x, int v) {
+		x.remove(v);
+		switch (x.getSolver().getMode()) {
+		case BP:
+			break;
+		case SP:
+		case SBP:
+			x.getSolver().fixPoint();
+		}
+	}
+
+    /**
      * Returns a constraint imposing that the two different variables
      * must take different values.
      *
@@ -411,6 +429,23 @@ public final class Factory {
     public static Constraint notEqual(IntVar x, IntVar y) {
         return new NotEqual(x, y);
     }
+
+    /**
+	 * Forces the variable to be equal to some given value and performs propagation.
+	 *
+	 * @param x the variable to be assigned to v
+	 * @param v the value that must be assigned to x
+	 */
+	public static void equal(IntVar x, int v) {
+		x.assign(v);
+		switch (x.getSolver().getMode()) {
+		case BP:
+			break;
+		case SP:
+		case SBP:
+			x.getSolver().fixPoint();
+		}
+	}
 
     /**
      * Returns a constraint imposing that the two different variables
@@ -522,6 +557,24 @@ public final class Factory {
     public static BoolVar isLarger(IntVar x, final int c) {
         return isLargerOrEqual(x, c + 1);
     }
+
+    /**
+	 * Forces the variable to be less or equal to some given value and performs
+	 * propagation.
+	 *
+	 * @param x the variable that is constrained bo be less or equal to v
+	 * @param v the value that must be the upper bound on x
+	 */
+	public static void lessOrEqual(IntVar x, int v) {
+		x.removeAbove(v);
+		switch (x.getSolver().getMode()) {
+		case BP:
+			break;
+		case SP:
+		case SBP:
+			x.getSolver().fixPoint();
+		}
+	}
 
     /**
      * Returns a constraint imposing that the
@@ -1039,6 +1092,34 @@ public final class Factory {
         }
         return new Cardinality(x, vals, oVar, makeIntVar(cp, 1, maxDomainSize));
     }
+
+    /**
+ 	 * A special case of cardinality constraint when the bounds on number of
+ 	 * occurrences are given
+ 	 * 
+ 	 * @param x    an array of variables
+ 	 * @param vals an array of values whose occurrences in x we count
+ 	 * @param oMin an array of constants indicating the minimum number of
+ 	 *             occurrences of each entry of vals in x
+ 	 * @param oMax an array of constants indicating the maximum number of
+ 	 *             occurrences of each entry of vals in x
+ 	 * @return
+ 	 */
+	  public static Constraint cardinality(IntVar[] x, int[] vals, int[] oMin, int[] oMax) {
+		int n = vals.length;
+		assert (oMin.length == n);
+		assert (oMax.length == n);
+		int maxDomainSize = 0;
+			for (int i = 0; i < x.length; i++) {
+			maxDomainSize = Math.max(maxDomainSize, x[i].size());
+		}
+		IntVar[] oVar = new IntVar[n];
+		Solver cp = x[0].getSolver();
+		for (int i = 0; i < n; i++)
+			oVar[i] = makeIntVar(cp, oMin[i], oMax[i]);
+
+		return new Cardinality(x, vals, oVar, makeIntVar(cp,1,maxDomainSize));
+	}
 
     /**
      * Returns a sum modulo p constraint.

@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 /**
  * Limited Discrepancy Search Branch and Bound implementation
  */
-public class LDSearch {
+public class LDSearch extends Search{
 
     private Supplier<Procedure[]> branching;
     private Supplier<Procedure[]> LDSbranching;

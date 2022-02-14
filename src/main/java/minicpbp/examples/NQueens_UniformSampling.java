@@ -28,6 +28,7 @@ import java.util.Arrays;
  * The N-Queens problem. Sampling solutions.
  * <a href="http://csplib.org/Problems/prob054/">CSPLib</a>.
  */
+/*
 public class NQueens_UniformSampling {
 
     public static void main(String[] args) {
@@ -63,7 +64,7 @@ public class NQueens_UniformSampling {
 		System.out.println();
 	    }
 	);
-	*/
+
 
    	SearchStatistics stats = search.solve();
 
@@ -72,3 +73,4 @@ public class NQueens_UniformSampling {
 
     }
 }
+*/
