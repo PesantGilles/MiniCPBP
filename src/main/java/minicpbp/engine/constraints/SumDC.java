@@ -163,7 +163,7 @@ public class SumDC extends AbstractConstraint {
     public void propagate() {
         // Update the unbound vars and the partial sum
         int nU = nUnBounds.value();
-        for (int i = nU - 1; i >= 0; i--) {
+         for (int i = nU - 1; i >= 0; i--) {
             int idx = unBounds[i];
             if (x[idx].isBound()) {
                 sumBounds.setValue(sumBounds.value() + x[idx].min());
@@ -173,13 +173,10 @@ public class SumDC extends AbstractConstraint {
             }
         }
         nUnBounds.setValue(nU);
-        if (incrementalUpdateBelief) {
-            // In an effort to keep the range of DP states small, we order vars by increasing domain range.
-            Arrays.sort(unBounds, 0, nU, domRangeComparator);
-        }
-	// filter variable domains, reusing code from updateBelief() but without beliefs (thus no danger of numerical precision roundoff error)
         int idx, s, v;
         if (incrementalUpdateBelief) { // incremental version using unBounds[]
+            // In an effort to keep the range of DP states small, we order vars by increasing domain range.
+            Arrays.sort(unBounds, 0, nU, domRangeComparator);
             // compute the range of feasible states for each layer
             int fwd_hi = offset + sumBounds.value();
             int fwd_lo = fwd_hi;
@@ -235,22 +232,31 @@ public class SumDC extends AbstractConstraint {
                         if (op[i][k] == 1.0) {
                             op[i - 1][k - v] = 1.0;
                             if (ip[i][k - v] == 1.0) {
-				supported = true; 
-			    }
+				                supported = true;
+			                 }
                         }
                     }
                     if (!supported) {
-			x[idx].remove(v);
-		    }
+			            x[idx].remove(v);
+		            }
                 }
             }
             idx = unBounds[0];
             s = x[idx].fillArray(domainValues);
-            for (int j = 0; j < s; j++) {
-                v = domainValues[j];
-                if (op[0][minState[0] + v] == 0) {
-		    x[idx].remove(v);
-		}
+            if (nUnBounds.value() == 1) { // special case
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    if (minState[0] + v != minState[1]) {
+                        x[idx].remove(v);
+                    }
+                }
+            } else {
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    if (op[0][minState[0] + v] == 0) {
+                        x[idx].remove(v);
+                    }
+                }
             }
         } else { // non-incremental version
             for (int i = 0; i < n; i++) {
@@ -283,22 +289,22 @@ public class SumDC extends AbstractConstraint {
                     for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
                         if (op[i][k + offset + v] == 1.0) {
                             op[i - 1][k + offset] = 1.0;
-			    if (ip[i][k + offset] == 1.0) {
-				supported = true;
-			    }
+			                if (ip[i][k + offset] == 1.0) {
+				                supported = true;
+			                }
                         }
                     }
                     if (!supported) {
-			x[i].remove(v);
-		    }
+			            x[i].remove(v);
+		            }
                 }
             }
             s = x[0].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 v = domainValues[j];
                 if (op[0][offset + v] == 0) {
-		    x[0].remove(v);
-		}
+		            x[0].remove(v);
+		        }
             }
         }
     }
@@ -320,8 +326,6 @@ public class SumDC extends AbstractConstraint {
                 bwd_hi -= x[idx].min();
                 bwd_lo -= x[idx].max();
             }
-            if (fwd_lo > bwd_hi || fwd_hi < bwd_lo)
-                throw new InconsistencyException(); // sum constraint cannot be satisfied
             for (int i = 0; i < nUnBounds.value(); i++) {
                 minState[i] = Math.max(fwd_lo, bwd_lo);
                 maxState[i] = Math.min(fwd_hi, bwd_hi);
@@ -371,9 +375,19 @@ public class SumDC extends AbstractConstraint {
             }
             idx = unBounds[0];
             s = x[idx].fillArray(domainValues);
-            for (int j = 0; j < s; j++) {
-                v = domainValues[j];
-                setLocalBelief(idx, v, op[0][minState[0] + v]);
+            if (nUnBounds.value() == 1) { // special case
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    if (minState[0] + v == minState[1])
+                        setLocalBelief(idx, v, beliefRep.one());
+                    else
+                        setLocalBelief(idx, v, beliefRep.zero());
+                }
+            } else {
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    setLocalBelief(idx, v, op[0][minState[0] + v]);
+                 }
             }
         } else { // non-incremental version
             for (int i = 0; i < n; i++) {
