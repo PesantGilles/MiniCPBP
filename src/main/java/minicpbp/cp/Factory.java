@@ -655,8 +655,8 @@ public final class Factory {
         int sumMin = 0;
         int sumMax = 0;
         for (int i = 0; i < x.length; i++) {
-            sumMin += c[i] * x[i].min();
-            sumMax += c[i] * x[i].max();
+            sumMin += c[i] * (c[i] >= 0 ? x[i].min() : x[i].max());
+            sumMax += c[i] * (c[i] >= 0 ? x[i].max() : x[i].min());
         }
         Solver cp = x[0].getSolver();
         IntVar[] vars = new IntVar[x.length + 1];
