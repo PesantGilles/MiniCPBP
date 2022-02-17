@@ -59,17 +59,15 @@ public class MagicSquare {
 
 //    	DFSearch dfs = makeDfs(cp, firstFailRandomVal(xFlat));
 //		DFSearch dfs = makeDfs(cp, maxMarginalStrength(xFlat));
-		DFSearch dfs = makeDfs(cp, maxMarginal(xFlat));
+//		DFSearch dfs = makeDfs(cp, maxMarginal(xFlat));
 //		LDSearch dfs = makeLds(cp, maxMarginal(xFlat));
-//		DFSearch dfs = makeDfs(cp, minEntropy(xFlat));
+		DFSearch dfs = makeDfs(cp, minEntropy(xFlat));
 //		DFSearch dfs = makeDfs(cp, minEntropyBiasedWheelSelectVal(xFlat));
 //		LDSearch dfs = makeLds(cp, minEntropy(xFlat));
 
         dfs.onSolution(() -> {
                     for (int i = 0; i < n; i++) {
-						for(int j = 0; j <n; j++) {
-                        	System.out.println("x["+i+"]["+j+"] : "+x[i][j].min());
-						}
+						System.out.println(Arrays.toString(x[i]));
                     }
                 }
         );

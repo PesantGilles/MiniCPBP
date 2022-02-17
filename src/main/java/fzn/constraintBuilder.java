@@ -11,7 +11,7 @@ import static minicpbp.cp.Factory.*;
 
 public class constraintBuilder {
     public static void makeIntLinNe(int[] as, IntVar[] bs, int c) {
-        Factory.notEqual(Factory.sum(as, bs) , c);
+        Factory.branchNotEqual(Factory.sum(as, bs) , c);
     }
 
     public static void makeIntLinNeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
@@ -19,7 +19,7 @@ public class constraintBuilder {
     }
 
     public static void makeIntLinEq(int[] as, IntVar[] bs, int c) {
-        Factory.equal(Factory.sum(as, bs), c);
+        Factory.branchEqual(Factory.sum(as, bs), c);
     }
 
     public static void makeIntLinEqReif(int[] as, IntVar[] bs, int c, BoolVar r) {
@@ -27,7 +27,7 @@ public class constraintBuilder {
     }
 
     public static void makeIntLinLe(int[] as, IntVar[] bs, int c) {
-        Factory.lessOrEqual(Factory.sum(as,bs), c);
+        Factory.branchLessOrEqual(Factory.sum(as,bs), c);
     }
 
     public static void makeIntLinLeReif(int[] as, IntVar[] bs, int c, BoolVar r) {

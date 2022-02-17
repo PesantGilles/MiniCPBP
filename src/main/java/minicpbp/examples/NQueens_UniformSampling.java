@@ -28,7 +28,7 @@ import java.util.Arrays;
  * The N-Queens problem. Sampling solutions.
  * <a href="http://csplib.org/Problems/prob054/">CSPLib</a>.
  */
-/*
+
 public class NQueens_UniformSampling {
 
     public static void main(String[] args) {
@@ -47,16 +47,15 @@ public class NQueens_UniformSampling {
 	    }
 
 	// n-ary alldifferent model
-	cp.post(Factory.allDifferentAC(q));
-	cp.post(Factory.allDifferentAC(ql));
-	cp.post(Factory.allDifferentAC(qr));
+	cp.post(Factory.allDifferent(q));
+	cp.post(Factory.allDifferent(ql));
+	cp.post(Factory.allDifferent(qr));
 
 	// sampling a "fraction" of the solutions
  	IntVar[] branchingVars = cp.sample(fraction,q);
 
  	DFSearch search = Factory.makeDfs(cp, BranchingScheme.firstFail(branchingVars));
 
-	/*
         search.onSolution(() -> {
 		for(int i = 0; i<q.length; i++){
 		    System.out.print(q[i].min()+" ");
@@ -73,4 +72,3 @@ public class NQueens_UniformSampling {
 
     }
 }
-*/

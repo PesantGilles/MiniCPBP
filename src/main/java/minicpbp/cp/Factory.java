@@ -401,24 +401,6 @@ public final class Factory {
     }
 
     /**
-	 * Forces the variable to be different to some given value and performs
-	 * propagation.
-	 *
-	 * @param x the variable that is constrained bo be different from v
-	 * @param v the value that must be different from x
-	 */
-	public static void notEqual(IntVar x, int v) {
-		x.remove(v);
-		switch (x.getSolver().getMode()) {
-		case BP:
-			break;
-		case SP:
-		case SBP:
-			x.getSolver().fixPoint();
-		}
-	}
-
-    /**
      * Returns a constraint imposing that the two different variables
      * must take different values.
      *
@@ -429,23 +411,6 @@ public final class Factory {
     public static Constraint notEqual(IntVar x, IntVar y) {
         return new NotEqual(x, y);
     }
-
-    /**
-	 * Forces the variable to be equal to some given value and performs propagation.
-	 *
-	 * @param x the variable to be assigned to v
-	 * @param v the value that must be assigned to x
-	 */
-	public static void equal(IntVar x, int v) {
-		x.assign(v);
-		switch (x.getSolver().getMode()) {
-		case BP:
-			break;
-		case SP:
-		case SBP:
-			x.getSolver().fixPoint();
-		}
-	}
 
     /**
      * Returns a constraint imposing that the two different variables
@@ -557,24 +522,6 @@ public final class Factory {
     public static BoolVar isLarger(IntVar x, final int c) {
         return isLargerOrEqual(x, c + 1);
     }
-
-    /**
-	 * Forces the variable to be less or equal to some given value and performs
-	 * propagation.
-	 *
-	 * @param x the variable that is constrained bo be less or equal to v
-	 * @param v the value that must be the upper bound on x
-	 */
-	public static void lessOrEqual(IntVar x, int v) {
-		x.removeAbove(v);
-		switch (x.getSolver().getMode()) {
-		case BP:
-			break;
-		case SP:
-		case SBP:
-			x.getSolver().fixPoint();
-		}
-	}
 
     /**
      * Returns a constraint imposing that the
