@@ -24,6 +24,7 @@ import minicpbp.search.DFSearch;
 import minicpbp.search.LDSearch;
 import minicpbp.search.Objective;
 import minicpbp.state.Copier;
+import minicpbp.state.StateStack;
 import minicpbp.state.Trailer;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Procedure;
@@ -303,6 +304,31 @@ public final class Factory {
     public static void branchEqual(IntVar x, int v) {
         x.assign(v);
         x.getSolver().propagateSolver();
+    }
+
+    /**
+     * Branches on x=v,  
+     * performs propagation according to the mode
+     * and compute impact on the entropy of the model
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpact(IntVar x, int v) {
+        double oldEntropy = 0.0;
+        double newEntropy = 0.0;
+        Solver minicp = x.getSolver();
+        StateStack<IntVar> listeVariables =  minicp.getVariables();
+        for(int i = 0; i < listeVariables.size(); i++) 
+            oldEntropy += listeVariables.get(i).entropy();
+
+        x.assign(v);
+        x.getSolver().propagateSolver();
+
+        for(int i = 0; i < listeVariables.size(); i++) 
+            newEntropy += listeVariables.get(i).entropy();
+
+        x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
 
     /**

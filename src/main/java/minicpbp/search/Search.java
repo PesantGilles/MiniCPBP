@@ -12,4 +12,6 @@ public abstract class Search {
 
 	public abstract SearchStatistics optimize(Objective obj, Predicate<SearchStatistics> limit);
 
+	public abstract SearchStatistics solveRestarts(Predicate<SearchStatistics> limit);
+
 }

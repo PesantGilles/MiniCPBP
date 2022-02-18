@@ -62,6 +62,7 @@ import static minicpbp.cp.BranchingScheme.maxMarginal;
 import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
+import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -984,6 +985,12 @@ public class XCSP implements XCallbacks2 {
 		XCSP.dampingFactor = dampingFactor;
 	}
 
+	private static boolean restart = false;
+	
+	public void restart(boolean restart) {
+		XCSP.restart = restart;
+	}
+
 	private static TreeSearchType searchType = TreeSearchType.DFS;
 
 	public void searchType(TreeSearchType searchType) {
@@ -1046,6 +1053,8 @@ public class XCSP implements XCallbacks2 {
 		case MNE:
 			search = makeSearch(minEntropy(vars));
 			break;
+		case IE:
+			search = makeSearch(impactEntropy(vars));
 		default:
 			System.out.println("unknown search strategy");
 			System.exit(1);
@@ -1068,10 +1077,17 @@ public class XCSP implements XCallbacks2 {
 				solutionStr = sol.toString();
 			}
 		});
-
-		SearchStatistics stats = search.solve(ss -> {
-			return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-		});
+		SearchStatistics stats;
+		if(!restart) {
+			stats = search.solve(ss -> {
+				return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+			});
+		}
+		else {
+			stats = search.solveRestarts(ss -> {
+				return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+			});
+		}
 
 		if (foundSolution) {
 			

@@ -254,6 +254,25 @@ public interface IntVar {
     double entropy();
 
     /**
+     * Returns the expected impact of variable
+     * @return the impact
+     */
+    public double impact();
+    
+    /**
+     * Returns the value of the domain with the smaller impact
+     * @return the value
+     */
+    public int valueWithMinImpact();
+
+    /**
+     * Register an observed impact of assigning a value
+     * @param value the value
+     * @param impact the impact
+     */
+    public void registerImpact(int value, double impact);
+
+    /**
      * Returns the marginal of the specified value after cancelling 
      * out the local belief of a constraint.
      *

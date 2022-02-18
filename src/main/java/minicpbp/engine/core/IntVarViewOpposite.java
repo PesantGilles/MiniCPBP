@@ -186,6 +186,21 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public double impact() {
+        return x.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return -x.valueWithMinImpact();
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        x.registerImpact(-value, impact);
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
         assert b <= beliefRep.one() && b >= beliefRep.zero() : "b = " + b;
         assert x.marginal(-v) <= beliefRep.one() && x.marginal(-v) >= beliefRep.zero() : "x.marginal(-v) = " + x.marginal(-v);

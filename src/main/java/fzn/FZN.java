@@ -114,6 +114,12 @@ public class FZN {
 		FZN.searchType = searchType;
 	}
 
+	private static boolean restart = false;
+
+	public void restart(boolean restart) {
+		FZN.restart = restart;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -210,9 +216,16 @@ public class FZN {
 				});
 				break;
 			default:
-				stats = search.solve(ss -> {
-					return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-				});
+				if(!restart) {
+					stats = search.solve(ss -> {
+						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+					});
+				}
+				else {
+					stats = search.solveRestarts(ss -> {
+						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+					});
+				}
 				break;
 		}
 

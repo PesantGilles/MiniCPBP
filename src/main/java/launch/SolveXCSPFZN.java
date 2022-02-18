@@ -24,6 +24,7 @@ public class SolveXCSPFZN {
 		MXM, // maximum marginal
 		MNM, // minimum marginal
 		MNE, //minimum entropy
+		IE, //impact entropy
 	}
 
 	private static Map<String, BranchingHeuristic> branchingMap = new HashMap<String, BranchingHeuristic>() {
@@ -35,11 +36,12 @@ public class SolveXCSPFZN {
 			put("max-marginal", BranchingHeuristic.MXM);
 			put("min-marginal", BranchingHeuristic.MNM);
 			put("min-entropy", BranchingHeuristic.MNE);
+			put("impact-entropy", BranchingHeuristic.IE);
 		}
 	};
 
 	public enum TreeSearchType {
-		DFS, LDS
+		DFS, LDS, DFSR
 	}
 
 	private static Map<String, TreeSearchType> searchTypeMap = new HashMap<String, TreeSearchType>() {
@@ -93,6 +95,8 @@ public class SolveXCSPFZN {
 
 		Option traceSearchOpt = Option.builder().longOpt("trace-search").hasArg(false).desc("trace the search progress")
 				.build();
+		Option restartSearch = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
+				.build();
 
 		Options options = new Options();
 		options.addOption(xcspFileOpt);
@@ -107,6 +111,7 @@ public class SolveXCSPFZN {
 		options.addOption(traceSearchOpt);
 		options.addOption(dampOpt);
 		options.addOption(dFactorOpt);
+		options.addOption(restartSearch);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -158,6 +163,7 @@ public class SolveXCSPFZN {
 		boolean traceBP = (cmd.hasOption("trace-bp"));
 		boolean traceSearch = (cmd.hasOption("trace-search"));
 		boolean damp = (cmd.hasOption("damp-messages"));
+		boolean restart = (cmd.hasOption("restart"));
 
 
 
@@ -172,7 +178,7 @@ public class SolveXCSPFZN {
 				fzn.maxIter(maxIter);
 				fzn.damp(damp);
 				fzn.dampingFactor(dampingFactor);
-
+				fzn.restart(restart);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -185,7 +191,7 @@ public class SolveXCSPFZN {
 				xcsp.maxIter(maxIter);
 				xcsp.damp(damp);
 				xcsp.dampingFactor(dampingFactor);
-
+				xcsp.restart(restart);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {
