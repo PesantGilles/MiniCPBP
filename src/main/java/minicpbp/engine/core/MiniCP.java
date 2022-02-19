@@ -51,13 +51,13 @@ public class MiniCP implements Solver {
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
     // SBP /* first apply support propagation, then belief propagation */
-    private static final PropaMode mode = PropaMode.SBP;
+    private static PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
-    private static final int beliefPropaMaxIter = 5;
+    private static int beliefPropaMaxIter = 5;
     // apply damping to variable-to-constraint messages
-    private static final boolean damping = true;
+    private static boolean damping = true;
     // damping factor in interval [0,1] where 1 is equivalent to no damping
-    private static final double dampingFactor = 0.5;
+    private static double dampingFactor = 0.5;
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
@@ -70,8 +70,8 @@ public class MiniCP implements Solver {
     //****************************
 
     //***** TRACING SWITCHES *****
-    private static final boolean traceBP = false;
-    private static final boolean traceSearch = false;
+    private static boolean traceBP = true;
+    private static boolean traceSearch = true;
     //****************************
 
 
@@ -104,6 +104,10 @@ public class MiniCP implements Solver {
         variables.push(x);
     }
 
+    public void setMode(PropaMode mode) {
+        MiniCP.mode = mode;
+    }
+
     public PropaMode getMode() {
         return mode;
     }
@@ -112,12 +116,32 @@ public class MiniCP implements Solver {
         return Wscheme;
     }
 
+    public void setTraceBPFlag(boolean traceBP) {
+        MiniCP.traceBP = traceBP;
+    }
+
+    public void setTraceSearchFlag(boolean traceSearch) {
+        MiniCP.traceSearch = traceSearch;
+    }
+
+    public void setMaxIter(int maxIter) {
+        MiniCP.beliefPropaMaxIter = maxIter;
+    }
+
     public boolean dampingMessages() {
         return damping;
     }
 
+    public void setDamp(boolean damp) {
+        MiniCP.damping = damp;
+    }
+
     public double dampingFactor() {
         return dampingFactor;
+    }
+
+    public void setDampingFactor(double dampingFactor) {
+        MiniCP.dampingFactor = dampingFactor;
     }
 
     public boolean prevOutsideBeliefRecorded() {
@@ -199,7 +223,7 @@ public class MiniCP implements Solver {
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + variables.get(i).toString());
+                        System.out.println(variables.get(i).getName() + " taille : "+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
             }

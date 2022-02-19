@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 /**
  * Depth First Search Branch and Bound implementation
  */
-public class DFSearch {
+public class DFSearch extends Search{
 
     private Supplier<Procedure[]> branching;
     private StateManager sm;

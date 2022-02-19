@@ -237,6 +237,32 @@ public interface IntDomain {
      */
     double entropy();
 
+    /**
+     * Return the impact associated with @param value
+     * @return the impact
+     */
+    double impactOfValue(int value);
+
+    /**
+     * Return expected impact computed 
+     * from registerd impact of all value in the domain
+     * @return
+     */
+    double impact();
+
+    /**
+     * Returns the value of the domain with the smaller impact
+     * @return the value
+     */
+    int valueWithMinImpact();
+
+    /**
+     * Register a new observed impact
+     * @param value the value associated with the impact
+     * @param impact the observed impact
+     */
+    void registerImpact(int value, double impact);
+
     @Override
     String toString();
 }

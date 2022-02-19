@@ -70,9 +70,31 @@ public interface Solver {
     PropaMode getMode();
 
     /**
+     * Set the propagation mode
+     * @param mode
+     */
+    void setMode(PropaMode mode);
+
+    /**
      * @return the constraint weighing scheme
      */
     ConstraintWeighingScheme getWeighingScheme();
+
+    /**
+     * Activate trace of BP if @param traceBP is true
+     */
+    void setTraceBPFlag(boolean traceBP);
+    
+    /**
+     * Activate trace of search if @param traceSearch is true
+     */
+    void setTraceSearchFlag(boolean traceSearch);
+
+    /**
+     * Set the maximal number of BP iterations before each branching
+     * @param maxIter the maximal number of BP iterations
+     */
+    void setMaxIter(int maxIter);
 
     /**
      * @return whether message damping is applied
@@ -80,9 +102,20 @@ public interface Solver {
     boolean dampingMessages();
 
     /**
+     * Set damping to true or false, according to @param damp
+     */
+    void setDamp(boolean damp);
+
+    /**
      * @return damping factor
      */
     double dampingFactor();
+    
+    /**
+     * Set damping factor
+     * @param dampingFactor the damping factor
+     */
+    void setDampingFactor(double dampingFactor);
 
     /**
      * @return whether previous outside belief has been recorded

@@ -36,6 +36,7 @@ import static minicpbp.cp.Factory.*;
 Spatially-Balanced Latin Square Problem, for Model Counting
 symbols are the integers 0..n-1
  */
+/*
 public class SBLS_ModelCounting {
     
     static Random rand = new Random();
@@ -138,3 +139,4 @@ public class SBLS_ModelCounting {
 	System.out.println(stats);
     }
 }
+*/

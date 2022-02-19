@@ -67,7 +67,7 @@ public class MagicSquare {
 
         dfs.onSolution(() -> {
                     for (int i = 0; i < n; i++) {
-                        System.out.println(Arrays.toString(x[i]));
+						System.out.println(Arrays.toString(x[i]));
                     }
                 }
         );

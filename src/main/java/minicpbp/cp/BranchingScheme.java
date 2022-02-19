@@ -492,6 +492,32 @@ public final class BranchingScheme {
         };
     }
 
+    public static Supplier<Procedure[]> impactEntropy(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> -xi.impact());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMinImpact();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            branchEqualRegisterImpact(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
     /**
      * Minimum entropy + biased wheel selection of value.
      * It selects an unbound variable with the smallest entropy

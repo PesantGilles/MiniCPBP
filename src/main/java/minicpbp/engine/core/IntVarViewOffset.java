@@ -193,6 +193,21 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public double impact() {
+        return x.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return x.valueWithMinImpact() + o;
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        x.registerImpact(value - o, impact);
+    }
+
+    @Override
     public double sendMessage(int v, double b) {
         assert b <= beliefRep.one() && b >= beliefRep.zero() : "b = " + b;
         assert x.marginal(v - o) <= beliefRep.one() && x.marginal(v - o) >= beliefRep.zero() : "x.marginal(v - o) = " + x.marginal(v - o);

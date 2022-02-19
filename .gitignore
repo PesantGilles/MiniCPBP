@@ -4,6 +4,7 @@
 project/
 target/
 .m2
+.vscode
 *.iml
 minicp.zip
 userguide/build/

@@ -24,6 +24,7 @@ import minicpbp.search.DFSearch;
 import minicpbp.search.LDSearch;
 import minicpbp.search.Objective;
 import minicpbp.state.Copier;
+import minicpbp.state.StateStack;
 import minicpbp.state.Trailer;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Procedure;
@@ -303,6 +304,31 @@ public final class Factory {
     public static void branchEqual(IntVar x, int v) {
         x.assign(v);
         x.getSolver().propagateSolver();
+    }
+
+    /**
+     * Branches on x=v,  
+     * performs propagation according to the mode
+     * and compute impact on the entropy of the model
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpact(IntVar x, int v) {
+        double oldEntropy = 0.0;
+        double newEntropy = 0.0;
+        Solver minicp = x.getSolver();
+        StateStack<IntVar> listeVariables =  minicp.getVariables();
+        for(int i = 0; i < listeVariables.size(); i++) 
+            oldEntropy += listeVariables.get(i).entropy();
+
+        x.assign(v);
+        x.getSolver().propagateSolver();
+
+        for(int i = 0; i < listeVariables.size(); i++) 
+            newEntropy += listeVariables.get(i).entropy();
+
+        x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
 
     /**
@@ -1039,6 +1065,34 @@ public final class Factory {
         }
         return new Cardinality(x, vals, oVar, makeIntVar(cp, 1, maxDomainSize));
     }
+
+    /**
+ 	 * A special case of cardinality constraint when the bounds on number of
+ 	 * occurrences are given
+ 	 * 
+ 	 * @param x    an array of variables
+ 	 * @param vals an array of values whose occurrences in x we count
+ 	 * @param oMin an array of constants indicating the minimum number of
+ 	 *             occurrences of each entry of vals in x
+ 	 * @param oMax an array of constants indicating the maximum number of
+ 	 *             occurrences of each entry of vals in x
+ 	 * @return
+ 	 */
+	  public static Constraint cardinality(IntVar[] x, int[] vals, int[] oMin, int[] oMax) {
+		int n = vals.length;
+		assert (oMin.length == n);
+		assert (oMax.length == n);
+		int maxDomainSize = 0;
+			for (int i = 0; i < x.length; i++) {
+			maxDomainSize = Math.max(maxDomainSize, x[i].size());
+		}
+		IntVar[] oVar = new IntVar[n];
+		Solver cp = x[0].getSolver();
+		for (int i = 0; i < n; i++)
+			oVar[i] = makeIntVar(cp, oMin[i], oMax[i]);
+
+		return new Cardinality(x, vals, oVar, makeIntVar(cp,1,maxDomainSize));
+	}
 
     /**
      * Returns a sum modulo p constraint.
