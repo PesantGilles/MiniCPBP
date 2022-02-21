@@ -31,6 +31,7 @@ import static minicpbp.cp.BranchingScheme.maxMarginal;
 import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
+import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -178,6 +179,10 @@ public class FZN {
 			break;
 		case MNE:
 			search = makeSearch(minEntropy(m.getDecisionsVar()));
+			break;
+		case IE:
+			search = makeSearch(impactEntropy(m.getDecisionsVar()));
+			break;
 		default:
 			System.out.println("unknown search strategy");
 			System.exit(1);

@@ -1055,6 +1055,7 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(vars));
+			break;
 		default:
 			System.out.println("unknown search strategy");
 			System.exit(1);

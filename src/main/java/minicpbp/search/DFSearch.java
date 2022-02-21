@@ -164,6 +164,7 @@ public class DFSearch extends Search{
                     throw new NotImplementedException("dfs with explicit stack needed to pass this test");
                 }
             });
+            System.out.println("restart");
             cutoff *= restartFactor;
             cumulCutoff[0] += cutoff;
         }

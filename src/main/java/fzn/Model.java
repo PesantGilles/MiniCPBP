@@ -166,6 +166,10 @@ public class Model {
             }
             return createSingleVarInt(declDict.get(id.getValue()));
         }
+        else if(lit instanceof ASTInt) {
+            int valeur = ((ASTInt) lit).getValue();
+            return makeIntVar(solver, valeur, valeur);
+        }
         else throw new NotImplementedException(lit.toString());
     }
 
@@ -194,7 +198,7 @@ public class Model {
         else if(lit instanceof ASTArray) {
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             IntVar array[] = new IntVar[astarray.size()];
-            for(int i = 0; i < astarray.size(); i++) 
+            for(int i = 0; i < astarray.size(); i++)
                 array[i] = getIntVar(astarray.get(i));
             
             return array;
