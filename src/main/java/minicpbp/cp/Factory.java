@@ -102,7 +102,7 @@ public final class Factory {
      *
      * @param cp  the solver in which the variable is created
      * @param min the lower bound of the domain (included)
-     * @param max the upper bound of the domain (included) {@code max > min}
+     * @param max the upper bound of the domain (included) {@code max >= min}
      * @return a variable with domain equal to the set {min,...,max}
      */
     public static IntVar makeIntVar(Solver cp, int min, int max) {
@@ -317,14 +317,18 @@ public final class Factory {
     public static void branchEqualRegisterImpact(IntVar x, int v) {
         double oldEntropy = 0.0;
         double newEntropy = 0.0;
-        Solver minicp = x.getSolver();
-        StateStack<IntVar> listeVariables =  minicp.getVariables();
+        StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
         for(int i = 0; i < listeVariables.size(); i++) 
             oldEntropy += listeVariables.get(i).entropy();
-
+        
         x.assign(v);
-        x.getSolver().propagateSolver();
-
+        try {
+            x.getSolver().propagateSolver();
+        }
+        catch (InconsistencyException e) {
+            x.registerImpact(v, 1.0);
+            throw e;
+        }
         for(int i = 0; i < listeVariables.size(); i++) 
             newEntropy += listeVariables.get(i).entropy();
 
