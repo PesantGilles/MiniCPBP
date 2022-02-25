@@ -231,7 +231,9 @@ public class Model {
 
     private IntVar createSingleVarInt(ASTDecl v) {
         IntVar newVar;
+        System.out.println(v.getName());
         ASTVarType type = (ASTVarType) v.getType();
+        System.out.println(type.getDom());
 		if(type.getDom() instanceof ASTRange) {
 			newVar =  Factory.makeIntVar(solver,
 				((ASTRange) type.getDom()).getLb().getValue(),
@@ -241,6 +243,9 @@ public class Model {
 			newVar = Factory.makeIntVar(solver,
 				((ASTSet) type.getDom()).getSet().stream().map(e -> e.getValue()).collect(Collectors.toSet()));
 		}
+        else if(type.getDom() == null) {
+            newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
 		else {
 			System.out.println("Domaine type : " + type.getDom().getClass());
 			throw new NotImplementedException();

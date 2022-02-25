@@ -347,6 +347,7 @@ public class SparseSetDomain implements IntDomain {
         int s = fillArray(domainValues);
         double impact = 0.0;
         for(int j = 0; j < s; j++) {
+            //System.out.println("value : " + domainValues[j] + " , impact : " + impactOfValue(domainValues[j]));
             impact += 1 - impactOfValue(domainValues[j]);
         }
         return impact;

@@ -335,6 +335,56 @@ public final class Factory {
         x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
 
+    public static class IntHolder {
+        private int val;
+        private IntVar var;
+        public IntHolder() {}
+        public int getVal() {
+            return val;
+        }
+        public IntVar getVar() {
+            return var;
+        }
+        public void setVal(int value) {
+            val = value;
+        }
+        public void setVar(IntVar a) {
+            var = a;
+        }
+    }
+
+    /**
+     * Branches on x=v,  
+     * performs propagation according to the mode
+     * and compute impact on the entropy of the model
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpact(IntHolder a) {
+        IntVar x = a.getVar();
+        int v = a.getVal();
+        double oldEntropy = 0.0;
+        double newEntropy = 0.0;
+        StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
+        for(int i = 0; i < listeVariables.size(); i++) {
+            oldEntropy += listeVariables.get(i).entropy();
+        }
+        
+        x.assign(v);
+        try {
+            x.getSolver().propagateSolver();
+        }
+        catch (InconsistencyException e) {
+            x.registerImpact(v, 1.0);
+            throw e;
+        }
+        for(int i = 0; i < listeVariables.size(); i++) 
+            newEntropy += listeVariables.get(i).entropy();
+
+        x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
+    }
+
     /**
      * Branches on x!=v 
      * and performs propagation according to the mode.
@@ -685,8 +735,14 @@ public final class Factory {
         int sumMin = 0;
         int sumMax = 0;
         for (int i = 0; i < x.length; i++) {
-            sumMin += c[i] * x[i].min();
-            sumMax += c[i] * x[i].max();
+            if(c[i] > 0) {
+                sumMin += c[i] * x[i].min();
+                sumMax += c[i] * x[i].max();
+            }
+            else {
+                sumMin += c[i] * x[i].max();
+				sumMax += c[i] * x[i].min();
+            }
         }
         Solver cp = x[0].getSolver();
         IntVar[] vars = new IntVar[x.length + 1];

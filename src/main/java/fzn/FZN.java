@@ -121,6 +121,18 @@ public class FZN {
 		FZN.restart = restart;
 	}
 
+	private static int nbFailCutof = 100;
+	
+	public void nbFailCutof(int nbFailCutof) {
+		FZN.nbFailCutof = nbFailCutof;
+	} 
+
+	private static double restartFactor = 1.5;
+
+	public void restartFactor(double restartFactor) {
+		FZN.restartFactor = restartFactor;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -229,7 +241,7 @@ public class FZN {
 				else {
 					stats = search.solveRestarts(ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-					});
+					}, nbFailCutof, restartFactor);
 				}
 				break;
 		}

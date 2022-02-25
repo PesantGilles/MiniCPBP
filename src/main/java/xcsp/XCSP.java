@@ -991,6 +991,18 @@ public class XCSP implements XCallbacks2 {
 		XCSP.restart = restart;
 	}
 
+	private static int nbFailCutof = 100;
+
+	public void nbFailCutof(int nbFailCutof) {
+		XCSP.nbFailCutof = nbFailCutof;
+	} 
+
+	private static double restartFactor = 1.5;
+
+	public void restartFactor(double restartFactor) {
+		XCSP.restartFactor = restartFactor;
+	}
+
 	private static TreeSearchType searchType = TreeSearchType.DFS;
 
 	public void searchType(TreeSearchType searchType) {
@@ -1055,6 +1067,7 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(vars));
+			search.initializeImpact(vars);
 			break;
 		default:
 			System.out.println("unknown search strategy");
@@ -1087,7 +1100,7 @@ public class XCSP implements XCallbacks2 {
 		else {
 			stats = search.solveRestarts(ss -> {
 				return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-			});
+			}, nbFailCutof, restartFactor);
 		}
 
 		if (foundSolution) {

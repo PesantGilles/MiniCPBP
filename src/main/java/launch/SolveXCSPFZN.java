@@ -95,8 +95,13 @@ public class SolveXCSPFZN {
 
 		Option traceSearchOpt = Option.builder().longOpt("trace-search").hasArg(false).desc("trace the search progress")
 				.build();
-		Option restartSearch = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
+		Option restartSearchOpt = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
 				.build();
+		Option nbFailsCutofOpt = Option.builder().longOpt("cutoff").argName("CUTOF").hasArg()
+				.desc("number of failure before restart").build();
+
+		Option restartFactorOpt = Option.builder().longOpt("restart-factor").argName("restartFactor").hasArg()
+				.desc("factor to increase number of failure before restart").build();		
 
 		Options options = new Options();
 		options.addOption(xcspFileOpt);
@@ -111,7 +116,9 @@ public class SolveXCSPFZN {
 		options.addOption(traceSearchOpt);
 		options.addOption(dampOpt);
 		options.addOption(dFactorOpt);
-		options.addOption(restartSearch);
+		options.addOption(restartSearchOpt);
+		options.addOption(nbFailsCutofOpt);
+		options.addOption(restartFactorOpt);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -158,14 +165,19 @@ public class SolveXCSPFZN {
 		if (cmd.hasOption("damping-factor"))
 			dampingFactor = Double.parseDouble(cmd.getOptionValue("damping-factor"));
 
+		int nbFailCutof = 100;
+		if(cmd.hasOption("cutoff"))
+			nbFailCutof = Integer.parseInt(cmd.getOptionValue("cutoff"));
+
+		double restartFactor = 1.5;
+		if(cmd.hasOption("restart-factor"))
+			restartFactor = Double.parseDouble(cmd.getOptionValue("restart-factor"));
 
 		boolean checkSolution = (cmd.hasOption("verify"));
 		boolean traceBP = (cmd.hasOption("trace-bp"));
 		boolean traceSearch = (cmd.hasOption("trace-search"));
 		boolean damp = (cmd.hasOption("damp-messages"));
 		boolean restart = (cmd.hasOption("restart"));
-
-
 
 		try {
 			System.out.println(inputStr.substring(inputStr.lastIndexOf('.')+1));
@@ -179,6 +191,8 @@ public class SolveXCSPFZN {
 				fzn.damp(damp);
 				fzn.dampingFactor(dampingFactor);
 				fzn.restart(restart);
+				fzn.nbFailCutof(nbFailCutof);
+				fzn.restartFactor(restartFactor);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -192,6 +206,8 @@ public class SolveXCSPFZN {
 				xcsp.damp(damp);
 				xcsp.dampingFactor(dampingFactor);
 				xcsp.restart(restart);
+				xcsp.nbFailCutof(nbFailCutof);
+				xcsp.restartFactor(restartFactor);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {

@@ -20,6 +20,10 @@ import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.exception.NotImplementedException;
 import minicpbp.util.Procedure;
 
+import minicpbp.engine.core.IntVar;
+import minicpbp.cp.Factory;
+import minicpbp.cp.Factory.IntHolder;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -164,12 +168,33 @@ public class DFSearch extends Search{
                     throw new NotImplementedException("dfs with explicit stack needed to pass this test");
                 }
             });
-            System.out.println("restart");
             cutoff *= restartFactor;
             cumulCutoff[0] += cutoff;
         }
         statistics.setCompleted();
         return statistics;
+    }
+
+    public void initializeImpact(IntVar... x) {
+        int[] arrayVal;
+        IntHolder value = new IntHolder();
+        for(IntVar a: x) {
+            arrayVal = new int[a.size()];
+            a.fillArray(arrayVal);
+            value.setVar(a);
+            for(int i = 0; i < arrayVal.length; i++) {
+                value.setVal(arrayVal[i]);
+                try {
+                    sm.withNewState(() -> {
+                        Factory.branchEqualRegisterImpact(value);
+                        });
+                }
+                catch (InconsistencyException ignored) {
+                    sm.restoreState();
+                }
+            }
+
+        }
     }
 
 
@@ -196,6 +221,22 @@ public class DFSearch extends Search{
     public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit) {
         SearchStatistics statistics = new SearchStatistics();
         return solveRestarts(statistics, limit, 100, 1.5);
+    }
+
+    /**
+     * Effectively start a depth first search with restarts
+     * with a given predicate called at each node
+     * to stop the search when it becomes true.
+     *
+     * @param limit a predicate called at each node
+     *             that stops the search when it becomes true
+     * @param nbFailCutoff
+     * @param restartFactor
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit, int nbFailCutoff, double restartFactor) {
+        SearchStatistics statistics = new SearchStatistics();
+        return solveRestarts(statistics, limit, nbFailCutoff, restartFactor);
     }
 
     /**

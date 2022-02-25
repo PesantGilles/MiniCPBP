@@ -215,7 +215,6 @@ public class MiniCP implements Solver {
                 }
                 prevOutsideBeliefRecorded = false;
             }
-
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
                 if (dampingMessages())
