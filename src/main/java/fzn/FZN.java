@@ -194,6 +194,7 @@ public class FZN {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(m.getDecisionsVar()));
+			//search.initializeImpact(vars);
 			break;
 		default:
 			System.out.println("unknown search strategy");

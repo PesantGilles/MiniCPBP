@@ -196,6 +196,11 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return -x.valueWithMaxImpact();
+    }
+
+    @Override
     public void registerImpact(int value, double impact) {
         x.registerImpact(-value, impact);
     }

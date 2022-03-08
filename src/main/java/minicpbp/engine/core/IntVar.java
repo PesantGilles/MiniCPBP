@@ -266,6 +266,12 @@ public interface IntVar {
     public int valueWithMinImpact();
 
     /**
+     * Returns the value of the domain with the maximal impact
+     * @return the value
+     */
+    public int valueWithMaxImpact();
+
+    /**
      * Register an observed impact of assigning a value
      * @param value the value
      * @param impact the impact

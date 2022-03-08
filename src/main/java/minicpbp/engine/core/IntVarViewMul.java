@@ -259,6 +259,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return x.valueWithMaxImpact() * a;
+    }
+
+    @Override
     public void registerImpact(int value, double impact) {
         if (value % a == 0) {
             x.registerImpact(value/a, impact);

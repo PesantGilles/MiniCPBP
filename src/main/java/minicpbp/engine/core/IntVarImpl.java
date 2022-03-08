@@ -290,6 +290,11 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return domain.valueWithMaxImpact();
+    }
+
+    @Override
     public void registerImpact(int value, double impact) {
         domain.registerImpact(value, impact);
     }

@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.lang.Math;
 
 /**
  * Implementation of a domain with a sparse-set
@@ -321,7 +322,7 @@ public class SparseSetDomain implements IntDomain {
             return sum/((double)impactValues.get(value).size());
         }
         else {
-            return 1.0/((double)domain.size());
+            return 1.0 - (entropy()/(Math.log((double)domain.size())));
         }
     }
 
@@ -336,6 +337,23 @@ public class SparseSetDomain implements IntDomain {
             int v = domainValues[j];
             if (impactOfValue(v) < min) {
                 min = impactOfValue(v);
+                valWithMin = v;
+            }
+        }
+        return valWithMin;
+    }
+
+    @Override
+    public int valueWithMaxImpact() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+        int s = fillArray(domainValues);
+        int valWithMin = domainValues[0];
+        double max = impactOfValue(valWithMin);
+        for (int j = 1; j < s; j++) {
+            int v = domainValues[j];
+            if (impactOfValue(v) > max) {
+                max = impactOfValue(v);
                 valWithMin = v;
             }
         }

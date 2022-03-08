@@ -251,10 +251,16 @@ public interface IntDomain {
     double impact();
 
     /**
-     * Returns the value of the domain with the smaller impact
+     * Returns the value of the domain with the smallest impact
      * @return the value
      */
     int valueWithMinImpact();
+
+    /**
+     * Returns the value of the domain with the strongest impact
+     * @return the value
+     */
+    int valueWithMaxImpact();
 
     /**
      * Register a new observed impact

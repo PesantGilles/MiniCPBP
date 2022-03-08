@@ -498,7 +498,7 @@ public final class BranchingScheme {
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
-                    xi -> -xi.impact());
+                    xi -> xi.impact());
             if (xs == null)
                 return EMPTY;
             else {
