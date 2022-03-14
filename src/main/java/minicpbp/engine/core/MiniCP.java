@@ -225,6 +225,13 @@ public class MiniCP implements Solver {
                         System.out.println(variables.get(i).getName() + " taille : "+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
+                /*System.out.println("##### after BP iteration " + iter + " #####");
+                double sumEntropy = 0.0;
+                for(int i =0; i < variables.size(); i++) {
+                    System.out.println(variables.get(i).getName() + " entropy : "+ variables.get(i).entropy());
+                    sumEntropy += variables.get(i).entropy();
+                }
+                System.out.println("total entropy : " + sumEntropy);*/
             }
 
         } catch (InconsistencyException e) {

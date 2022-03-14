@@ -299,7 +299,8 @@ public class Model {
                 listeConstraint.add(constraintBuilder.makeArrayIntElement(getIntVar(args.get(0)), getIntArray(args.get(1)), getIntVar(args.get(2))));
                 break;
             case "array_var_int_element":
-                throw new NotImplementedException("Constraint : " +name);
+                listeConstraint.add(constraintBuilder.makeArrayVarIntElement(getIntVar(args.get(0)), getIntVarArray(args.get(1)), getIntVar(args.get(2))));
+                break;
             case "bool_eq":  
                 throw new NotImplementedException("Constraint : " +name);
             case "bool_lt":  

@@ -63,6 +63,7 @@ import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
+import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -1067,6 +1068,7 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(vars));
+			//search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
 			//search.initializeImpact(vars);
 			break;
 		default:

@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 public class DFSearch extends Search{
 
     private Supplier<Procedure[]> branching;
+    private Supplier<Procedure[]> branchingSecond;
     private StateManager sm;
 
     private List<Procedure> solutionListeners = new LinkedList<Procedure>();
@@ -55,6 +56,13 @@ public class DFSearch extends Search{
     public DFSearch(StateManager sm, Supplier<Procedure[]> branching) {
         this.sm = sm;
         this.branching = branching;
+        this.branchingSecond = null;
+    }
+
+    public DFSearch(StateManager sm, Supplier<Procedure[]> branching, Supplier<Procedure[]> branchingSecond) {
+        this.sm = sm;
+        this.branching = branching;
+        this.branchingSecond = branchingSecond;
     }
 
     /**
@@ -168,6 +176,10 @@ public class DFSearch extends Search{
                     throw new NotImplementedException("dfs with explicit stack needed to pass this test");
                 }
             });
+            if(branchingSecond != null) {
+                this.branching = this.branchingSecond;
+                this.branchingSecond = null;
+            }
             cutoff *= restartFactor;
             cumulCutoff[0] += cutoff;
         }

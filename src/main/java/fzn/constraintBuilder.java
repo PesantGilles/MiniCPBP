@@ -107,18 +107,18 @@ public class constraintBuilder {
     }
 
     public static Constraint makeArrayIntElement(IntVar b, int[] as, IntVar c) {
-        return Factory.equal(Factory.element(as, b), c);
+        return Factory.Element1D(as, b, c);
     }
 
-    public static void makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
-        throw new NotImplementedException();
+    public static Constraint makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
+        return Factory.Element1DVar(as, b, c);
     }
 
     public static void makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
         throw new NotImplementedException();
     }
 
-    public static void makeArrayBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
+    public static void makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
         throw new NotImplementedException();
     }
 

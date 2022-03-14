@@ -492,6 +492,45 @@ public final class BranchingScheme {
         };
     }
 
+    /**
+     * Minimum entropy strategy.
+     * It selects an unbound variable with the smallest entropy
+     * of its marginal distribution.
+     * Then it creates two branches:
+     * the left branch assigning the variable to the value with the largest marginal;
+     * the right branch removing this value from the domain.
+     * the branching procedure observes and registers the impact of assignement on the model entropy
+     *
+     * @param x the variable on which the min entropy strategy is applied.
+     * @return minEntropy branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> minEntropyRegisterImpact(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> xi.entropy());
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            branchEqualRegisterImpact(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
     public static Supplier<Procedure[]> impactEntropy(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();

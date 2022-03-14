@@ -209,6 +209,11 @@ public final class Factory {
         return new DFSearch(cp.getStateManager(), branching);
     }
 
+    public static DFSearch makeDfs(Solver cp, Supplier<Procedure[]> branching, Supplier<Procedure[]> branchingSecond) {
+        cp.propagateSolver();
+        return new DFSearch(cp.getStateManager(), branching, branchingSecond);
+    }
+
 
     /**
      * Creates a Limited Discrepancy Search with custom branching heuristic
@@ -625,6 +630,21 @@ public final class Factory {
      */
     public static Constraint largerOrEqual(IntVar x, IntVar y) {
         return new LessOrEqual(y, x);
+    }
+
+    /**
+     * Returns a constraint imposing that array[y] = z
+     * @param array an array of int
+     * @param y a variable
+     * @param z a variable
+     * @return a constraint so that {@code array[y] = z}
+     */
+    public static Constraint Element1D(int[] array, IntVar y, IntVar z) {
+        return new Element1D(array, y, z);
+    }
+
+    public static Constraint Element1DVar(IntVar[] array, IntVar y, IntVar z) {
+        return new Element1DVar(array, y, z);
     }
 
     /**
