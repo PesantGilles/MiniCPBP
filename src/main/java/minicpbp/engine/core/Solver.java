@@ -118,6 +118,17 @@ public interface Solver {
     void setDampingFactor(double dampingFactor);
 
     /**
+     * @return variation threshold
+     */
+    double variationThreshold();
+
+    /**
+     * Set variation threshold
+     * @param variationThreshold the threshold
+     */
+    void setVariationThreshold(double variationThreshold);
+
+    /**
      * @return whether previous outside belief has been recorded
      */
     boolean prevOutsideBeliefRecorded();

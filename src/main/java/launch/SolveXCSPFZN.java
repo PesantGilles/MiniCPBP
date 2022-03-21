@@ -103,6 +103,9 @@ public class SolveXCSPFZN {
 		Option restartFactorOpt = Option.builder().longOpt("restart-factor").argName("restartFactor").hasArg()
 				.desc("factor to increase number of failure before restart").build();		
 
+		Option variationThresholdOpt = Option.builder().longOpt("var-threshold").argName("variationThreshold").hasArg()
+				.desc("threshold on entropy's variation under to stop belief propagation").build();	
+
 		Options options = new Options();
 		options.addOption(xcspFileOpt);
 		options.addOption(branchingOpt);
@@ -119,6 +122,7 @@ public class SolveXCSPFZN {
 		options.addOption(restartSearchOpt);
 		options.addOption(nbFailsCutofOpt);
 		options.addOption(restartFactorOpt);
+		options.addOption(variationThresholdOpt);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -173,6 +177,10 @@ public class SolveXCSPFZN {
 		if(cmd.hasOption("restart-factor"))
 			restartFactor = Double.parseDouble(cmd.getOptionValue("restart-factor"));
 
+		double variationThreshold = -Double.MAX_VALUE;
+		if(cmd.hasOption("var-threshold"))
+			variationThreshold = Double.parseDouble(cmd.getOptionValue("var-threshold"));
+
 		boolean checkSolution = (cmd.hasOption("verify"));
 		boolean traceBP = (cmd.hasOption("trace-bp"));
 		boolean traceSearch = (cmd.hasOption("trace-search"));
@@ -193,6 +201,7 @@ public class SolveXCSPFZN {
 				fzn.restart(restart);
 				fzn.nbFailCutof(nbFailCutof);
 				fzn.restartFactor(restartFactor);
+				fzn.variationThreshold(variationThreshold);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -208,6 +217,7 @@ public class SolveXCSPFZN {
 				xcsp.restart(restart);
 				xcsp.nbFailCutof(nbFailCutof);
 				xcsp.restartFactor(restartFactor);
+				xcsp.variationThreshold(variationThreshold);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {

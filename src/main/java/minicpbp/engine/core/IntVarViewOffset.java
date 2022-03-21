@@ -235,6 +235,16 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public void setForBranching(boolean b) {
+        x.setForBranching(b);;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return x.isForBranching();
+    }
+
+    @Override
     public void setName(String name) {
         this.name = name;
     }

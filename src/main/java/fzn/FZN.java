@@ -133,6 +133,12 @@ public class FZN {
 		FZN.restartFactor = restartFactor;
 	}
 
+	private static double variationThreshold = -Double.MAX_VALUE;
+
+	public void variationThreshold(double variationThreshold) {
+		FZN.variationThreshold = variationThreshold;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -158,6 +164,7 @@ public class FZN {
 		minicp.setMaxIter(maxIter);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
+		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");
@@ -170,6 +177,7 @@ public class FZN {
 		for(Constraint c : m.getListeConstraint()){
 			minicp.post(c);
 		}
+
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
 		switch (heuristic) {

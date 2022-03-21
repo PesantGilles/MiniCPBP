@@ -299,6 +299,18 @@ public interface IntVar {
      */
     void receiveMessage(int v, double b);
 
+    /**
+     * @param b is True if the variable is a variable that can be branched on
+     * is False if the variable is an auxiliary variable
+     */
+    public void setForBranching(boolean b);
+
+    /**
+     * 
+     * @return True if the variable is a branch variable, False if not
+     */
+    public boolean isForBranching();
+
     public String getName();
     public void setName(String name);
 }

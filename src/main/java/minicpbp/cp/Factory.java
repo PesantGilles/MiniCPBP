@@ -442,6 +442,11 @@ public final class Factory {
         return r;
     }
 
+    public static Constraint IsOr(BoolVar b, BoolVar[] x) {
+        return new IsOr(b, x);
+
+    }
+
     /**
      * Computes a variable that is the maximum of a set of variables.
      * This relation is enforced by the {@link Maximum} constraint
@@ -1173,6 +1178,15 @@ public final class Factory {
 
 		return new Cardinality(x, vals, oVar, makeIntVar(cp,1,maxDomainSize));
 	}
+
+    /**
+     * Returns a Circuit Constraint
+     * @param x an array of variables
+     * @return
+     */
+    public static Constraint circuit(IntVar[] x) {
+        return new Circuit(x);
+    }
 
     /**
      * Returns a sum modulo p constraint.

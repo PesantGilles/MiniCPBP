@@ -39,6 +39,7 @@ public class IntVarImpl implements IntVar {
     private StateStack<Constraint> onDomain;
     private StateStack<Constraint> onBind;
     private StateStack<Constraint> onBounds;
+    private boolean isForBranching = false;
 
     private DomainListener domListener = new DomainListener() {
         @Override
@@ -312,6 +313,16 @@ public class IntVarImpl implements IntVar {
         assert b <= beliefRep.one() && b >= beliefRep.zero() : "b = " + b;
         assert domain.marginal(v) <= beliefRep.one() && domain.marginal(v) >= beliefRep.zero() : "domain.marginal(v) = " + domain.marginal(v);
         domain.setMarginal(v, beliefRep.multiply(domain.marginal(v), b));
+    }
+
+    @Override
+    public void setForBranching(boolean b) {
+        this.isForBranching = b;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return this.isForBranching;
     }
 
     @Override

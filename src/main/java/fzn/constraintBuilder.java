@@ -14,31 +14,31 @@ public class constraintBuilder {
         Factory.sum(as, bs).remove(c);
     }
 
-    public static void makeIntLinNeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        throw new NotImplementedException();
+    public static Constraint makeIntLinNeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        return Factory.notEqual(Factory.isEqual(Factory.sum(as,bs), c), r);
     }
 
     public static void makeIntLinEq(int[] as, IntVar[] bs, int c) {
         Factory.sum(as, bs).assign(c);
     }
 
-    public static void makeIntLinEqReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        throw new NotImplementedException();
+    public static Constraint makeIntLinEqReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        return Factory.equal(Factory.isEqual(Factory.sum(as,bs), c), r);
     }
 
     public static void makeIntLinLe(int[] as, IntVar[] bs, int c) {
         Factory.sum(as,bs).removeAbove(c);
     }
 
-    public static void makeIntLinLeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        throw new NotImplementedException();
+    public static Constraint makeIntLinLeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        return Factory.equal(Factory.isLessOrEqual(Factory.sum(as,bs), c), r);
     }
 
     public static Constraint makeIntEq(IntVar a, IntVar b) {
         return Factory.equal(a, b);
     }
 
-    public static void makeIntEqReif(IntVar a, IntVar b, BoolVar r) {
+    public static Constraint makeIntEqReif(IntVar a, IntVar b, BoolVar r) {
         throw new NotImplementedException();
     }
 
@@ -66,28 +66,28 @@ public class constraintBuilder {
         throw new NotImplementedException();
     }
 
-    public static void makeBoolEq(BoolVar a, BoolVar b) {
-        throw new NotImplementedException();
+    public static Constraint makeBoolEq(BoolVar a, BoolVar b) {
+        return Factory.equal(a, b);
     }
 
     public static void makeBoolLt(BoolVar a, BoolVar b) {
         throw new NotImplementedException();
     }
 
-    public static void makeBoolLe(BoolVar a, BoolVar b) {
-        throw new NotImplementedException();
+    public static Constraint makeBoolLe(BoolVar a, BoolVar b) {
+        return Factory.lessOrEqual(a, b);
     }
 
-    public static void makeBoolNot(BoolVar a, BoolVar b) {
-        throw new NotImplementedException();
+    public static Constraint makeBoolNot(BoolVar a, BoolVar b) {
+        return Factory.notEqual(a, b);
     }    
 
     public static void makeBoolXor(BoolVar a, BoolVar b) {
         throw new NotImplementedException();
     }
 
-    public static void makeArrayBoolOr(BoolVar[] as, BoolVar r) {
-        throw new NotImplementedException();
+    public static Constraint makeArrayBoolOr(BoolVar[] as, BoolVar r) {
+        return Factory.IsOr(r, as);
     }
 
     public static void makeArrayBoolXor(BoolVar[] as, BoolVar r) {
@@ -102,8 +102,8 @@ public class constraintBuilder {
         throw new NotImplementedException();
     }
 
-    public static void makeBool2Int(BoolVar a, IntVar b) {
-        throw new NotImplementedException();
+    public static Constraint makeBool2Int(BoolVar a, IntVar b) {
+        return Factory.equal(a, b);
     }
 
     public static Constraint makeArrayIntElement(IntVar b, int[] as, IntVar c) {
@@ -114,12 +114,15 @@ public class constraintBuilder {
         return Factory.Element1DVar(as, b, c);
     }
 
-    public static void makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
-        throw new NotImplementedException();
+    public static Constraint makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
+        int asInt[] = new int[as.length];
+        for(int i = 0; i < as.length; i++)
+            asInt[i] = as[i] ? 1 : 0;
+        return Factory.Element1D(asInt, b, c);
     }
 
-    public static void makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
-        throw new NotImplementedException();
+    public static Constraint makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
+        return Factory.Element1DVar(as, b, c);
     }
 
     public static void makeCount() {
@@ -170,6 +173,10 @@ public class constraintBuilder {
 
     public static Constraint makeGlobalCardinalityLowUp(IntVar[] x, int[] cover, int[] lbound, int[] ubound) {
         return Factory.cardinality(x, cover, lbound, ubound);
+    }
+
+    public static Constraint makeCircuit(IntVar[] x) {
+        return Factory.circuit(x);
     }
 
 }

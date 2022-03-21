@@ -1004,6 +1004,12 @@ public class XCSP implements XCallbacks2 {
 		XCSP.restartFactor = restartFactor;
 	}
 
+	private static double variationThreshold = -Double.MAX_VALUE;
+
+	public void variationThreshold(double variationThreshold) {
+		XCSP.variationThreshold = variationThreshold;
+	}
+
 	private static TreeSearchType searchType = TreeSearchType.DFS;
 
 	public void searchType(TreeSearchType searchType) {
@@ -1035,6 +1041,7 @@ public class XCSP implements XCallbacks2 {
 		minicp.setMaxIter(maxIter);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
+		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");
@@ -1043,7 +1050,11 @@ public class XCSP implements XCallbacks2 {
 
 		Stream<IntVar> nonDecisionVars = mapVar.entrySet().stream().sorted(new EntryComparator())
 				.map(Map.Entry::getValue).filter(v -> !decisionVars.contains(v));
-		IntVar[] vars = Stream.concat(decisionVars.stream(), nonDecisionVars).toArray(IntVar[]::new);
+		IntVar[] vars = Stream.concat(decisionVars.stream().peek(x-> {
+			if(!x.isBound()){
+			x.setForBranching(true);}
+		}),
+		 nonDecisionVars).toArray(IntVar[]::new);
 
 		Search search = null;
 		switch (heuristic) {

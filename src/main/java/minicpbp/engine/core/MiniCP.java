@@ -78,6 +78,9 @@ public class MiniCP implements Solver {
     // for message damping
     private boolean prevOutsideBeliefRecorded = false;
 
+    private double oldEntropy;
+    private static double variationThreshold = -Double.MAX_VALUE;
+
     public MiniCP(StateManager sm) {
         this.sm = sm;
         variables = new StateStack<>(sm);
@@ -144,6 +147,14 @@ public class MiniCP implements Solver {
         MiniCP.dampingFactor = dampingFactor;
     }
 
+    public void setVariationThreshold(double variationThreshold) {
+        MiniCP.variationThreshold = variationThreshold;
+    }
+
+    public double variationThreshold() {
+        return MiniCP.variationThreshold;
+    }
+
     public boolean prevOutsideBeliefRecorded() {
         return prevOutsideBeliefRecorded;
     }
@@ -196,6 +207,15 @@ public class MiniCP implements Solver {
         beliefPropaListeners.forEach(s -> s.call());
     }
 
+    private int nbBranchingVariables() {
+        int count = 0;
+        for(int i =0; i < variables.size(); i++) {
+            if(variables.get(i).isForBranching())
+                count += 1;
+        }
+        return count;
+    }
+
     /**
      * Belief Propagation
      * standard version, with two distinct message-passing phases
@@ -215,6 +235,7 @@ public class MiniCP implements Solver {
                 }
                 prevOutsideBeliefRecorded = false;
             }
+            int nbVar = nbBranchingVariables();
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
                 if (dampingMessages())
@@ -225,13 +246,16 @@ public class MiniCP implements Solver {
                         System.out.println(variables.get(i).getName() + " taille : "+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
-                /*System.out.println("##### after BP iteration " + iter + " #####");
                 double sumEntropy = 0.0;
                 for(int i =0; i < variables.size(); i++) {
-                    System.out.println(variables.get(i).getName() + " entropy : "+ variables.get(i).entropy());
                     sumEntropy += variables.get(i).entropy();
                 }
-                System.out.println("total entropy : " + sumEntropy);*/
+                sumEntropy = sumEntropy/nbVar;
+                if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold*(1+nbVar)) {
+                    break;
+                }
+                
+                oldEntropy = sumEntropy;
             }
 
         } catch (InconsistencyException e) {

@@ -296,6 +296,16 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public void setForBranching(boolean b) {
+        x.setForBranching(b);;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return x.isForBranching();
+    }
+
+    @Override
     public String getName() {
 	if (this.name!=null)
 	    return this.name;
