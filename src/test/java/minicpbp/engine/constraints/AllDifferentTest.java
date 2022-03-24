@@ -42,8 +42,9 @@ public class AllDifferentTest extends SolverTest {
         IntVar[] x = makeIntVarArray(cp, 5, 5);
 
         try {
-            cp.post(allDifferent(x),true);
-            cp.post(equal(x[0], 0),true);
+            cp.post(allDifferentBinary(x),true);
+            x[0].assign(0);
+            cp.fixPoint();
             for (int i = 1; i < x.length; i++) {
                 assertEquals(4, x[i].size());
                 assertEquals(1, x[i].min());
@@ -63,7 +64,7 @@ public class AllDifferentTest extends SolverTest {
         IntVar[] x = makeIntVarArray(cp, 5, 5);
 
         try {
-            cp.post(allDifferent(x),true);
+            cp.post(allDifferentBinary(x),true);
 
             SearchStatistics stats = makeDfs(cp, firstFail(x)).solve();
             assertEquals(120, stats.numberOfSolutions());

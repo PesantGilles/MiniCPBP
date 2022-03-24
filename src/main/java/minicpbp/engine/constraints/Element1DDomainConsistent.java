@@ -57,5 +57,6 @@ public class Element1DDomainConsistent extends AbstractConstraint {
             table[i][1] = t[i];
         }
         getSolver().post(new TableCT(new IntVar[]{y,z},table));
+        setActive(false);
     }
 }

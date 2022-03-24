@@ -43,9 +43,10 @@ public class OrTest extends SolverTest {
                 assertTrue(!xi.isBound());
             }
 
-            cp.post(equal(x[1], 0),true);
-            cp.post(equal(x[2], 0),true);
-            cp.post(equal(x[3], 0),true);
+	        x[1].assign(0);
+	        x[2].assign(0);
+	        x[3].assign(0);
+            cp.fixPoint();
             assertTrue(x[0].isTrue());
 
         } catch (InconsistencyException e) {

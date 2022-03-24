@@ -23,6 +23,8 @@ import minicpbp.util.Belief;
 
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * Implementation of a domain with a sparse-set
@@ -31,6 +33,7 @@ public class SparseSetDomain implements IntDomain {
     private StateSparseWeightedSet domain;
     private int[] domainValues; // an array large enough to hold the domain
     private double[] beliefValues; // an auxiliary array as large as domainValues
+    private HashMap<Integer, ArrayList<Double>> impactValues; //a map containing the registered impact of an assignement
     private Solver cp;
     private Belief beliefRep;
 
@@ -40,6 +43,7 @@ public class SparseSetDomain implements IntDomain {
         domain = new StateSparseWeightedSet(cp, max - min + 1, min);
         domainValues = new int[max - min + 1];
         beliefValues = new double[max - min + 1];
+        impactValues = new HashMap<Integer, ArrayList<Double>>();
         this.cp = cp;
         beliefRep = cp.getBeliefRep();
     }
@@ -151,6 +155,29 @@ public class SparseSetDomain implements IntDomain {
             throw new NoSuchElementException();
         int s = fillArray(domainValues);
         return domainValues[rand.nextInt(s)];
+    }
+
+
+    @Override
+    public int biasedWheelValue() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+        int s = fillArray(domainValues);
+	// to avoid this linear-time step, could replace max by upper bound 1
+	// alternatively, could decide to maintain max marginal of domain
+        double max = beliefRep.zero();
+        for (int j = 0; j < s; j++) {
+            int v = domainValues[j];
+            if (marginal(v) > max) {
+                max = marginal(v);
+            }
+        }
+	// stochastic acceptance algorithm
+	while (true) {
+            int v = domainValues[rand.nextInt(s)];
+	    if (Math.random() < marginal(v)/max)
+		return v;
+	}
     }
 
     @Override
@@ -273,6 +300,65 @@ public class SparseSetDomain implements IntDomain {
             }
         }
         return max - nextMax;
+    }
+
+    @Override
+    public double entropy() {
+        double H = 0;
+        int s = fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+            double m = beliefRep.rep2std(marginal(domainValues[j]));
+	    if (m > 0)
+		H += m * Math.log(m);
+        }
+        return -H;
+    }
+
+    @Override
+    public double impactOfValue(int value) {
+        if(impactValues.containsKey(value)) {
+            double sum = impactValues.get(value).stream().mapToDouble(a->a).sum();
+            return sum/((double)impactValues.get(value).size());
+        }
+        else {
+            return 1.0/((double)domain.size());
+        }
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        if (domain.isEmpty())
+            throw new NoSuchElementException();
+        int s = fillArray(domainValues);
+        int valWithMin = domainValues[0];
+        double min = impactOfValue(valWithMin);
+        for (int j = 1; j < s; j++) {
+            int v = domainValues[j];
+            if (impactOfValue(v) < min) {
+                min = impactOfValue(v);
+                valWithMin = v;
+            }
+        }
+        return valWithMin;
+    }
+
+    @Override
+    public double impact() {
+        int s = fillArray(domainValues);
+        double impact = 0.0;
+        for(int j = 0; j < s; j++) {
+            impact += 1 - impactOfValue(domainValues[j]);
+        }
+        return impact;
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        if(!impactValues.containsKey(value)) {
+            ArrayList<Double> impactList = new ArrayList<Double>();
+            impactValues.put(value, impactList);
+        }
+        impactValues.get(value).add(impact);
     }
 
     @Override

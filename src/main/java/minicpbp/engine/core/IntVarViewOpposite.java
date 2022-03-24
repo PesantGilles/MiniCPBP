@@ -131,6 +131,11 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public int biasedWheelValue() {
+        return -x.biasedWheelValue();
+    }
+
+    @Override
     public double marginal(int v) {
         return x.marginal(-v);
     }
@@ -173,6 +178,26 @@ public class IntVarViewOpposite implements IntVar {
     @Override
     public double maxMarginalRegret() {
         return x.maxMarginalRegret();
+    }
+
+    @Override
+    public double entropy() {
+	return x.entropy();
+    }
+
+    @Override
+    public double impact() {
+        return x.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return -x.valueWithMinImpact();
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        x.registerImpact(-value, impact);
     }
 
     @Override

@@ -28,10 +28,12 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.antlr.v4.parse.ANTLRParser.throwsSpec_return;
+
 /**
  * Limited Discrepancy Search Branch and Bound implementation
  */
-public class LDSearch {
+public class LDSearch extends Search{
 
     private Supplier<Procedure[]> branching;
     private Supplier<Procedure[]> LDSbranching;
@@ -174,6 +176,10 @@ public class LDSearch {
             }
         });
         return statistics;
+    }
+
+    public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit) {
+        throw new NotImplementedException();
     }
 
     /**

@@ -24,6 +24,7 @@ import minicpbp.util.Procedure;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Belief;
 import minicpbp.util.exception.IntOverFlowException;
+import minicpbp.util.exception.NotImplementedException;
 
 /**
  * A view on a variable of type {@code a*x}
@@ -185,6 +186,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public int biasedWheelValue() {
+	return x.biasedWheelValue() * a;
+    }
+
+    @Override
     public double marginal(int v) {
 	if (v % a == 0) {
 	    return x.marginal(v/a);
@@ -235,6 +241,31 @@ public class IntVarViewMul implements IntVar {
     @Override
     public double maxMarginalRegret() {
 	return x.maxMarginalRegret();
+    }
+
+    @Override
+    public double entropy() {
+	return x.entropy();
+    }
+
+    @Override
+    public double impact() {
+        return x.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return x.valueWithMinImpact() * a;
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        if (value % a == 0) {
+            x.registerImpact(value/a, impact);
+        }
+        else {
+            throw new InconsistencyException();
+        }
     }
 
     @Override

@@ -119,7 +119,7 @@ public class ShortTableTest extends SolverTest {
         try {
             Solver cp = solverFactory.get();
             IntVar[] x = makeIntVarArray(cp, 5, 9);
-            cp.post(allDifferent(x),true);
+            cp.post(allDifferentBinary(x),true);
             cp.post(new ShortTableDecomp(new IntVar[]{x[0], x[1], x[2]}, t1, star),true);
             cp.post(new ShortTableDecomp(new IntVar[]{x[2], x[3], x[4]}, t2, star),true);
             cp.post(new ShortTableDecomp(new IntVar[]{x[0], x[2], x[4]}, t3, star),true);
@@ -131,7 +131,7 @@ public class ShortTableTest extends SolverTest {
         try {
             Solver cp = solverFactory.get();
             IntVar[] x = makeIntVarArray(cp, 5, 9);
-            cp.post(allDifferent(x),true);
+            cp.post(allDifferentBinary(x),true);
             cp.post(new ShortTableCT(new IntVar[]{x[0], x[1], x[2]}, t1, star),true);
             cp.post(new ShortTableCT(new IntVar[]{x[2], x[3], x[4]}, t2, star),true);
             cp.post(new ShortTableCT(new IntVar[]{x[0], x[2], x[4]}, t3, star),true);

@@ -27,6 +27,7 @@ import minicpbp.state.StateInt;
 import minicpbp.state.StateBool;
 import minicpbp.util.exception.InconsistencyException;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.stream.IntStream;
 import java.security.InvalidParameterException;
@@ -45,6 +46,8 @@ public class LinEqSystemModP extends AbstractConstraint {
     private int[] unBounds;
     private StateInt nUnBounds;
     private int[] paramIdx; // indices of the parametric variables in the RRE form
+    private static final int maxNbTuples = 100000; // size of allocated data structures for table constraint
+    private static final double likelihoodThreshold = 0.5; // apply DC when likelihood of non-parametric variables supporting combination of parametric values < threshold
     private static final int nTuplesThreshold = 1000; // apply DC when parametric vars search space <= threshold
     private StateBool tableFiltering; // true iff we now apply DC (once the threshold has been reached)
     private int[] tuple; // to build tuples during the tuple enumeration
@@ -71,6 +74,7 @@ public class LinEqSystemModP extends AbstractConstraint {
     public LinEqSystemModP(int[][] A, IntVar[] x, int[] b, int p) {
         super(x[0].getSolver(), x);
         setName("LinEqSystemModP");
+	assert( nTuplesThreshold <= maxNbTuples );
         n = x.length;
         m = b.length;
         this.x = x;
@@ -137,10 +141,10 @@ public class LinEqSystemModP extends AbstractConstraint {
                 throw new InconsistencyException();
 
         tuple = new int[nU];
-        Tuples = new int[nTuplesThreshold][nU];
-        ofs = new int[nU];
-        supportedTuples = new BitSet(nTuplesThreshold);
-        supporti = new BitSet(nTuplesThreshold);
+	Tuples = new int[maxNbTuples][nU];
+	ofs = new int[nU];
+	supportedTuples = new BitSet(maxNbTuples);
+	supporti = new BitSet(maxNbTuples);
         // Allocate supportedByVarVal
         supports = new BitSet[nU][];
         int maxDsize = 0;
@@ -205,6 +209,7 @@ public class LinEqSystemModP extends AbstractConstraint {
      *
      * @return number of solutions
      */
+    /*
     public double getNbSolns() {
         double avgNbSolns = 0;
         int nU = nUnBounds.value();
@@ -222,6 +227,7 @@ public class LinEqSystemModP extends AbstractConstraint {
         // BIG WORKING HYPOTHESIS: nb of solutions is an exponential function of the number of variables
         return Math.pow(p * avgNbSolns, ((double) nU) / ((double) (nU - nNonparam + 1))) / Math.pow(p, nNonparam);
     }
+    */
 
     /**
      * Computes the multiplicative inverse of nonzero element e in finite field F_p (extended GCD algorithm)
@@ -335,23 +341,37 @@ public class LinEqSystemModP extends AbstractConstraint {
     @Override
     public void propagate() {
         if (!tableFiltering.value()) {
-            // so far parametric search space has been too large to set up table filtering
-            int nU = nUnBounds.value();
-            double nTuplesUB = 1; // upper bound on nb combinations of values for parametric vars
-            for (int i = nU - 1; i >= nNonparam; i--) { // restrict to parametric vars
-                int idx = unBounds[i];
-                if (x[idx].isBound()) {
-                    unBounds[i] = unBounds[nU - 1]; // Swap the variables
-                    unBounds[nU - 1] = idx;
-                    nU--;
-                } else {
-                    nTuplesUB *= x[idx].size();
-                }
-            }
-            nUnBounds.setValue(nU); // Warning: this count ignores bound _non_parametric variables
+	    // so far table filtering has not been activated
+	    int nU = nUnBounds.value();
 
-            if (nTuplesUB > nTuplesThreshold) // do nothing further until the number of tuples to enumerate is tractable
-                return;
+	    // compute the likelihood that the non-parametric variables support a given combination of parametric values
+	    double likelihood = 1.0 / Math.pow(p,nNonparam);
+	    for (int i = 0; i < nNonparam; i++) { 
+		likelihood *= ((double) x[unBounds[i]].size());
+	    }
+//  	    System.out.println("likelihood = "+likelihood);
+
+ 	    double nTuplesUB = 1; // upper bound on nb combinations of values for parametric vars
+	    for (int i = nU - 1; i >= nNonparam; i--) { // restrict to parametric vars
+		int idx = unBounds[i];
+		if (x[idx].isBound()) {
+		    unBounds[i] = unBounds[nU - 1]; // Swap the variables
+		    unBounds[nU - 1] = idx;
+		    nU--;
+		}
+ 		else {
+ 		    nTuplesUB *= x[idx].size();
+ 		}
+	    }
+	    nUnBounds.setValue(nU); // Warning: this count ignores bound _non_parametric variables
+
+	    // don't risk exceeding the allocated space
+ 	    if (nTuplesUB > maxNbTuples)
+		return;
+
+	    // decide whether or not we should post a table constraint
+ 	    if ((likelihood > likelihoodThreshold) && (nTuplesUB > nTuplesThreshold))
+		return;
 
             // otherwise it is now time to set up table filtering
             tableFiltering.setValue(true);
@@ -373,7 +393,11 @@ public class LinEqSystemModP extends AbstractConstraint {
             // enumerate tuples over parametric variables and accumulate them in Tuples
             nTuples = 0;
             paramEnum(1);
-//    	System.out.println(nTuples+" tuples whereas the upper bound is "+nTuplesUB);
+//      System.out.println(nTuples+" tuples whereas the upper bound is "+nTuplesUB+"; "+nU+" unbound vars");
+//      System.out.println(nTuples+" tuples ; "+nU+" unbound vars");
+// 	for (int i = 0; i < x.length; i++) {
+// 	    System.out.println(x[i].getName()+x[i].toString());
+//      }
             if (nTuples == 0)
                 throw new InconsistencyException();
             for (int i = 0; i < nU; i++) {

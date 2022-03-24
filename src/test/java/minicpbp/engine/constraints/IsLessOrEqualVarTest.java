@@ -75,12 +75,14 @@ public class IsLessOrEqualVarTest extends SolverTest {
             cp.post(new IsLessOrEqualVar(b, x, y),true);
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 1),true);
+            b.assign(1);
+            cp.fixPoint();
             assertEquals(3, x.max());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 0),true);
+            b.assign(0);
+            cp.fixPoint();
             assertEquals(-3, x.min());
             cp.getStateManager().restoreState();
 
@@ -98,7 +100,7 @@ public class IsLessOrEqualVarTest extends SolverTest {
             Solver cp = solverFactory.get();
             IntVar x = makeIntVar(cp, -4, 7);
             IntVar y = makeIntVar(cp, 0, 7);
-            cp.post(equal(x, -2),true);
+            x.assign(-2);
 
             BoolVar b = makeBoolVar(cp);
             cp.post(new IsLessOrEqualVar(b, x, y),true);
@@ -121,13 +123,13 @@ public class IsLessOrEqualVarTest extends SolverTest {
             BoolVar b = makeBoolVar(cp);
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 1),true);
+            b.assign(1);
             cp.post(new IsLessOrEqual(b, x, -2),true);
             assertEquals(-2, x.max());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 0),true);
+            b.assign(0);
             cp.post(new IsLessOrEqual(b, x, -2),true);
             assertEquals(-1, x.min());
             cp.getStateManager().restoreState();

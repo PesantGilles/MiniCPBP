@@ -45,32 +45,38 @@ public class IsOrTest extends SolverTest {
             }
 
             cp.getStateManager().saveState();
-            cp.post(equal(x[1], 0),true);
-            cp.post(equal(x[2], 0),true);
-            cp.post(equal(x[3], 0),true);
+            x[1].assign(0);
+            x[2].assign(0);
+            x[3].assign(0);
+            cp.fixPoint();
             assertTrue(!b.isBound());
-            cp.post(equal(x[0], 0),true);
+            x[0].assign(0);
+            cp.fixPoint();
             assertTrue(b.isFalse());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(x[1], 0),true);
-            cp.post(equal(x[2], 1),true);
+            x[1].assign(0);
+            x[2].assign(1);
+            cp.fixPoint();
             assertTrue(b.isTrue());
             cp.getStateManager().restoreState();
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 1),true);
-            cp.post(equal(x[1], 0),true);
-            cp.post(equal(x[2], 0),true);
+            b.assign(1);
+            x[1].assign(0);
+            x[2].assign(0);
+            cp.fixPoint();
             assertTrue(!x[0].isBound());
-            cp.post(equal(x[3], 0),true);
+            x[3].assign(0);
+            cp.fixPoint();
             assertTrue(x[0].isTrue());
             cp.getStateManager().restoreState();
 
 
             cp.getStateManager().saveState();
-            cp.post(equal(b, 0),true);
+            b.assign(0);
+            cp.fixPoint();
             assertTrue(x[0].isFalse());
             assertTrue(x[1].isFalse());
             assertTrue(x[2].isFalse());

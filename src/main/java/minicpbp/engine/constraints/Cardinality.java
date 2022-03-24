@@ -88,6 +88,7 @@ public class Cardinality extends AbstractConstraint {
             }
             cp.post(sum(vars, o[j]));
         }
+        setActive(false);
     }
 
 }

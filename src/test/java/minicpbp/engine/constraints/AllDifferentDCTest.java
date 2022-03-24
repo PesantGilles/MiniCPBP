@@ -43,7 +43,8 @@ public class AllDifferentDCTest extends SolverTest {
 
         try {
             cp.post(new AllDifferentDC(x),true);
-            cp.post(equal(x[0], 0),true);
+            x[0].assign(0);
+            cp.fixPoint();
             for (int i = 1; i < x.length; i++) {
                 assertEquals(4, x[i].size());
                 assertEquals(1, x[i].min());
@@ -166,10 +167,10 @@ public class AllDifferentDCTest extends SolverTest {
                     int v = xs.min();
                     return branch(
                             () -> {
-                                cp.post(equal(xs, v),true);
+                                branchEqual(xs, v);
                             },
                             () -> {
-                                cp.post(notEqual(xs, v),true);
+                                branchNotEqual(xs, v);
                             });
                 }
             });

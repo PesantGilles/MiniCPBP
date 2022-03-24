@@ -22,6 +22,7 @@ package minicpbp.examples;
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
 import minicpbp.search.DFSearch;
+import minicpbp.search.LDSearch;
 import minicpbp.search.SearchStatistics;
 import static minicpbp.cp.Factory.*;
 import static minicpbp.cp.BranchingScheme.*;
@@ -57,16 +58,24 @@ public class MagicSquare {
 	}
 
 //    	DFSearch dfs = makeDfs(cp, firstFailRandomVal(xFlat));
-   	DFSearch dfs = makeDfs(cp, maxMarginalStrength(xFlat));
+//		DFSearch dfs = makeDfs(cp, maxMarginalStrength(xFlat));
+//		DFSearch dfs = makeDfs(cp, maxMarginal(xFlat));
+//		LDSearch dfs = makeLds(cp, maxMarginal(xFlat));
+		DFSearch dfs = makeDfs(cp, minEntropy(xFlat));
+//		DFSearch dfs = makeDfs(cp, minEntropyBiasedWheelSelectVal(xFlat));
+//		LDSearch dfs = makeLds(cp, minEntropy(xFlat));
 
         dfs.onSolution(() -> {
                     for (int i = 0; i < n; i++) {
-                        System.out.println(Arrays.toString(x[i]));
+						System.out.println(Arrays.toString(x[i]));
                     }
                 }
         );
 
-        SearchStatistics stats = dfs.solve(stat -> stat.numberOfSolutions() >= 1); // stop on first solution
+        SearchStatistics stats = new SearchStatistics();
+
+		stats = dfs.solve(stat -> stat.numberOfSolutions() >= 1); // stop on first solution
+//		stats = dfs.solveRestarts(stat -> stat.numberOfSolutions() >= 1); // stop on first solution
 
         System.out.println(stats);
 
@@ -136,9 +145,9 @@ public class MagicSquare {
 
 		// AllDifferent
 		if(notEqual)
- 		    cp.post(allDifferent(xFlat));
+ 		    cp.post(allDifferentBinary(xFlat));
 		else
-		    cp.post(allDifferentAC(xFlat));
+		    cp.post(allDifferent(xFlat));
 
 		return xFlat;
 	}

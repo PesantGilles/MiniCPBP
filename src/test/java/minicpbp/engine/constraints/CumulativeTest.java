@@ -75,7 +75,8 @@ public class CumulativeTest extends SolverTest {
             int[] r = new int[]{1, 1};
 
             cp.post(new Cumulative(s, d, r, 1),true);
-            cp.post(equal(s[0], 0),true);
+            s[0].assign(0);
+            cp.fixPoint();
 
             assertEquals(5, s[1].min());
 
@@ -100,7 +101,8 @@ public class CumulativeTest extends SolverTest {
 
             cp.post(new Cumulative(s, d, r, 1),true);
 
-            cp.post(equal(s[0], 5),true);
+            s[0].assign(5);
+            cp.fixPoint();
 
             assertEquals(0, s[1].max());
 

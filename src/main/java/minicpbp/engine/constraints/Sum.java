@@ -208,6 +208,8 @@ public class Sum extends AbstractConstraint {
                 bwd_hi -= x[idx].min();
                 bwd_lo -= x[idx].max();
             }
+            if (fwd_lo > bwd_hi || fwd_hi < bwd_lo)
+                throw new InconsistencyException(); // sum constraint cannot be satisfied
             for (int i = 0; i < nUnBounds.value(); i++) {
                 minState[i] = Math.max(fwd_lo, bwd_lo);
                 maxState[i] = Math.min(fwd_hi, bwd_hi);
@@ -257,9 +259,19 @@ public class Sum extends AbstractConstraint {
             }
             idx = unBounds[0];
             s = x[idx].fillArray(domainValues);
-            for (int j = 0; j < s; j++) {
-                v = domainValues[j];
-                setLocalBelief(idx, v, op[0][minState[0] + v]);
+            if (nUnBounds.value() == 1) { // special case
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    if (minState[0] + v == minState[1])
+                        setLocalBelief(idx, v, beliefRep.one());
+                    else
+                        setLocalBelief(idx, v, beliefRep.zero());
+                }
+            } else {
+                for (int j = 0; j < s; j++) {
+                    v = domainValues[j];
+                    setLocalBelief(idx, v, op[0][minState[0] + v]);
+                }
             }
         } else { // non-incremental version
             for (int i = 0; i < n; i++) {

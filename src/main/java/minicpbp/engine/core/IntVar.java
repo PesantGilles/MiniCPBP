@@ -173,6 +173,14 @@ public interface IntVar {
     int randomValue();
 
     /**
+     * Returns a value in the domain chosen randomly according to the marginal distribution.
+     * Based on the stochastic acceptance algorithm described in http://arxiv.org/abs/1109.3627
+     *
+     * @return random value in the domain according to marginal distribution
+     */
+    int biasedWheelValue();
+
+    /**
      * Returns the marginal of the specified value.
      *
      * @param v the value whose marginal is to be returned
@@ -237,6 +245,32 @@ public interface IntVar {
      * @return the largest marginal regret
      */
     double maxMarginalRegret();
+
+    /**
+     * Returns the entropy of the marginal distribution
+     *
+     * @return the entropy
+     */
+    double entropy();
+
+    /**
+     * Returns the expected impact of variable
+     * @return the impact
+     */
+    public double impact();
+    
+    /**
+     * Returns the value of the domain with the smaller impact
+     * @return the value
+     */
+    public int valueWithMinImpact();
+
+    /**
+     * Register an observed impact of assigning a value
+     * @param value the value
+     * @param impact the impact
+     */
+    public void registerImpact(int value, double impact);
 
     /**
      * Returns the marginal of the specified value after cancelling 

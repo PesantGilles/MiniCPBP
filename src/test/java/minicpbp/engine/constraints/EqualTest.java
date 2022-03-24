@@ -89,11 +89,12 @@ public class EqualTest extends SolverTest {
             IntVar x = makeIntVar(cp,Integer.MAX_VALUE-20,Integer.MAX_VALUE-1);
             IntVar y = makeIntVar(cp,Integer.MAX_VALUE-10,Integer.MAX_VALUE-1);
 
-            cp.post(notEqual(x,Integer.MAX_VALUE-5),true);
+            x.remove(Integer.MAX_VALUE-5);
 
             cp.post(equal(x,y),true);
 
-            cp.post(equal(x,Integer.MAX_VALUE-1),true);
+            x.assign(Integer.MAX_VALUE-1);
+            cp.fixPoint();
 
             assertEquals(y.min(), Integer.MAX_VALUE-1);
 

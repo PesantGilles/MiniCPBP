@@ -37,6 +37,7 @@ public class AllDifferentBinary extends AbstractConstraint {
                 cp.post(new NotEqual(x[i], x[j]), false);
             }
         }
+        setActive(false);
     }
 
 }

@@ -127,7 +127,7 @@ public class TableTest extends SolverTest {
         try {
             Solver cp = solverFactory.get();
             IntVar[] x = makeIntVarArray(cp, 5, 9);
-            cp.post(allDifferent(x),true);
+            cp.post(allDifferentBinary(x),true);
             cp.post(new TableDecomp(new IntVar[]{x[0], x[1], x[2]}, t1),true);
             cp.post(new TableDecomp(new IntVar[]{x[2], x[3], x[4]}, t2),true);
             cp.post(new TableDecomp(new IntVar[]{x[0], x[2], x[4]}, t3),true);
@@ -139,7 +139,7 @@ public class TableTest extends SolverTest {
         try {
             Solver cp = solverFactory.get();
             IntVar[] x = makeIntVarArray(cp, 5, 9);
-            cp.post(allDifferent(x),true);
+            cp.post(allDifferentBinary(x),true);
             cp.post(tc.apply(new IntVar[]{x[0], x[1], x[2]}, t1),true);
             cp.post(tc.apply(new IntVar[]{x[2], x[3], x[4]}, t2),true);
             cp.post(tc.apply(new IntVar[]{x[0], x[2], x[4]}, t3),true);

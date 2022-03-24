@@ -224,6 +224,11 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public int biasedWheelValue() {
+        return domain.biasedWheelValue();
+    }
+
+    @Override
     public double marginal(int v) {
         return domain.marginal(v);
     }
@@ -266,6 +271,26 @@ public class IntVarImpl implements IntVar {
     @Override
     public double maxMarginalRegret() {
         return domain.maxMarginalRegret();
+    }
+
+    @Override
+    public double entropy() {
+        return domain.entropy();
+    }
+
+    @Override
+    public double impact() {
+        return domain.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return domain.valueWithMinImpact();
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        domain.registerImpact(value, impact);
     }
 
     @Override

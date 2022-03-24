@@ -138,6 +138,11 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public int biasedWheelValue() {
+        return x.biasedWheelValue() + o;
+    }
+
+    @Override
     public double marginal(int v) {
         return x.marginal(v - o);
     }
@@ -180,6 +185,26 @@ public class IntVarViewOffset implements IntVar {
     @Override
     public double maxMarginalRegret() {
         return x.maxMarginalRegret();
+    }
+
+    @Override
+    public double entropy() {
+	return x.entropy();
+    }
+
+    @Override
+    public double impact() {
+        return x.impact();
+    }
+
+    @Override
+    public int valueWithMinImpact() {
+        return x.valueWithMinImpact() + o;
+    }
+
+    @Override
+    public void registerImpact(int value, double impact) {
+        x.registerImpact(value - o, impact);
     }
 
     @Override

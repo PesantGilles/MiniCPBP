@@ -228,7 +228,6 @@ public abstract class AbstractConstraint implements Constraint {
 
     public void sendMessages() {
         updateBelief();
-        // Note: does not discriminate between exact and approximate weighted counting
         for (int i = 0; i < vars.length; i++) {
             if (!vars[i].isBound()) { // if the variable is bound, it is pointless to send a "certainly true" message
                 normalizeBelief(i, (j, val) -> localBelief(j, val),
@@ -238,8 +237,7 @@ public abstract class AbstractConstraint implements Constraint {
                     int val = domainValues[j];
                     double localB = localBelief(i, val);
                     assert localB <= beliefRep.one() && localB >= beliefRep.zero() : "Should be normalized! localB = " + localB;
-                    if (getSolver().actingOnZeroOneBelief()) {
-                        // CAVEAT: approximate weighted counting should be sound wrt returning certainty beliefs
+                    if (getSolver().actingOnZeroOneBelief() && isExactWCounting()) {
                         if (beliefRep.isZero(localB)) { // no support from this constraint
 //  			    System.out.println(getName()+".sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
                             vars[i].remove(val); // standard domain consistency filtering

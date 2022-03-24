@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 /**
  * Depth First Search Branch and Bound implementation
  */
-public class DFSearch {
+public class DFSearch extends Search{
 
     private Supplier<Procedure[]> branching;
     private StateManager sm;
@@ -148,6 +148,54 @@ public class DFSearch {
             }
         });
         return statistics;
+    }
+
+    private SearchStatistics solveRestarts(SearchStatistics statistics, Predicate<SearchStatistics> limit, int nbFailsCutoff, final double restartFactor) {
+        int cutoff = nbFailsCutoff;
+        final int[] cumulCutoff = new int[]{cutoff};
+        while (!limit.test(statistics)) {
+//            System.out.println("restart limit: "+cutoff+" fails");
+            Predicate<SearchStatistics> restartLimit = limit.or(stat -> stat.numberOfFailures() > cumulCutoff[0]);
+            sm.withNewState(() -> {
+                try {
+		            dfs(statistics, restartLimit);
+                } catch (StopSearchException ignored) {
+                } catch (StackOverflowError e) {
+                    throw new NotImplementedException("dfs with explicit stack needed to pass this test");
+                }
+            });
+            System.out.println("restart");
+            cutoff *= restartFactor;
+            cumulCutoff[0] += cutoff;
+        }
+        statistics.setCompleted();
+        return statistics;
+    }
+
+
+    /**
+     * Effectively start a depth first search with restarts
+     * looking for every solution.
+     *
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics solveRestarts() {
+        SearchStatistics statistics = new SearchStatistics();
+        return solveRestarts(statistics, stats -> false, 100, 1.5);
+    }
+
+    /**
+     * Effectively start a depth first search with restarts
+     * with a given predicate called at each node
+     * to stop the search when it becomes true.
+     *
+     * @param limit a predicate called at each node
+     *             that stops the search when it becomes true
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit) {
+        SearchStatistics statistics = new SearchStatistics();
+        return solveRestarts(statistics, limit, 100, 1.5);
     }
 
     /**

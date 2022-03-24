@@ -52,8 +52,8 @@ public class NQueens {
             }
             else {
                 int v = qs.min();
-                return branch(() -> cp.post(Factory.equal(qs, v),true),
-                        () -> cp.post(Factory.notEqual(qs, v),true));
+                return branch(() -> Factory.branchEqual(qs, v),
+			      () -> Factory.branchNotEqual(qs, v));
             }
         });
 
