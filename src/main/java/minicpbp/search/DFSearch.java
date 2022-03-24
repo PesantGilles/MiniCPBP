@@ -87,7 +87,6 @@ public class DFSearch {
         sm.withNewState(() -> {
             try {
                 dfs(statistics, limit);
-                System.out.println("ttend");
                 statistics.setCompleted();
             } catch (StopSearchException ignored) {
             } catch (StackOverflowError e) {

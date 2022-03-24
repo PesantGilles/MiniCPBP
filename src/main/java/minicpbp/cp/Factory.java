@@ -82,11 +82,11 @@ public final class Factory {
      * @param logBelief true if logarithmic believes should be used
      * @return a constraint programming solver
      */
-    public static Solver makeSolver(boolean byCopy, boolean logBelief) {
-        return new MiniCP(byCopy ? new Copier() : new Trailer(), logBelief);
+    public static Solver makeSolver(boolean byCopy, boolean logBelief, int beliefPropaMaxIter, boolean damping) {
+        return new MiniCP(byCopy ? new Copier() : new Trailer(), logBelief, beliefPropaMaxIter , damping);
     }
     public static Solver makeSolver(boolean byCopy) {
-        return makeSolver(byCopy, false);
+        return makeSolver(byCopy);
     }
 
     /**

@@ -50,9 +50,9 @@ public class MiniCP implements Solver {
     // SBP /* first apply support propagation, then belief propagation */
     private static final PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
-    private static final int beliefPropaMaxIter = 5;
+    private final int beliefPropaMaxIter;
     // apply damping to variable-to-constraint messages
-    private static final boolean damping = false;
+    private final boolean damping;
     // damping factor in interval [0,1] where 1 is equivalent to no damping
     private static final double dampingFactor = 0.5;
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
@@ -76,11 +76,13 @@ public class MiniCP implements Solver {
     private boolean prevOutsideBeliefRecorded = false;
 
     public MiniCP(StateManager sm) {
-        this(sm,false);
+        this(sm,false,5,false);
     }
 
-    public MiniCP(StateManager sm, boolean logBelief) {
+    public MiniCP(StateManager sm, boolean logBelief, int beliefPropaMaxIter, boolean damping) {
         this.sm = sm;
+        this.beliefPropaMaxIter = beliefPropaMaxIter;
+        this.damping = damping;
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
         if (logBelief) {
