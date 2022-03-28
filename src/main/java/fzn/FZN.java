@@ -173,11 +173,12 @@ public class FZN {
 	
 		m.addSolver(minicp);
 		m.buildModel();
+		System.out.println("Model build");
 
 		for(Constraint c : m.getListeConstraint()){
 			minicp.post(c);
 		}
-
+		System.out.println("Constraint posted");
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
 		switch (heuristic) {

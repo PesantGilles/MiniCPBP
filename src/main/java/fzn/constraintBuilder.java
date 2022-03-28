@@ -5,178 +5,209 @@ import minicpbp.engine.core.Constraint;
 import minicpbp.engine.core.BoolVar;
 import minicpbp.engine.core.IntVar;
 import minicpbp.util.exception.NotImplementedException;
+import minicpbp.engine.core.Solver;
 
 
 import static minicpbp.cp.Factory.*;
 
 public class constraintBuilder {
-    public static void makeIntLinNe(int[] as, IntVar[] bs, int c) {
+
+    private Solver minicp;
+
+    public constraintBuilder(Solver minicp) {
+        this.minicp = minicp;
+    }
+
+    public void makeIntLinNe(int[] as, IntVar[] bs, int c) {
         Factory.sum(as, bs).remove(c);
     }
 
-    public static Constraint makeIntLinNeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        return Factory.notEqual(Factory.isEqual(Factory.sum(as,bs), c), r);
+    public void makeIntLinNeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        minicp.post(Factory.notEqual(Factory.isEqual(Factory.sum(as,bs), c), r));
     }
 
-    public static void makeIntLinEq(int[] as, IntVar[] bs, int c) {
+    public void makeIntLinEq(int[] as, IntVar[] bs, int c) {
         Factory.sum(as, bs).assign(c);
     }
 
-    public static Constraint makeIntLinEqReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        return Factory.equal(Factory.isEqual(Factory.sum(as,bs), c), r);
+    public void makeIntLinEqReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        minicp.post(Factory.equal(Factory.isEqual(Factory.sum(as,bs), c), r));
     }
 
-    public static void makeIntLinLe(int[] as, IntVar[] bs, int c) {
+    public void makeIntLinLe(int[] as, IntVar[] bs, int c) {
         Factory.sum(as,bs).removeAbove(c);
     }
 
-    public static Constraint makeIntLinLeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
-        return Factory.equal(Factory.isLessOrEqual(Factory.sum(as,bs), c), r);
+    public void makeIntLinLeReif(int[] as, IntVar[] bs, int c, BoolVar r) {
+        minicp.post(Factory.equal(Factory.isLessOrEqual(Factory.sum(as,bs), c), r));
     }
 
-    public static Constraint makeIntEq(IntVar a, IntVar b) {
-        return Factory.equal(a, b);
+    public void makeIntEq(IntVar a, IntVar b) {
+       minicp.post(Factory.equal(a, b));
     }
 
-    public static Constraint makeIntEqReif(IntVar a, IntVar b, BoolVar r) {
+    public void makeIntEqReif(IntVar a, IntVar b, BoolVar r) {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeIntNe(IntVar a, IntVar b) {
-        return Factory.notEqual(a, b);
+    public void makeIntNe(IntVar a, IntVar b) {
+        minicp.post(Factory.notEqual(a, b));
     }
 
-    public static void makeIntNeReif(IntVar a, IntVar b, BoolVar r) {
+    public void makeIntNeReif(IntVar a, IntVar b, BoolVar r) {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeIntLe(IntVar a, IntVar b) {
-        return Factory.lessOrEqual(a, b);
+    public void makeIntLe(IntVar a, IntVar b) {
+        minicp.post(Factory.lessOrEqual(a, b));
     }
 
-    public static void makeIntLeReif(IntVar a, IntVar b, BoolVar r) {
+    public void makeIntLeReif(IntVar a, IntVar b, BoolVar r) {
         throw new NotImplementedException();
     }
 
-    public static void makeIntLt(IntVar a, IntVar b) {
+    public void makeIntLt(IntVar a, IntVar b) {
         throw new NotImplementedException();
     }
 
-    public static void makeIntLtReif(IntVar a, IntVar b, BoolVar r) {
+    public void makeIntLtReif(IntVar a, IntVar b, BoolVar r) {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeBoolEq(BoolVar a, BoolVar b) {
-        return Factory.equal(a, b);
+    public void makeBoolEq(BoolVar a, BoolVar b) {
+        minicp.post(Factory.equal(a, b));
     }
 
-    public static void makeBoolLt(BoolVar a, BoolVar b) {
+    public void makeBoolLt(BoolVar a, BoolVar b) {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeBoolLe(BoolVar a, BoolVar b) {
-        return Factory.lessOrEqual(a, b);
+    public void makeBoolOr(BoolVar a, BoolVar b, BoolVar r) {
+        BoolVar array[] = {a,b};
+        minicp.post(Factory.isOr(r, array));
     }
 
-    public static Constraint makeBoolNot(BoolVar a, BoolVar b) {
-        return Factory.notEqual(a, b);
+    public void makeBoolAnd(BoolVar a, BoolVar b, BoolVar r) {
+        BoolVar array[] = {Factory.opposite(a), Factory.opposite(b)};
+        minicp.post(Factory.isOr(opposite(r), array));
+    }
+
+    public void makeBoolLe(BoolVar a, BoolVar b) {
+        minicp.post(Factory.lessOrEqual(a, b));
+    }
+
+    public void makeBoolNot(BoolVar a, BoolVar b) {
+        minicp.post(Factory.notEqual(a, b));
     }    
 
-    public static void makeBoolXor(BoolVar a, BoolVar b) {
+    public void makeBoolXor(BoolVar a, BoolVar b) {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeArrayBoolOr(BoolVar[] as, BoolVar r) {
-        return Factory.IsOr(r, as);
+    public void makeArrayBoolOr(BoolVar[] as, BoolVar r) {
+        minicp.post(Factory.isOr(r, as));
     }
 
-    public static void makeArrayBoolXor(BoolVar[] as, BoolVar r) {
+    public void makeArrayBoolXor(BoolVar[] as, BoolVar r) {
         throw new NotImplementedException();
     }
 
-    public static void makeArrayBoolAnd(BoolVar[] as, BoolVar r) {
-        throw new NotImplementedException();
+    public void makeArrayBoolAnd(BoolVar[] as, BoolVar r) {
+        BoolVar asOppose[] = new BoolVar[as.length];
+        for(int i = 0; i < as.length; i++) {
+            asOppose[i] = Factory.opposite(as[i]);
+        }
+        BoolVar rOppose = Factory.opposite(r);
+        minicp.post(Factory.isOr(rOppose, asOppose));
     }
 
-    public static void makeBoolClause(BoolVar[] as, BoolVar[] bs) {
-        throw new NotImplementedException();
+    public void makeBoolClause(BoolVar[] as, BoolVar[] bs) {
+        BoolVar array[] = new BoolVar[bs.length+ as.length];
+        for(int i = 0; i < as.length;i++){
+            array[i] = as[i];
+        }
+        for(int i = 0; i < bs.length; i++) {
+            array[as.length+i] = Factory.opposite(bs[i]);
+        }
+        Factory.branchEqual(isOr(array), 1);
     }
 
-    public static Constraint makeBool2Int(BoolVar a, IntVar b) {
-        return Factory.equal(a, b);
+    public void makeBool2Int(BoolVar a, IntVar b) {
+        minicp.post(Factory.equal(a, b));
     }
 
-    public static Constraint makeArrayIntElement(IntVar b, int[] as, IntVar c) {
-        return Factory.Element1D(as, b, c);
+    public void makeArrayIntElement(IntVar b, int[] as, IntVar c) {
+        minicp.post(Factory.Element1D(as, b, c));
     }
 
-    public static Constraint makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
-        return Factory.Element1DVar(as, b, c);
+    public void makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
+        minicp.post(Factory.Element1DVar(as, b, c));
     }
 
-    public static Constraint makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
+    public void makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
         int asInt[] = new int[as.length];
         for(int i = 0; i < as.length; i++)
             asInt[i] = as[i] ? 1 : 0;
-        return Factory.Element1D(asInt, b, c);
+        minicp.post(Factory.Element1D(asInt, b, c));
     }
 
-    public static Constraint makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
-        return Factory.Element1DVar(as, b, c);
+    public void makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
+        minicp.post(Factory.Element1DVar(as, b, c));
     }
 
-    public static void makeCount() {
+    public void makeCount() {
         throw new NotImplementedException();
     }
 
-    public static Constraint makeAllDifferentInt(IntVar[] a) {
-        return Factory.allDifferent(a);
+    public void makeAllDifferentInt(IntVar[] a) {
+        a[0].getSolver().post(Factory.allDifferent(a));
     }
 
-    public static Constraint makeIntPlus(IntVar a, IntVar b, IntVar c) {
-        return Factory.equal(Factory.sum(a,b), c);
+    public void makeIntPlus(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.equal(Factory.sum(a,b), c));
     }
 
-    public static Constraint makeIntMax(IntVar a, IntVar b, IntVar c) {
-        return Factory.equal(maximum(a,b), c);
-    }
-    public static Constraint makeIntMin(IntVar a, IntVar b, IntVar c) {
-        return Factory.equal(minimum(a,b), c);
+    public void makeIntMax(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.equal(maximum(a,b), c));
     }
 
-    public static Constraint makeIntAbs(IntVar a, IntVar b) {
-        return Factory.equal(Factory.abs(a), b);
+    public void makeIntMin(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.equal(minimum(a,b), c));
     }
 
-    public static Constraint makeMaximumInt(IntVar m, IntVar[] x) {
-        return Factory.equal(m, Factory.maximum(x));
-    }
-    public static Constraint makeMinimumInt(IntVar m, IntVar[] x) {
-        return Factory.equal(m, Factory.minimum(x));
+    public void makeIntAbs(IntVar a, IntVar b) {
+        minicp.post(Factory.equal(Factory.abs(a), b));
     }
 
-    public static Constraint makeExactlyInt(int n, IntVar[] x, int v) {
-        return Factory.exactly(x, v, n);
+    public void makeMaximumInt(IntVar m, IntVar[] x) {
+        minicp.post(Factory.equal(m, Factory.maximum(x)));
+    }
+    public void makeMinimumInt(IntVar m, IntVar[] x) {
+        minicp.post(Factory.equal(m, Factory.minimum(x)));
     }
 
-    public static Constraint makeAtLeastInt(int n, IntVar[] x, int v) {
-        return Factory.atleast(x, v, n);
+    public void makeExactlyInt(int n, IntVar[] x, int v) {
+        x[0].getSolver().post(Factory.exactly(x, v, n));
     }
 
-    public static Constraint makeAtMostInt(int n, IntVar[] x, int v) {
-        return Factory.atmost(x, v, n);
+    public void makeAtLeastInt(int n, IntVar[] x, int v) {
+        x[0].getSolver().post(Factory.atleast(x, v, n));
     }
 
-    public static Constraint makeGlobalCardinality(IntVar[] x, int[] cover, IntVar[] counts) {
-        return Factory.cardinality(x, cover, counts);
+    public void makeAtMostInt(int n, IntVar[] x, int v) {
+        x[0].getSolver().post(Factory.atmost(x, v, n));
     }
 
-    public static Constraint makeGlobalCardinalityLowUp(IntVar[] x, int[] cover, int[] lbound, int[] ubound) {
-        return Factory.cardinality(x, cover, lbound, ubound);
+    public void makeGlobalCardinality(IntVar[] x, int[] cover, IntVar[] counts) {
+        x[0].getSolver().post(Factory.cardinality(x, cover, counts));
     }
 
-    public static Constraint makeCircuit(IntVar[] x) {
-        return Factory.circuit(x);
+    public void makeGlobalCardinalityLowUp(IntVar[] x, int[] cover, int[] lbound, int[] ubound) {
+        x[0].getSolver().post(Factory.cardinality(x, cover, lbound, ubound));
+    }
+
+    public void makeCircuit(IntVar[] x) {
+        x[0].getSolver().post(Factory.circuit(x));
     }
 
 }

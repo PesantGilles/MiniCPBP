@@ -236,6 +236,7 @@ public class MiniCP implements Solver {
                 prevOutsideBeliefRecorded = false;
             }
             int nbVar = nbBranchingVariables();
+            int nb_iter = beliefPropaMaxIter;
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
                 if (dampingMessages())
@@ -251,12 +252,14 @@ public class MiniCP implements Solver {
                     sumEntropy += variables.get(i).entropy();
                 }
                 sumEntropy = sumEntropy/nbVar;
-                if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold*(1+nbVar)) {
+                if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold) {
+                    nb_iter = iter;
                     break;
                 }
                 
                 oldEntropy = sumEntropy;
             }
+            System.out.println("nb iter : " +nb_iter);
 
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
