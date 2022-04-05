@@ -1103,6 +1103,11 @@ public class XCSP implements XCallbacks2 {
 			if(XCSP.initImpact)
 				search.initializeImpact(vars);
 			break;
+		case MIE:
+			search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
+			if(XCSP.initImpact)
+				search.initializeImpact(vars);
+			break;
 		default:
 			System.out.println("unknown search strategy");
 			System.exit(1);
