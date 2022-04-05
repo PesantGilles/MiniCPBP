@@ -63,6 +63,7 @@ public class MiniCP implements Solver {
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
+    private static boolean dynamicStopBP = false;
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
@@ -72,6 +73,7 @@ public class MiniCP implements Solver {
     //***** TRACING SWITCHES *****
     private static boolean traceBP = true;
     private static boolean traceSearch = true;
+    private static boolean traceNbIter = true;
     //****************************
 
 
@@ -79,7 +81,7 @@ public class MiniCP implements Solver {
     private boolean prevOutsideBeliefRecorded = false;
 
     private double oldEntropy;
-    private static double variationThreshold = -Double.MAX_VALUE;
+    private static double variationThreshold = 0.1;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -127,8 +129,16 @@ public class MiniCP implements Solver {
         MiniCP.traceSearch = traceSearch;
     }
 
+    public void setTraceNbIterFlag(boolean traceNbIter) {
+        MiniCP.traceNbIter = traceNbIter;
+    }
+
     public void setMaxIter(int maxIter) {
         MiniCP.beliefPropaMaxIter = maxIter;
+    }
+
+    public void setDynamicStopBP(boolean dynamicStopBP) {
+        MiniCP.dynamicStopBP = dynamicStopBP;
     }
 
     public boolean dampingMessages() {
@@ -207,7 +217,8 @@ public class MiniCP implements Solver {
         beliefPropaListeners.forEach(s -> s.call());
     }
 
-    private int nbBranchingVariables() {
+    @Override
+    public int nbBranchingVariables() {
         int count = 0;
         for(int i =0; i < variables.size(); i++) {
             if(variables.get(i).isForBranching())
@@ -247,19 +258,24 @@ public class MiniCP implements Solver {
                         System.out.println(variables.get(i).getName() + " taille : "+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
-                double sumEntropy = 0.0;
-                for(int i =0; i < variables.size(); i++) {
-                    sumEntropy += variables.get(i).entropy();
+                if(dynamicStopBP){
+                    double sumEntropy = 0.0;
+                    for(int i =0; i < variables.size(); i++) {
+                        if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                            sumEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+                        }
+                    }
+                    sumEntropy = sumEntropy/nbVar;
+                    if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold && (oldEntropy - sumEntropy)>=0) {
+                        nb_iter = iter;
+                        break;
+                    }
+                    
+                    oldEntropy = sumEntropy;
                 }
-                sumEntropy = sumEntropy/nbVar;
-                if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold) {
-                    nb_iter = iter;
-                    break;
-                }
-                
-                oldEntropy = sumEntropy;
             }
-            System.out.println("nb iter : " +nb_iter);
+            if(traceNbIter)
+                System.out.println("nb iter : " +nb_iter);
 
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status

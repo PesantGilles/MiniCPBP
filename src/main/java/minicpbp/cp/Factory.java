@@ -324,7 +324,8 @@ public final class Factory {
         double newEntropy = 0.0;
         StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
         for(int i = 0; i < listeVariables.size(); i++) 
-            oldEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                oldEntropy += listeVariables.get(i).entropy()/Math.log(listeVariables.get(i).size());
         
         x.assign(v);
         try {
@@ -335,7 +336,8 @@ public final class Factory {
             throw e;
         }
         for(int i = 0; i < listeVariables.size(); i++) 
-            newEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                newEntropy += listeVariables.get(i).entropy()/Math.log(listeVariables.get(i).size());
 
         x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
@@ -372,10 +374,11 @@ public final class Factory {
         double oldEntropy = 0.0;
         double newEntropy = 0.0;
         StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
+
         for(int i = 0; i < listeVariables.size(); i++) {
-            oldEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                oldEntropy += listeVariables.get(i).entropy();
         }
-        
         x.assign(v);
         try {
             x.getSolver().propagateSolver();
@@ -385,7 +388,8 @@ public final class Factory {
             throw e;
         }
         for(int i = 0; i < listeVariables.size(); i++) 
-            newEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                newEntropy += listeVariables.get(i).entropy();
 
         x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }

@@ -106,6 +106,15 @@ public class SolveXCSPFZN {
 		Option variationThresholdOpt = Option.builder().longOpt("var-threshold").argName("variationThreshold").hasArg()
 				.desc("threshold on entropy's variation under to stop belief propagation").build();	
 
+		Option initImpactOpt = Option.builder().longOpt("init-impact").hasArg(false).desc("initialize impact before search")
+				.build();
+
+		Option dynamicStopBPOpt = Option.builder().longOpt("dynamic-stop").hasArg(false).desc("BP iterations are stopped dynamically instead of a fixed number of iteration")
+				.build();
+
+		Option traceNbIterOpt = Option.builder().longOpt("trace-iter").hasArg(false).desc("trace the number of BP iterations before each branching")
+				.build();
+
 		Options options = new Options();
 		options.addOption(xcspFileOpt);
 		options.addOption(branchingOpt);
@@ -123,6 +132,9 @@ public class SolveXCSPFZN {
 		options.addOption(nbFailsCutofOpt);
 		options.addOption(restartFactorOpt);
 		options.addOption(variationThresholdOpt);
+		options.addOption(initImpactOpt);
+		options.addOption(dynamicStopBPOpt);
+		options.addOption(traceNbIterOpt);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -186,6 +198,9 @@ public class SolveXCSPFZN {
 		boolean traceSearch = (cmd.hasOption("trace-search"));
 		boolean damp = (cmd.hasOption("damp-messages"));
 		boolean restart = (cmd.hasOption("restart"));
+		boolean initImpact = (cmd.hasOption("init-impact"));
+		boolean dynamicStopBP = (cmd.hasOption("dynamic-stop"));
+		boolean traceNbIter = (cmd.hasOption("trace-iter"));
 
 		try {
 			System.out.println(inputStr.substring(inputStr.lastIndexOf('.')+1));
@@ -202,6 +217,9 @@ public class SolveXCSPFZN {
 				fzn.nbFailCutof(nbFailCutof);
 				fzn.restartFactor(restartFactor);
 				fzn.variationThreshold(variationThreshold);
+				fzn.initImpact(initImpact);
+				fzn.dynamicStopBP(dynamicStopBP);
+				fzn.traceNbIter(traceNbIter);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -218,6 +236,9 @@ public class SolveXCSPFZN {
 				xcsp.nbFailCutof(nbFailCutof);
 				xcsp.restartFactor(restartFactor);
 				xcsp.variationThreshold(variationThreshold);
+				xcsp.initImpact(initImpact);
+				xcsp.dynamicStopBP(dynamicStopBP);
+				xcsp.traceNbIter(traceNbIter);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {

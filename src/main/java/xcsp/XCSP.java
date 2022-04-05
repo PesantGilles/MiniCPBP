@@ -1016,6 +1016,24 @@ public class XCSP implements XCallbacks2 {
 		XCSP.searchType = searchType;
 	}
 
+	private static boolean initImpact = false;
+
+	public void initImpact(boolean initImpact) {
+		XCSP.initImpact = initImpact;
+	}
+
+	private static boolean dynamicStopBP = false;
+
+	public void dynamicStopBP(boolean dynamicStopBP) {
+		XCSP.dynamicStopBP = dynamicStopBP;
+	}
+
+	private static boolean traceNbIter = false;
+
+	public void traceNbIter(boolean traceNbIter) {
+		XCSP.traceNbIter = traceNbIter;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -1038,7 +1056,9 @@ public class XCSP implements XCallbacks2 {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
+		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setMaxIter(maxIter);
+		minicp.setDynamicStopBP(dynamicStopBP);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
 		minicp.setVariationThreshold(variationThreshold);
@@ -1050,11 +1070,11 @@ public class XCSP implements XCallbacks2 {
 
 		Stream<IntVar> nonDecisionVars = mapVar.entrySet().stream().sorted(new EntryComparator())
 				.map(Map.Entry::getValue).filter(v -> !decisionVars.contains(v));
-		IntVar[] vars = Stream.concat(decisionVars.stream().peek(x-> {
+		IntVar[] vars = Stream.concat(decisionVars.stream(),
+		 nonDecisionVars).peek(x-> {
 			if(!x.isBound()){
 			x.setForBranching(true);}
-		}),
-		 nonDecisionVars).toArray(IntVar[]::new);
+		}).toArray(IntVar[]::new);
 
 		Search search = null;
 		switch (heuristic) {
@@ -1080,7 +1100,8 @@ public class XCSP implements XCallbacks2 {
 		case IE:
 			search = makeSearch(impactEntropy(vars));
 			//search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
-			//search.initializeImpact(vars);
+			if(XCSP.initImpact)
+				search.initializeImpact(vars);
 			break;
 		default:
 			System.out.println("unknown search strategy");

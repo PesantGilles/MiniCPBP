@@ -188,6 +188,7 @@ public class DFSearch extends Search{
     }
 
     public void initializeImpact(IntVar... x) {
+        System.out.println("initializing impacts");
         int[] arrayVal;
         IntHolder value = new IntHolder();
         for(IntVar a: x) {

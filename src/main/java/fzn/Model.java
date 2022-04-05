@@ -60,10 +60,13 @@ public class Model {
     public void buildModel() {
         for(ASTParamDecl p : m.getParamDecls())
             addParam(p);
+        System.out.println(1);
         for(ASTVarDecl v : m.getVarDecls())
             addVar(v);
+            System.out.println(2);
         for(ASTConstraint c : m.getConstraints())
             addConstraint(c);
+        System.out.println(3);
         for(ASTFuncDecl f : m.getFuncDecls())
             addFunc(f);
             
@@ -135,6 +138,7 @@ public class Model {
     private void addConstraint(ASTConstraint c) {
         //List<ASTLit> anns = c.getAnns();
         String name = c.getId().getValue();
+        System.out.println(name);
         ArrayList<ASTLit> args = c.getArgs();
         //TODO handle annotations
         constructConstraint(name, args);
@@ -304,7 +308,7 @@ public class Model {
 
     private void constructConstraint(String name, ArrayList<ASTLit> args) {
 
-        constraintBuilder builder = new constraintBuilder(solver);
+        ConstraintBuilder builder = new ConstraintBuilder(solver);
         switch(name){
             case "all_different_int":
                 builder.makeAllDifferentInt(getIntVarArray(args.get(0)));

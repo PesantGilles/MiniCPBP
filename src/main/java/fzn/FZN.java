@@ -139,6 +139,24 @@ public class FZN {
 		FZN.variationThreshold = variationThreshold;
 	}
 
+	private static boolean initImpact = false;
+
+	public void initImpact(boolean initImpact) {
+		FZN.initImpact = initImpact;
+	}
+
+	private static boolean dynamicStopBP = false;
+
+	public void dynamicStopBP(boolean dynamicStopBP) {
+		FZN.dynamicStopBP = dynamicStopBP;
+	}
+
+	private static boolean traceNbIter = false;
+
+	public void traceNbIter(boolean traceNbIter) {
+		FZN.traceNbIter = traceNbIter;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -161,6 +179,8 @@ public class FZN {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
+		minicp.setDynamicStopBP(dynamicStopBP);
+		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setMaxIter(maxIter);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
@@ -173,11 +193,16 @@ public class FZN {
 	
 		m.addSolver(minicp);
 		m.buildModel();
-		System.out.println("Model build");
-
-		for(Constraint c : m.getListeConstraint()){
-			minicp.post(c);
+		System.out.println("Model built");
+		for(IntVar a: m.getDecisionsVar()){
+			System.out.println(a.getName());
+			a.setForBranching(true);
 		}
+		System.exit(0);
+
+		/*for(Constraint c : m.getListeConstraint()){
+			minicp.post(c);
+		}*/
 		System.out.println("Constraint posted");
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
@@ -203,7 +228,8 @@ public class FZN {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(m.getDecisionsVar()));
-			//search.initializeImpact(vars);
+			if(FZN.initImpact)
+				search.initializeImpact(m.getDecisionsVar());
 			break;
 		default:
 			System.out.println("unknown search strategy");

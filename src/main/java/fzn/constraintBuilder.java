@@ -10,11 +10,11 @@ import minicpbp.engine.core.Solver;
 
 import static minicpbp.cp.Factory.*;
 
-public class constraintBuilder {
+public class ConstraintBuilder {
 
     private Solver minicp;
 
-    public constraintBuilder(Solver minicp) {
+    public ConstraintBuilder(Solver minicp) {
         this.minicp = minicp;
     }
 
