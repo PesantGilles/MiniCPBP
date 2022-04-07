@@ -128,8 +128,9 @@ public class ConstraintBuilder {
         }
         for(int i = 0; i < bs.length; i++) {
             array[as.length+i] = Factory.opposite(bs[i]);
+            array[as.length+i].setName(bs[i].getName()+"opposite");
         }
-        Factory.branchEqual(isOr(array), 1);
+        minicp.post(Factory.Or(array));
     }
 
     public void makeBool2Int(BoolVar a, IntVar b) {

@@ -60,13 +60,10 @@ public class Model {
     public void buildModel() {
         for(ASTParamDecl p : m.getParamDecls())
             addParam(p);
-        System.out.println(1);
         for(ASTVarDecl v : m.getVarDecls())
             addVar(v);
-            System.out.println(2);
         for(ASTConstraint c : m.getConstraints())
             addConstraint(c);
-        System.out.println(3);
         for(ASTFuncDecl f : m.getFuncDecls())
             addFunc(f);
             
@@ -122,10 +119,12 @@ public class Model {
         if(!(decl.getType() instanceof ASTArrayType)) {
             if(decl.getType().getDataType() == ASTConstants.INT) {
                 IntVar varToAdd = getIntVar(decl.getId());
+                varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
             }
             else if(decl.getType().getDataType() == ASTConstants.BOOL) {
                 BoolVar varToAdd = getBoolVar(decl.getId());
+                varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
             }
         }
@@ -138,7 +137,6 @@ public class Model {
     private void addConstraint(ASTConstraint c) {
         //List<ASTLit> anns = c.getAnns();
         String name = c.getId().getValue();
-        System.out.println(name);
         ArrayList<ASTLit> args = c.getArgs();
         //TODO handle annotations
         constructConstraint(name, args);
@@ -282,9 +280,7 @@ public class Model {
 
     private IntVar createSingleVarInt(ASTDecl v) {
         IntVar newVar;
-        //System.out.println(v.getName());
         ASTVarType type = (ASTVarType) v.getType();
-        //System.out.println(type.getDom());
 		if(type.getDom() instanceof ASTRange) {
 			newVar =  Factory.makeIntVar(solver,
 				((ASTRange) type.getDom()).getLb().getValue(),
