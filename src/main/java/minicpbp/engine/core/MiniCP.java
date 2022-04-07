@@ -70,8 +70,8 @@ public class MiniCP implements Solver {
     //****************************
 
     //***** TRACING SWITCHES *****
-    private static boolean traceBP = true;
-    private static boolean traceSearch = true;
+    private static boolean traceBP = false;
+    private static boolean traceSearch = false;
     //****************************
 
 
@@ -223,7 +223,7 @@ public class MiniCP implements Solver {
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + " taille : "+variables.get(i).size()+" " + variables.get(i).toString());
+                        System.out.println(variables.get(i).getName() + " dsize="+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
             }

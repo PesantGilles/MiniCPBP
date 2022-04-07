@@ -46,18 +46,6 @@ public class NotEqual extends AbstractConstraint {
         setExactWCounting(true);
     }
 
-    /**
-     * Creates a constraint such
-     * that {@code x != y}
-     *
-     * @param x the left member
-     * @param y the right memer
-     * @see minicpbp.cp.Factory#notEqual(IntVar, IntVar)
-     */
-    public NotEqual(IntVar x, IntVar y) { // x != y
-        this(x, y, 0);
-    }
-
     @Override
     public void post() {
         if (y.isBound()) {

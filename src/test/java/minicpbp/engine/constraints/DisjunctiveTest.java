@@ -49,7 +49,7 @@ public class DisjunctiveTest extends SolverTest {
 
                 cp.post(new IsLessOrEqualVar(iBeforej, end_i, start[j]),true);
                 cp.post(new IsLessOrEqualVar(jBeforei, end_j, start[i]),true);
-                cp.post(new NotEqual(iBeforej, jBeforei), false);
+                cp.post(notEqual(iBeforej, jBeforei), false);
 
             }
         }

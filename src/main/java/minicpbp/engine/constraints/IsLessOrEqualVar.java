@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicpbp.engine.constraints;
@@ -51,13 +54,20 @@ public class IsLessOrEqualVar extends AbstractConstraint {
         this.y = y;
         lEqC = lessOrEqual(x, y);
         grC = lessOrEqual(plus(y, 1), x);
+        setExactWCounting(true);
     }
 
     @Override
     public void post() {
-        x.propagateOnBoundChange(this);
-        y.propagateOnBoundChange(this);
-        b.propagateOnBind(this);
+        switch (getSolver().getMode()) {
+            case BP:
+                break;
+            case SP:
+            case SBP:
+                x.propagateOnBoundChange(this);
+                y.propagateOnBoundChange(this);
+		b.propagateOnBind(this);
+        }
         propagate();
     }
 
@@ -80,4 +90,41 @@ public class IsLessOrEqualVar extends AbstractConstraint {
         }
     }
 
+
+    @Override
+    public void updateBelief() {
+        double belief, beliefSAT;
+        int vx, vy;
+        // Treatment of x
+        belief = beliefRep.zero();
+        beliefSAT = beliefRep.zero(); // that x<=y is satisfied
+        vy = y.max();
+        for (vx = x.max(); vx >= x.min(); vx--) {
+            if (x.contains(vx)) {
+                while ((vx <= vy) && (vy >= y.min())) {
+                    belief = beliefRep.add(belief, outsideBelief(2, vy));
+                    do vy--; while (!y.contains(vy) && (vy >= y.min()));
+                }
+		        beliefSAT = beliefRep.add(beliefSAT,beliefRep.multiply(belief,outsideBelief(1,vx)));
+                setLocalBelief(1, vx, beliefRep.add( beliefRep.multiply(belief, outsideBelief(0,1)),
+						     beliefRep.multiply(beliefRep.complement(belief), outsideBelief(0,0)) ));
+            }
+        }
+        // Treatment of y
+        belief = beliefRep.zero();
+        vx = x.min();
+        for (vy = y.min(); vy <= y.max(); vy++) {
+            if (y.contains(vy)) {
+                while ((vx <= vy) && (vx <= x.max())) {
+                    belief = beliefRep.add(belief, outsideBelief(1, vx));
+                    do vx++; while (!x.contains(vx) && (vx <= x.max()));
+                }
+                setLocalBelief(2, vy, beliefRep.add( beliefRep.multiply(belief, outsideBelief(0,1)),
+						     beliefRep.multiply(beliefRep.complement(belief), outsideBelief(0,0)) ));
+            }
+        }
+        // Treatment of b
+	    setLocalBelief(0, 1, beliefSAT);
+	    setLocalBelief(0, 0, beliefRep.complement(beliefSAT));
+    }
 }

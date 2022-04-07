@@ -117,7 +117,7 @@ public class Disjunctive extends AbstractConstraint {
 
                     getSolver().post(new IsLessOrEqualVar(iBeforej, endi, start[j]));
                     getSolver().post(new IsLessOrEqualVar(jBeforei, endj, start[i]));
-                    getSolver().post(new NotEqual(iBeforej, jBeforei), false);
+                    getSolver().post(notEqual(iBeforej, jBeforei), false);
 
                 }
             }

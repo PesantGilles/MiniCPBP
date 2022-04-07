@@ -18,6 +18,7 @@ package minicpbp.engine.constraints;
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.cp.Factory;
 
 public class AllDifferentBinary extends AbstractConstraint {
 
@@ -34,7 +35,7 @@ public class AllDifferentBinary extends AbstractConstraint {
         Solver cp = x[0].getSolver();
         for (int i = 0; i < x.length; i++) {
             for (int j = i + 1; j < x.length; j++) {
-                cp.post(new NotEqual(x[i], x[j]), false);
+                cp.post(Factory.notEqual(x[i], x[j]), false);
             }
         }
         setActive(false);
