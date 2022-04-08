@@ -82,7 +82,7 @@ public class CumulativeDecomposition extends AbstractConstraint {
             cumHeight.removeAbove(capa);
 
         }
-
+        setActive(false);
     }
 
 }

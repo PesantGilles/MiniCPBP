@@ -297,6 +297,16 @@ public final class Factory {
         return new IntVarViewOffset(x, -v);
     }
 
+    /**
+     * A variable that is a view of not x.
+     *
+     * @param x a variable
+     * @return a variable that is a view of not x
+     */
+    public static BoolVar not(BoolVar x) {
+        return new BoolVarViewNot(x);
+    }
+
     // -------------- branches -----------------------
 
     /**
@@ -504,6 +514,20 @@ public final class Factory {
     }
 
     /**
+     * Returns a constraint imposing that the
+     * the first variable differs from the second
+     * one minus a constant value.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @param c a constant
+     * @return a constraint so that {@code x != y+c}
+     */
+    public static Constraint notEqual(IntVar x, IntVar y, int c) {
+        return new NotEqual(x, y, c);
+    }
+
+    /**
      * Returns a constraint imposing that the two different variables
      * must take different values.
      *
@@ -512,7 +536,7 @@ public final class Factory {
      * @return a constraint so that {@code x != y}
      */
     public static Constraint notEqual(IntVar x, IntVar y) {
-        return new NotEqual(x, y);
+        return new NotEqual(x, y, 0);
     }
 
     /**
@@ -525,20 +549,6 @@ public final class Factory {
      */
     public static Constraint equal(IntVar x, IntVar y) {
         return new Equal(x, y);
-    }
-
-    /**
-     * Returns a constraint imposing that the
-     * the first variable differs from the second
-     * one minus a constant value.
-     *
-     * @param x a variable
-     * @param y a variable
-     * @param c a constant
-     * @return a constraint so that {@code x != y+c}
-     */
-    public static Constraint notEqual(IntVar x, IntVar y, int c) {
-        return new NotEqual(x, y, c);
     }
 
     /**
@@ -565,6 +575,58 @@ public final class Factory {
 
     /**
      * Returns a boolean variable representing
+     * whether one variable is not equal to the given constant.
+     * This relation is enforced by the {@link IsEqual} constraint
+     * posted by calling this method.
+     *
+     * @param x the variable
+     * @param c the constant
+     * @return a boolean variable that is true if and only if x does not take the value c
+     * @see IsEqual
+     */
+    public static BoolVar isNotEqual(IntVar x, final int c) {
+        return not(isEqual(x, c));
+    }
+
+    /**
+     * Returns a boolean variable representing
+     * whether one variable is equal to another.
+     * This relation is enforced by the {@link IsEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the first variable
+     * @param y the second variable
+     * @return a boolean variable that is true if and only if x is equal to y
+     * @see IsEqualVar
+     */
+    public static BoolVar isEqual(IntVar x, IntVar y) {
+        BoolVar b = makeBoolVar(x.getSolver());
+        Solver cp = x.getSolver();
+        try {
+            cp.post(new IsEqualVar(b, x, y));
+        } catch (InconsistencyException e) {
+            e.printStackTrace();
+        }
+        return b;
+    }
+
+    /**
+     * Returns a boolean variable representing
+     * whether one variable is not equal to another.
+     * This relation is enforced by the {@link IsEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the first variable
+     * @param y the second variable
+     * @return a boolean variable that is true if and only if x is not equal to y
+     * @see IsEqualVar
+     */
+    public static BoolVar isNotEqual(IntVar x, IntVar y) {
+        return not(isEqual(x, y));
+    }
+
+    /**
+     * Returns a boolean variable representing
      * whether one variable is less or equal to the given constant.
      * This relation is enforced by the {@link IsLessOrEqual} constraint
      * posted by calling this method.
@@ -578,6 +640,24 @@ public final class Factory {
         BoolVar b = makeBoolVar(x.getSolver());
         Solver cp = x.getSolver();
         cp.post(new IsLessOrEqual(b, x, c));
+        return b;
+    }
+
+    /**
+     * Returns a boolean variable representing
+     * whether one variable is less or equal to another variable.
+     * This relation is enforced by the {@link IsLessOrEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the lhs variable
+     * @param y the rhs variable
+     * @return a boolean variable that is true if and only if
+     * x takes a value less or equal to that of y
+     */
+    public static BoolVar isLessOrEqual(IntVar x, IntVar y) {
+        BoolVar b = makeBoolVar(x.getSolver());
+        Solver cp = x.getSolver();
+        cp.post(new IsLessOrEqualVar(b, x, y));
         return b;
     }
 
@@ -598,6 +678,21 @@ public final class Factory {
 
     /**
      * Returns a boolean variable representing
+     * whether one variable is less than another variable.
+     * This relation is enforced by the {@link IsLessOrEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the lhs variable
+     * @param y the rhs variable
+     * @return a boolean variable that is true if and only if
+     * x takes a value less than that of y
+     */
+    public static BoolVar isLess(IntVar x, IntVar y) {
+        return isLessOrEqual(x, minus(y,1));
+    }
+
+    /**
+     * Returns a boolean variable representing
      * whether one variable is larger or equal to the given constant.
      * This relation is enforced by the {@link IsLessOrEqual} constraint
      * posted by calling this method.
@@ -609,6 +704,21 @@ public final class Factory {
      */
     public static BoolVar isLargerOrEqual(IntVar x, final int c) {
         return isLessOrEqual(minus(x), -c);
+    }
+
+    /**
+     * Returns a boolean variable representing
+     * whether one variable is larger or equal to another variable.
+     * This relation is enforced by the {@link IsLessOrEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the lhs variable
+     * @param y the rhs variable
+     * @return a boolean variable that is true if and only if
+     * x takes a value larger or equal to that of y
+     */
+    public static BoolVar isLargerOrEqual(IntVar x, IntVar y) {
+        return isLessOrEqual(y, x);
     }
 
     /**
@@ -627,6 +737,21 @@ public final class Factory {
     }
 
     /**
+     * Returns a boolean variable representing
+     * whether one variable is larger than another variable.
+     * This relation is enforced by the {@link IsLessOrEqualVar} constraint
+     * posted by calling this method.
+     *
+     * @param x the lhs variable
+     * @param y the rhs variable
+     * @return a boolean variable that is true if and only if
+     * x takes a value larger than that of y
+     */
+    public static BoolVar isLarger(IntVar x, IntVar y) {
+        return isLessOrEqual(y, minus(x,1));
+    }
+
+    /**
      * Returns a constraint imposing that the
      * a first variable is less or equal to a second one.
      *
@@ -636,6 +761,18 @@ public final class Factory {
      */
     public static Constraint lessOrEqual(IntVar x, IntVar y) {
         return new LessOrEqual(x, y);
+    }
+
+    /**
+     * Returns a constraint imposing that the
+     * a first variable is less than a second one.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @return a constraint so that {@code x < y}
+     */
+    public static Constraint less(IntVar x, IntVar y) {
+        return new LessOrEqual(x, minus(y,1));
     }
 
     /**
@@ -650,19 +787,31 @@ public final class Factory {
         return new LessOrEqual(y, x);
     }
 
-    /**
+    /*
      * Returns a constraint imposing that array[y] = z
      * @param array an array of int
      * @param y a variable
      * @param z a variable
      * @return a constraint so that {@code array[y] = z}
      */
-    public static Constraint Element1D(int[] array, IntVar y, IntVar z) {
+    public static Constraint element(int[] array, IntVar y, IntVar z) {
         return new Element1D(array, y, z);
     }
 
-    public static Constraint Element1DVar(IntVar[] array, IntVar y, IntVar z) {
+    public static Constraint element(IntVar[] array, IntVar y, IntVar z) {
         return new Element1DVar(array, y, z);
+    }
+  
+    /*
+     * Returns a constraint imposing that the
+     * a first variable is larger than a second one.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @return a constraint so that {@code x > y}
+     */
+    public static Constraint larger(IntVar x, IntVar y) {
+        return new LessOrEqual(y, minus(x,1));
     }
 
     /**
@@ -773,14 +922,8 @@ public final class Factory {
         int sumMin = 0;
         int sumMax = 0;
         for (int i = 0; i < x.length; i++) {
-            if(c[i] > 0) {
-                sumMin += c[i] * x[i].min();
-                sumMax += c[i] * x[i].max();
-            }
-            else {
-                sumMin += c[i] * x[i].max();
-				sumMax += c[i] * x[i].min();
-            }
+            sumMin += c[i] * (c[i] >= 0 ? x[i].min() : x[i].max());
+            sumMax += c[i] * (c[i] >= 0 ? x[i].max() : x[i].min());
         }
         Solver cp = x[0].getSolver();
         IntVar[] vars = new IntVar[x.length + 1];

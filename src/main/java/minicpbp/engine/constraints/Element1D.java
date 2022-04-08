@@ -51,6 +51,7 @@ public class Element1D extends AbstractConstraint {
         System.arraycopy(t, 0, t2[0], 0, t.length);
         Constraint c = new Element2D(t2, Factory.makeIntVar(getSolver(), 0, 0), y, z);
         getSolver().post(c, false);
+        setActive(false);
     }
 
 }

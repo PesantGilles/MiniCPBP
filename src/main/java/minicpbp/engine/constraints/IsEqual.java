@@ -55,10 +55,16 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
     @Override
     public void post() {
         propagate();
-        if (isActive()) {
-            x.propagateOnDomainChange(this);
-            b.propagateOnBind(this);
-        }
+	switch (getSolver().getMode()) {
+	case BP:
+	    break;
+	case SP:
+	case SBP:
+	    if (isActive()) {
+		x.propagateOnDomainChange(this);
+		b.propagateOnBind(this);
+	    }
+	}
     }
 
     @Override
@@ -81,16 +87,16 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
     @Override
     public void updateBelief() {
         // Treatment of b
-	setLocalBelief(0, 1, outsideBelief(1, c));
-	setLocalBelief(0, 0, beliefRep.complement(outsideBelief(1, c)));
+	    setLocalBelief(0, 1, outsideBelief(1, c));
+	    setLocalBelief(0, 0, beliefRep.complement(outsideBelief(1, c)));
         // Treatment of x
         int nVal = x.fillArray(domainValues);
-	for (int k = 0; k < nVal; k++) {
-	    setLocalBelief(1, domainValues[k], outsideBelief(0, 0));
-	}
-	if (x.contains(c)) { // set correctly for c
-	    setLocalBelief(1, c, outsideBelief(0, 1));
-	}
+	    for (int k = 0; k < nVal; k++) {
+	        setLocalBelief(1, domainValues[k], outsideBelief(0, 0));
+	    }
+	    if (x.contains(c)) { // set correctly for c
+	        setLocalBelief(1, c, outsideBelief(0, 1));
+	    }
     }
 
 }
