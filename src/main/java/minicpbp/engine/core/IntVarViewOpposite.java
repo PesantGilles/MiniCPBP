@@ -196,6 +196,11 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return -x.valueWithMaxImpact();
+    }
+
+    @Override
     public void registerImpact(int value, double impact) {
         x.registerImpact(-value, impact);
     }
@@ -215,6 +220,16 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public void setForBranching(boolean b) {
+        x.setForBranching(b);;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return x.isForBranching();
+    }
+
+    @Override
     public String getName() {
         if (this.name != null)
             return this.name;
@@ -226,6 +241,7 @@ public class IntVarViewOpposite implements IntVar {
     public void setName(String name) {
         this.name = name;
     }
+    
 
     @Override
     public String toString() {

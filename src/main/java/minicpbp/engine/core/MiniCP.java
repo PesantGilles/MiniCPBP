@@ -63,6 +63,7 @@ public class MiniCP implements Solver {
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
+    private static boolean dynamicStopBP = false;
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
@@ -72,11 +73,15 @@ public class MiniCP implements Solver {
     //***** TRACING SWITCHES *****
     private static boolean traceBP = false;
     private static boolean traceSearch = false;
+    private static boolean traceNbIter = false;
     //****************************
 
 
     // for message damping
     private boolean prevOutsideBeliefRecorded = false;
+
+    private double oldEntropy;
+    private static double variationThreshold = 0.1;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -124,8 +129,16 @@ public class MiniCP implements Solver {
         MiniCP.traceSearch = traceSearch;
     }
 
+    public void setTraceNbIterFlag(boolean traceNbIter) {
+        MiniCP.traceNbIter = traceNbIter;
+    }
+
     public void setMaxIter(int maxIter) {
         MiniCP.beliefPropaMaxIter = maxIter;
+    }
+
+    public void setDynamicStopBP(boolean dynamicStopBP) {
+        MiniCP.dynamicStopBP = dynamicStopBP;
     }
 
     public boolean dampingMessages() {
@@ -142,6 +155,14 @@ public class MiniCP implements Solver {
 
     public void setDampingFactor(double dampingFactor) {
         MiniCP.dampingFactor = dampingFactor;
+    }
+
+    public void setVariationThreshold(double variationThreshold) {
+        MiniCP.variationThreshold = variationThreshold;
+    }
+
+    public double variationThreshold() {
+        return MiniCP.variationThreshold;
     }
 
     public boolean prevOutsideBeliefRecorded() {
@@ -196,6 +217,16 @@ public class MiniCP implements Solver {
         beliefPropaListeners.forEach(s -> s.call());
     }
 
+    @Override
+    public int nbBranchingVariables() {
+        int count = 0;
+        for(int i =0; i < variables.size(); i++) {
+            if(variables.get(i).isForBranching())
+                count += 1;
+        }
+        return count;
+    }
+
     /**
      * Belief Propagation
      * standard version, with two distinct message-passing phases
@@ -215,7 +246,8 @@ public class MiniCP implements Solver {
                 }
                 prevOutsideBeliefRecorded = false;
             }
-
+            int nbVar = nbBranchingVariables();
+            int nb_iter = beliefPropaMaxIter;
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
                 if (dampingMessages())
@@ -226,7 +258,24 @@ public class MiniCP implements Solver {
                         System.out.println(variables.get(i).getName() + " dsize="+variables.get(i).size()+" " + variables.get(i).toString());
                     }
                 }
+                if(dynamicStopBP){
+                    double sumEntropy = 0.0;
+                    for(int i =0; i < variables.size(); i++) {
+                        if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                            sumEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+                        }
+                    }
+                    sumEntropy = sumEntropy/nbVar;
+                    if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold && (oldEntropy - sumEntropy)>=0) {
+                        nb_iter = iter;
+                        break;
+                    }
+                    
+                    oldEntropy = sumEntropy;
+                }
             }
+            if(traceNbIter)
+                System.out.println("nb iter : " +nb_iter);
 
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status

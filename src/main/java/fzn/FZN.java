@@ -32,6 +32,8 @@ import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
+import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
+import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -121,6 +123,42 @@ public class FZN {
 		FZN.restart = restart;
 	}
 
+	private static int nbFailCutof = 100;
+	
+	public void nbFailCutof(int nbFailCutof) {
+		FZN.nbFailCutof = nbFailCutof;
+	} 
+
+	private static double restartFactor = 1.5;
+
+	public void restartFactor(double restartFactor) {
+		FZN.restartFactor = restartFactor;
+	}
+
+	private static double variationThreshold = -Double.MAX_VALUE;
+
+	public void variationThreshold(double variationThreshold) {
+		FZN.variationThreshold = variationThreshold;
+	}
+
+	private static boolean initImpact = false;
+
+	public void initImpact(boolean initImpact) {
+		FZN.initImpact = initImpact;
+	}
+
+	private static boolean dynamicStopBP = false;
+
+	public void dynamicStopBP(boolean dynamicStopBP) {
+		FZN.dynamicStopBP = dynamicStopBP;
+	}
+
+	private static boolean traceNbIter = false;
+
+	public void traceNbIter(boolean traceNbIter) {
+		FZN.traceNbIter = traceNbIter;
+	}
+
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -143,9 +181,12 @@ public class FZN {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
+		minicp.setDynamicStopBP(dynamicStopBP);
+		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setMaxIter(maxIter);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
+		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");
@@ -154,10 +195,16 @@ public class FZN {
 	
 		m.addSolver(minicp);
 		m.buildModel();
-
-		for(Constraint c : m.getListeConstraint()){
-			minicp.post(c);
+		//System.out.println("Model built");
+		for(IntVar a: m.getDecisionsVar()){
+			//System.out.println(a.getName());
+			a.setForBranching(true);
 		}
+
+		/*for(Constraint c : m.getListeConstraint()){
+			minicp.post(c);
+		}*/
+		//System.out.println("Constraint posted");
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
 		switch (heuristic) {
@@ -182,6 +229,16 @@ public class FZN {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(m.getDecisionsVar()));
+			if(FZN.initImpact)
+				search.initializeImpact(m.getDecisionsVar());
+			break;
+		case MIE:
+			search = makeDfs(minicp, minEntropyRegisterImpact(m.getDecisionsVar()),impactEntropy(m.getDecisionsVar()));
+			if(FZN.initImpact)
+				search.initializeImpact(m.getDecisionsVar());
+			break;
+		case MNEBW:
+			search = makeSearch(minEntropyBiasedWheelSelectVal(m.getDecisionsVar()));
 			break;
 		default:
 			System.out.println("unknown search strategy");
@@ -229,7 +286,7 @@ public class FZN {
 				else {
 					stats = search.solveRestarts(ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-					});
+					}, nbFailCutof, restartFactor);
 				}
 				break;
 		}

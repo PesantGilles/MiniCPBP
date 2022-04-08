@@ -266,6 +266,12 @@ public interface IntVar {
     public int valueWithMinImpact();
 
     /**
+     * Returns the value of the domain with the maximal impact
+     * @return the value
+     */
+    public int valueWithMaxImpact();
+
+    /**
      * Register an observed impact of assigning a value
      * @param value the value
      * @param impact the impact
@@ -292,6 +298,18 @@ public interface IntVar {
      *            is thrown if the value is not in the domain
      */
     void receiveMessage(int v, double b);
+
+    /**
+     * @param b is True if the variable is a variable that can be branched on
+     * is False if the variable is an auxiliary variable
+     */
+    public void setForBranching(boolean b);
+
+    /**
+     * 
+     * @return True if the variable is a branch variable, False if not
+     */
+    public boolean isForBranching();
 
     public String getName();
     public void setName(String name);

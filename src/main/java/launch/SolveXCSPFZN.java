@@ -25,6 +25,8 @@ public class SolveXCSPFZN {
 		MNM, // minimum marginal
 		MNE, //minimum entropy
 		IE, //impact entropy
+		MIE, //min-entropy followed by impact entropy after first restart,
+		MNEBW, //min-entropy with biased wheel value selection
 	}
 
 	private static Map<String, BranchingHeuristic> branchingMap = new HashMap<String, BranchingHeuristic>() {
@@ -37,6 +39,8 @@ public class SolveXCSPFZN {
 			put("min-marginal", BranchingHeuristic.MNM);
 			put("min-entropy", BranchingHeuristic.MNE);
 			put("impact-entropy", BranchingHeuristic.IE);
+			put("impact-min-entropy", BranchingHeuristic.MIE);
+			put("min-entropy-biased", BranchingHeuristic.MNEBW);
 		}
 	};
 
@@ -95,7 +99,24 @@ public class SolveXCSPFZN {
 
 		Option traceSearchOpt = Option.builder().longOpt("trace-search").hasArg(false).desc("trace the search progress")
 				.build();
-		Option restartSearch = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
+		Option restartSearchOpt = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
+				.build();
+		Option nbFailsCutofOpt = Option.builder().longOpt("cutoff").argName("CUTOF").hasArg()
+				.desc("number of failure before restart").build();
+
+		Option restartFactorOpt = Option.builder().longOpt("restart-factor").argName("restartFactor").hasArg()
+				.desc("factor to increase number of failure before restart").build();		
+
+		Option variationThresholdOpt = Option.builder().longOpt("var-threshold").argName("variationThreshold").hasArg()
+				.desc("threshold on entropy's variation under to stop belief propagation").build();	
+
+		Option initImpactOpt = Option.builder().longOpt("init-impact").hasArg(false).desc("initialize impact before search")
+				.build();
+
+		Option dynamicStopBPOpt = Option.builder().longOpt("dynamic-stop").hasArg(false).desc("BP iterations are stopped dynamically instead of a fixed number of iteration")
+				.build();
+
+		Option traceNbIterOpt = Option.builder().longOpt("trace-iter").hasArg(false).desc("trace the number of BP iterations before each branching")
 				.build();
 
 		Options options = new Options();
@@ -111,7 +132,13 @@ public class SolveXCSPFZN {
 		options.addOption(traceSearchOpt);
 		options.addOption(dampOpt);
 		options.addOption(dFactorOpt);
-		options.addOption(restartSearch);
+		options.addOption(restartSearchOpt);
+		options.addOption(nbFailsCutofOpt);
+		options.addOption(restartFactorOpt);
+		options.addOption(variationThresholdOpt);
+		options.addOption(initImpactOpt);
+		options.addOption(dynamicStopBPOpt);
+		options.addOption(traceNbIterOpt);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -158,14 +185,26 @@ public class SolveXCSPFZN {
 		if (cmd.hasOption("damping-factor"))
 			dampingFactor = Double.parseDouble(cmd.getOptionValue("damping-factor"));
 
+		int nbFailCutof = 100;
+		if(cmd.hasOption("cutoff"))
+			nbFailCutof = Integer.parseInt(cmd.getOptionValue("cutoff"));
+
+		double restartFactor = 1.5;
+		if(cmd.hasOption("restart-factor"))
+			restartFactor = Double.parseDouble(cmd.getOptionValue("restart-factor"));
+
+		double variationThreshold = -Double.MAX_VALUE;
+		if(cmd.hasOption("var-threshold"))
+			variationThreshold = Double.parseDouble(cmd.getOptionValue("var-threshold"));
 
 		boolean checkSolution = (cmd.hasOption("verify"));
 		boolean traceBP = (cmd.hasOption("trace-bp"));
 		boolean traceSearch = (cmd.hasOption("trace-search"));
 		boolean damp = (cmd.hasOption("damp-messages"));
 		boolean restart = (cmd.hasOption("restart"));
-
-
+		boolean initImpact = (cmd.hasOption("init-impact"));
+		boolean dynamicStopBP = (cmd.hasOption("dynamic-stop"));
+		boolean traceNbIter = (cmd.hasOption("trace-iter"));
 
 		try {
 			System.out.println(inputStr.substring(inputStr.lastIndexOf('.')+1));
@@ -179,6 +218,12 @@ public class SolveXCSPFZN {
 				fzn.damp(damp);
 				fzn.dampingFactor(dampingFactor);
 				fzn.restart(restart);
+				fzn.nbFailCutof(nbFailCutof);
+				fzn.restartFactor(restartFactor);
+				fzn.variationThreshold(variationThreshold);
+				fzn.initImpact(initImpact);
+				fzn.dynamicStopBP(dynamicStopBP);
+				fzn.traceNbIter(traceNbIter);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -192,6 +237,12 @@ public class SolveXCSPFZN {
 				xcsp.damp(damp);
 				xcsp.dampingFactor(dampingFactor);
 				xcsp.restart(restart);
+				xcsp.nbFailCutof(nbFailCutof);
+				xcsp.restartFactor(restartFactor);
+				xcsp.variationThreshold(variationThreshold);
+				xcsp.initImpact(initImpact);
+				xcsp.dynamicStopBP(dynamicStopBP);
+				xcsp.traceNbIter(traceNbIter);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {

@@ -22,6 +22,7 @@ import minicpbp.state.StateManager;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.exception.NotImplementedException;
 import minicpbp.util.Procedure;
+import minicpbp.engine.core.IntVar;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -178,7 +179,11 @@ public class LDSearch extends Search{
         return statistics;
     }
 
-    public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit) {
+    public SearchStatistics solveRestarts(Predicate<SearchStatistics> limit, int nbFailCutof, double restartFactor) {
+        throw new NotImplementedException();
+    }
+
+    public void initializeImpact(IntVar... x) {
         throw new NotImplementedException();
     }
 

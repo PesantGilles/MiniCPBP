@@ -91,6 +91,16 @@ public interface Solver {
     void setTraceSearchFlag(boolean traceSearch);
 
     /**
+     * Activate trace of number of BP iteration if @param traceNbIter is true
+     */
+    void setTraceNbIterFlag(boolean traceNbIter);
+
+    /**
+     * Activate dynamic stop criterion for BP if @param dynamicStopBP is true
+     */
+    void setDynamicStopBP(boolean dynamicStopBP);
+
+    /**
      * Set the maximal number of BP iterations before each branching
      * @param maxIter the maximal number of BP iterations
      */
@@ -116,6 +126,17 @@ public interface Solver {
      * @param dampingFactor the damping factor
      */
     void setDampingFactor(double dampingFactor);
+
+    /**
+     * @return variation threshold
+     */
+    double variationThreshold();
+
+    /**
+     * Set variation threshold
+     * @param variationThreshold the threshold
+     */
+    void setVariationThreshold(double variationThreshold);
 
     /**
      * @return whether previous outside belief has been recorded
@@ -182,6 +203,12 @@ public interface Solver {
      * @param x the variable
      */
    void registerVar(IntVar x);
+   
+   /**
+    * 
+    * @return the number of branching variables in the model
+    */
+   int nbBranchingVariables();
 
     /**
      * Adds a listener called whenever we start beliefPropa.

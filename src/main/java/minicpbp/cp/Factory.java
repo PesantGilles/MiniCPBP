@@ -209,6 +209,11 @@ public final class Factory {
         return new DFSearch(cp.getStateManager(), branching);
     }
 
+    public static DFSearch makeDfs(Solver cp, Supplier<Procedure[]> branching, Supplier<Procedure[]> branchingSecond) {
+        cp.propagateSolver();
+        return new DFSearch(cp.getStateManager(), branching, branchingSecond);
+    }
+
 
     /**
      * Creates a Limited Discrepancy Search with custom branching heuristic
@@ -329,7 +334,8 @@ public final class Factory {
         double newEntropy = 0.0;
         StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
         for(int i = 0; i < listeVariables.size(); i++) 
-            oldEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                oldEntropy += listeVariables.get(i).entropy()/Math.log(listeVariables.get(i).size());
         
         x.assign(v);
         try {
@@ -340,7 +346,60 @@ public final class Factory {
             throw e;
         }
         for(int i = 0; i < listeVariables.size(); i++) 
-            newEntropy += listeVariables.get(i).entropy();
+            if(listeVariables.get(i).isForBranching())
+                newEntropy += listeVariables.get(i).entropy()/Math.log(listeVariables.get(i).size());
+
+        x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
+    }
+
+    public static class IntHolder {
+        private int val;
+        private IntVar var;
+        public IntHolder() {}
+        public int getVal() {
+            return val;
+        }
+        public IntVar getVar() {
+            return var;
+        }
+        public void setVal(int value) {
+            val = value;
+        }
+        public void setVar(IntVar a) {
+            var = a;
+        }
+    }
+
+    /**
+     * Branches on x=v,  
+     * performs propagation according to the mode
+     * and compute impact on the entropy of the model
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpact(IntHolder a) {
+        IntVar x = a.getVar();
+        int v = a.getVal();
+        double oldEntropy = 0.0;
+        double newEntropy = 0.0;
+        StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
+
+        for(int i = 0; i < listeVariables.size(); i++) {
+            if(listeVariables.get(i).isForBranching())
+                oldEntropy += listeVariables.get(i).entropy();
+        }
+        x.assign(v);
+        try {
+            x.getSolver().propagateSolver();
+        }
+        catch (InconsistencyException e) {
+            x.registerImpact(v, 1.0);
+            throw e;
+        }
+        for(int i = 0; i < listeVariables.size(); i++) 
+            if(listeVariables.get(i).isForBranching())
+                newEntropy += listeVariables.get(i).entropy();
 
         x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
@@ -395,6 +454,20 @@ public final class Factory {
         IntVar r = makeIntVar(x.getSolver(), 0, Math.max(x.max(), -x.min()));
         x.getSolver().post(new Absolute(x, r));
         return r;
+    }
+
+    public static BoolVar isOr(BoolVar[] x) {
+        BoolVar r = makeBoolVar(x[0].getSolver());
+        r.getSolver().post(new IsOr(r,x));
+        return r;
+    }
+
+    public static Constraint isOr(BoolVar b, BoolVar[] x) {
+        return new IsOr(b, x);
+    }
+
+    public static Constraint or(BoolVar[] a) {
+        return new Or(a);
     }
 
     /**
@@ -714,7 +787,22 @@ public final class Factory {
         return new LessOrEqual(y, x);
     }
 
-    /**
+    /*
+     * Returns a constraint imposing that array[y] = z
+     * @param array an array of int
+     * @param y a variable
+     * @param z a variable
+     * @return a constraint so that {@code array[y] = z}
+     */
+    public static Constraint element(int[] array, IntVar y, IntVar z) {
+        return new Element1D(array, y, z);
+    }
+
+    public static Constraint element(IntVar[] array, IntVar y, IntVar z) {
+        return new Element1DVar(array, y, z);
+    }
+  
+    /*
      * Returns a constraint imposing that the
      * a first variable is larger than a second one.
      *
@@ -1246,6 +1334,15 @@ public final class Factory {
 
 		return new Cardinality(x, vals, oVar, makeIntVar(cp,1,maxDomainSize));
 	}
+
+    /**
+     * Returns a Circuit Constraint
+     * @param x an array of variables
+     * @return
+     */
+    public static Constraint circuit(IntVar[] x) {
+        return new Circuit(x);
+    }
 
     /**
      * Returns a sum modulo p constraint.

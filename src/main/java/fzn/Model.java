@@ -119,12 +119,14 @@ public class Model {
         if(!(decl.getType() instanceof ASTArrayType)) {
             if(decl.getType().getDataType() == ASTConstants.INT) {
                 IntVar varToAdd = getIntVar(decl.getId());
+                varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
             }
-            /*else if(decl.getType().getDataType() == ASTConstants.BOOL) {
+            else if(decl.getType().getDataType() == ASTConstants.BOOL) {
                 BoolVar varToAdd = getBoolVar(decl.getId());
+                varToAdd.setName(decl.getId().getValue());
+                decisionsVar.add(varToAdd);
             }
-            decisionsVar.add(varToAdd);*/
         }
     }
     
@@ -206,6 +208,21 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    private boolean getBool(ASTLit lit) {
+        if(lit instanceof ASTInt) {
+            boolean valeur = ((ASTBool) lit).getValue();
+            return valeur;
+        }
+        else if (lit instanceof ASTId) {
+            ASTId id = (ASTId) lit;
+            if(declDict.get(id.getValue()).getId() != id) {
+                return getBool(declDict.get(id.getValue()).getId());
+            }
+            return ((ASTBool) declDict.get(id.getValue()).getExpr()).getValue();
+        }
+        else throw new NotImplementedException(lit.toString());
+    }
+
     private BoolVar getBoolVar(ASTLit lit) {
         if(lit instanceof ASTBool) {
             ASTBool constant = (ASTBool) lit;
@@ -229,6 +246,38 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    private BoolVar[] getBoolVarArray(ASTLit lit) {
+        if(lit instanceof ASTId) {
+            ASTId id = (ASTId) lit;
+            return getBoolVarArray(declDict.get(id.getValue()).getExpr());
+        }
+        else if(lit instanceof ASTArray) {
+            ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
+            BoolVar array[] = new BoolVar[astarray.size()];
+            for(int i = 0; i < astarray.size(); i++)
+                array[i] = getBoolVar(astarray.get(i));
+            
+            return array;
+        }
+        throw new NotImplementedException(lit.toString());  
+    }
+
+    private boolean[] getBoolArray(ASTLit lit) {
+        if(lit instanceof ASTId) {
+            ASTId id = (ASTId) lit;
+            return getBoolArray(declDict.get(id.getValue()).getExpr());
+        }
+        else if(lit instanceof ASTArray) {
+            ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
+            boolean array[] = new boolean[astarray.size()];
+            for(int i = 0; i < astarray.size(); i++) {
+                array[i] = getBool(astarray.get(i));
+            }
+            return array;
+        }
+        throw new NotImplementedException(lit.toString());
+    }
+
     private IntVar createSingleVarInt(ASTDecl v) {
         IntVar newVar;
         ASTVarType type = (ASTVarType) v.getType();
@@ -241,6 +290,9 @@ public class Model {
 			newVar = Factory.makeIntVar(solver,
 				((ASTSet) type.getDom()).getSet().stream().map(e -> e.getValue()).collect(Collectors.toSet()));
 		}
+        else if(type.getDom() == null) {
+            newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
 		else {
 			System.out.println("Domaine type : " + type.getDom().getClass());
 			throw new NotImplementedException();
@@ -251,130 +303,152 @@ public class Model {
 	}
 
     private void constructConstraint(String name, ArrayList<ASTLit> args) {
+
+        ConstraintBuilder builder = new ConstraintBuilder(solver);
         switch(name){
             case "all_different_int":
-                listeConstraint.add(constraintBuilder.makeAllDifferentInt(getIntVarArray(args.get(0))));
+                builder.makeAllDifferentInt(getIntVarArray(args.get(0)));
                 break;
             case "int_lin_ne":
-                constraintBuilder.makeIntLinNe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
+                builder.makeIntLinNe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "int_lin_ne_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntLinNeReif(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)), getBoolVar(args.get(3)));
+                break;
             case "int_lin_eq" :
-                constraintBuilder.makeIntLinEq(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
+                builder.makeIntLinEq(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "int_lin_eq_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntLinEqReif(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)), getBoolVar(args.get(3)));
+                break;
             case "int_lin_le":
-                constraintBuilder.makeIntLinNe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
+                builder.makeIntLinNe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "int_lin_le_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntLinLeReif(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)), getBoolVar(args.get(3)));
+                break;
             case "int_eq":
-                listeConstraint.add(constraintBuilder.makeIntEq(getIntVar(args.get(0)),getIntVar(args.get(1))));
+                builder.makeIntEq(getIntVar(args.get(0)),getIntVar(args.get(1)));
                 break;
             case "int_eq_reif":
                 throw new NotImplementedException("Constraint : " +name);
             case "int_ne":
-                listeConstraint.add(constraintBuilder.makeIntNe(getIntVar(args.get(0)), getIntVar(args.get(1))));
+                builder.makeIntNe(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
             case "int_ne_reif":
                 throw new NotImplementedException("Constraint : " +name);   
             case "int_le":
-                listeConstraint.add(constraintBuilder.makeIntLe(getIntVar(args.get(0)), getIntVar(args.get(1))));
+                builder.makeIntLe(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
             case "int_le_reif":
                 throw new NotImplementedException("Constraint : " +name);
             case "int_lt":
-                constraintBuilder.makeIntLt(getIntVar(args.get(0)),getIntVar(args.get(1)));
+                builder.makeIntLt(getIntVar(args.get(0)),getIntVar(args.get(1)));
                 break;
             case "int_lt_reif":
                 throw new NotImplementedException("Constraint : " +name);
             case "array_int_element":
-                listeConstraint.add(constraintBuilder.makeArrayIntElement(getIntVar(args.get(0)), getIntArray(args.get(1)), getIntVar(args.get(2))));
+                builder.makeArrayIntElement(getIntVar(args.get(0)), getIntArray(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "array_var_int_element":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayVarIntElement(getIntVar(args.get(0)), getIntVarArray(args.get(1)), getIntVar(args.get(2)));
+                break;
             case "bool_eq":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeBoolEq(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
+                break;
             case "bool_lt":  
                 throw new NotImplementedException("Constraint : " +name); 
             case "bool_le":  
-                throw new NotImplementedException("Constraint : " +name);  
+                builder.makeBoolLe(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
+                break; 
             case "bool_not":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeBoolNot(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
+                break;
+            case "bool_and":
+                builder.makeBoolAnd(getBoolVar(args.get(0)),getBoolVar(args.get(1)), getBoolVar(args.get(2)));
+                break;
+            case "bool_or":
+                builder.makeBoolOr(getBoolVar(args.get(0)),getBoolVar(args.get(1)), getBoolVar(args.get(2)));
+                break;
             case "bool_xor":  
                 throw new NotImplementedException("Constraint : " +name); 
             case "array_bool_or":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayBoolOr(getBoolVarArray(args.get(0)), getBoolVar(args.get(1)));
+                break;
             case "array_bool_xor":  
                 throw new NotImplementedException("Constraint : " +name);
             case "array_bool_and":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayBoolAnd(getBoolVarArray(args.get(0)), getBoolVar(args.get(1)));
+                break;
             case "bool_clause":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeBoolClause(getBoolVarArray(args.get(0)), getBoolVarArray(args.get(1)));
+                break;
             case "bool2int":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeBool2Int(getBoolVar(args.get(0)), getIntVar(args.get(1)));
+                break;
             case "array_bool_element":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayBoolElement(getIntVar(args.get(0)), getBoolArray(args.get(1)), getBoolVar(args.get(2)));
+                break;
             case "array_var_bool_element":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayVarBoolElement(getIntVar(args.get(0)), getBoolVarArray(args.get(1)), getBoolVar(args.get(2)));
+                break;
             case "count":  
                 throw new NotImplementedException("Constraint : " +name);
             case "exactly_int":  
-                listeConstraint.add(constraintBuilder.makeExactlyInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2))));
+                builder.makeExactlyInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "at_least_int":  
-                listeConstraint.add(constraintBuilder.makeAtLeastInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2))));
+                builder.makeAtLeastInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "at_most_int":  
-                listeConstraint.add(constraintBuilder.makeAtMostInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2))));
+                builder.makeAtMostInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "count_eq":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_max":  
-                listeConstraint.add(constraintBuilder.makeIntMax(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2))));
+                builder.makeIntMax(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "int_min":  
-                listeConstraint.add(constraintBuilder.makeIntMin(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2))));
+                builder.makeIntMin(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "int_pow":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_times":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_plus":  
-                listeConstraint.add(constraintBuilder.makeIntPlus(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2))));
+                builder.makeIntPlus(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "int_div":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_mod":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_abs":  
-                listeConstraint.add(constraintBuilder.makeIntAbs(getIntVar(args.get(0)), getIntVar(args.get(1))));
+                builder.makeIntAbs(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
             case "set_in":  
                 throw new NotImplementedException("Constraint : " +name);
             case "member_int":  
                 throw new NotImplementedException("Constraint : " +name);
             case "maximum_int":  
-                listeConstraint.add(constraintBuilder.makeMaximumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1))));
+                builder.makeMaximumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
             case "minimum_int":  
-                listeConstraint.add(constraintBuilder.makeMinimumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1))));
+                builder.makeMinimumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
             case "inverse_no_offset":  
                 throw new NotImplementedException("Constraint : " +name);
             case "subcircuit_no_offset":  
                 throw new NotImplementedException("Constraint : " +name);
             case "circuit_no_offset":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeCircuit(getIntVarArray(args.get(0)));
+                break;
             case "global_cardinality":  
-                listeConstraint.add(constraintBuilder.makeGlobalCardinality(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntVarArray(args.get(2))));
+                builder.makeGlobalCardinality(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntVarArray(args.get(2)));
                 break;
             case "global_cardinality_closed":  
                 throw new NotImplementedException("Constraint : " +name);
             case "global_cardinality_low_up":  
-                listeConstraint.add(constraintBuilder.makeGlobalCardinalityLowUp(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntArray(args.get(2)), getIntArray(args.get(3))));
+                builder.makeGlobalCardinalityLowUp(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntArray(args.get(2)), getIntArray(args.get(3)));
                 break;
             case "global_cardinality_low_up_closed":  
                 throw new NotImplementedException("Constraint : " +name);
@@ -395,6 +469,7 @@ public class Model {
 
     public IntVar[] getDecisionsVar() {
         IntVar vars[] = new IntVar[decisionsVar.size()];
+        decisionsVar.forEach(x -> x.setForBranching(true));
         decisionsVar.toArray(vars);
         return vars;
     }

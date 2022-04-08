@@ -203,6 +203,11 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return x.valueWithMaxImpact() + o;
+    }
+
+    @Override
     public void registerImpact(int value, double impact) {
         x.registerImpact(value - o, impact);
     }
@@ -227,6 +232,16 @@ public class IntVarViewOffset implements IntVar {
             return this.name;
         else
             return x.getName() + "'s view (offset)";
+    }
+
+    @Override
+    public void setForBranching(boolean b) {
+        x.setForBranching(b);;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return x.isForBranching();
     }
 
     @Override

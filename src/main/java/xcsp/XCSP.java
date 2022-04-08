@@ -63,6 +63,8 @@ import static minicpbp.cp.BranchingScheme.minMarginalStrength;
 import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
+import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
+import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -991,10 +993,46 @@ public class XCSP implements XCallbacks2 {
 		XCSP.restart = restart;
 	}
 
+	private static int nbFailCutof = 100;
+
+	public void nbFailCutof(int nbFailCutof) {
+		XCSP.nbFailCutof = nbFailCutof;
+	} 
+
+	private static double restartFactor = 1.5;
+
+	public void restartFactor(double restartFactor) {
+		XCSP.restartFactor = restartFactor;
+	}
+
+	private static double variationThreshold = -Double.MAX_VALUE;
+
+	public void variationThreshold(double variationThreshold) {
+		XCSP.variationThreshold = variationThreshold;
+	}
+
 	private static TreeSearchType searchType = TreeSearchType.DFS;
 
 	public void searchType(TreeSearchType searchType) {
 		XCSP.searchType = searchType;
+	}
+
+	private static boolean initImpact = false;
+
+	public void initImpact(boolean initImpact) {
+		XCSP.initImpact = initImpact;
+	}
+
+	private static boolean dynamicStopBP = false;
+
+	public void dynamicStopBP(boolean dynamicStopBP) {
+		XCSP.dynamicStopBP = dynamicStopBP;
+	}
+
+	private static boolean traceNbIter = false;
+
+	public void traceNbIter(boolean traceNbIter) {
+		XCSP.traceNbIter = traceNbIter;
 	}
 
 	private Search makeSearch(Supplier<Procedure[]> branching) {
@@ -1019,9 +1057,12 @@ public class XCSP implements XCallbacks2 {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
+		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setMaxIter(maxIter);
+		minicp.setDynamicStopBP(dynamicStopBP);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
+		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");
@@ -1030,7 +1071,11 @@ public class XCSP implements XCallbacks2 {
 
 		Stream<IntVar> nonDecisionVars = mapVar.entrySet().stream().sorted(new EntryComparator())
 				.map(Map.Entry::getValue).filter(v -> !decisionVars.contains(v));
-		IntVar[] vars = Stream.concat(decisionVars.stream(), nonDecisionVars).toArray(IntVar[]::new);
+		IntVar[] vars = Stream.concat(decisionVars.stream(),
+		 nonDecisionVars).peek(x-> {
+			if(!x.isBound()){
+			x.setForBranching(true);}
+		}).toArray(IntVar[]::new);
 
 		Search search = null;
 		switch (heuristic) {
@@ -1055,6 +1100,17 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(vars));
+			//search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
+			if(XCSP.initImpact)
+				search.initializeImpact(vars);
+			break;
+		case MIE:
+			search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
+			if(XCSP.initImpact)
+				search.initializeImpact(vars);
+			break;
+		case MNEBW:
+			search = makeSearch(minEntropyBiasedWheelSelectVal(vars));
 			break;
 		default:
 			System.out.println("unknown search strategy");
@@ -1087,7 +1143,7 @@ public class XCSP implements XCallbacks2 {
 		else {
 			stats = search.solveRestarts(ss -> {
 				return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
-			});
+			}, nbFailCutof, restartFactor);
 		}
 
 		if (foundSolution) {

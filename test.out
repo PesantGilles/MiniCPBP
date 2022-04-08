@@ -1,0 +1,13 @@
+xml
+XCSP
+solution found
+verifying the solution (begin)
+LOG: Check variables
+LOG: Check constraints
+OK	
+VALID SOLUTION
+verifying the solution (end)
+status: SAT
+failures: 185
+nodes: 525
+runtime (ms): 3184
