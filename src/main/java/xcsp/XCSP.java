@@ -64,6 +64,7 @@ import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
+import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -1107,6 +1108,9 @@ public class XCSP implements XCallbacks2 {
 			search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
 			if(XCSP.initImpact)
 				search.initializeImpact(vars);
+			break;
+		case MNEBW:
+			search = makeSearch(minEntropyBiasedWheelSelectVal(vars));
 			break;
 		default:
 			System.out.println("unknown search strategy");

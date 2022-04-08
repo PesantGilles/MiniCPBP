@@ -33,6 +33,7 @@ import static minicpbp.cp.BranchingScheme.minMarginal;
 import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
+import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -235,6 +236,9 @@ public class FZN {
 			search = makeDfs(minicp, minEntropyRegisterImpact(m.getDecisionsVar()),impactEntropy(m.getDecisionsVar()));
 			if(FZN.initImpact)
 				search.initializeImpact(m.getDecisionsVar());
+			break;
+		case MNEBW:
+			search = makeSearch(minEntropyBiasedWheelSelectVal(m.getDecisionsVar()));
 			break;
 		default:
 			System.out.println("unknown search strategy");

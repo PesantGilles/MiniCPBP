@@ -88,8 +88,8 @@ public class ConstraintBuilder {
     }
 
     public void makeBoolAnd(BoolVar a, BoolVar b, BoolVar r) {
-        BoolVar array[] = {Factory.opposite(a), Factory.opposite(b)};
-        minicp.post(Factory.isOr(opposite(r), array));
+        BoolVar array[] = {Factory.not(a), Factory.not(b)};
+        minicp.post(Factory.isOr(not(r), array));
     }
 
     public void makeBoolLe(BoolVar a, BoolVar b) {
@@ -115,9 +115,9 @@ public class ConstraintBuilder {
     public void makeArrayBoolAnd(BoolVar[] as, BoolVar r) {
         BoolVar asOppose[] = new BoolVar[as.length];
         for(int i = 0; i < as.length; i++) {
-            asOppose[i] = Factory.opposite(as[i]);
+            asOppose[i] = Factory.not(as[i]);
         }
-        BoolVar rOppose = Factory.opposite(r);
+        BoolVar rOppose = Factory.not(r);
         minicp.post(Factory.isOr(rOppose, asOppose));
     }
 
@@ -127,10 +127,10 @@ public class ConstraintBuilder {
             array[i] = as[i];
         }
         for(int i = 0; i < bs.length; i++) {
-            array[as.length+i] = Factory.opposite(bs[i]);
-            array[as.length+i].setName(bs[i].getName()+"opposite");
+            array[as.length+i] = Factory.not(bs[i]);
+            array[as.length+i].setName("not_" + bs[i].getName());
         }
-        minicp.post(Factory.Or(array));
+        minicp.post(Factory.or(array));
     }
 
     public void makeBool2Int(BoolVar a, IntVar b) {

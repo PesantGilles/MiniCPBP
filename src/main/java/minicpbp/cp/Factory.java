@@ -456,14 +456,8 @@ public final class Factory {
         return new IsOr(b, x);
     }
 
-    public static Constraint Or(BoolVar[] a) {
+    public static Constraint or(BoolVar[] a) {
         return new Or(a);
-    }
-
-    public static BoolVar opposite(BoolVar a) {
-        BoolVar b = makeBoolVar(a.getSolver());
-        a.getSolver().post(new NotEqual(a, b));
-        return b;
     }
 
     /**

@@ -348,16 +348,16 @@ public class SparseSetDomain implements IntDomain {
         if (domain.isEmpty())
             throw new NoSuchElementException();
         int s = fillArray(domainValues);
-        int valWithMin = domainValues[0];
-        double max = impactOfValue(valWithMin);
+        int valWithMax = domainValues[0];
+        double max = impactOfValue(valWithMax);
         for (int j = 1; j < s; j++) {
             int v = domainValues[j];
             if (impactOfValue(v) > max) {
                 max = impactOfValue(v);
-                valWithMin = v;
+                valWithMax = v;
             }
         }
-        return valWithMin;
+        return valWithMax;
     }
 
     @Override
