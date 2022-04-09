@@ -10,11 +10,11 @@ import minicpbp.engine.core.Solver;
 
 import static minicpbp.cp.Factory.*;
 
-public class ConstraintBuilder {
+public class constraintBuilder {
 
     private Solver minicp;
 
-    public ConstraintBuilder(Solver minicp) {
+    public constraintBuilder(Solver minicp) {
         this.minicp = minicp;
     }
 
@@ -138,22 +138,22 @@ public class ConstraintBuilder {
     }
 
     public void makeArrayIntElement(IntVar b, int[] as, IntVar c) {
-        minicp.post(Factory.Element1D(as, b, c));
+        minicp.post(Factory.element(as, b, c));
     }
 
     public void makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
-        minicp.post(Factory.Element1DVar(as, b, c));
+        minicp.post(Factory.element(as, b, c));
     }
 
     public void makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
         int asInt[] = new int[as.length];
         for(int i = 0; i < as.length; i++)
             asInt[i] = as[i] ? 1 : 0;
-        minicp.post(Factory.Element1D(asInt, b, c));
+        minicp.post(Factory.element(asInt, b, c));
     }
 
     public void makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
-        minicp.post(Factory.Element1DVar(as, b, c));
+        minicp.post(Factory.element(as, b, c));
     }
 
     public void makeCount() {
