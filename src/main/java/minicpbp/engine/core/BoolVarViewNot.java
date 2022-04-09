@@ -211,6 +211,11 @@ public class BoolVarViewNot implements BoolVar {
     }
 
     @Override
+    public int valueWithMaxImpact() {
+        return 1 - x.valueWithMaxImpact();
+    }
+
+    @Override
     public void registerImpact(int v, double impact) {
         x.registerImpact(1-v, impact);
     }
@@ -227,6 +232,16 @@ public class BoolVarViewNot implements BoolVar {
         assert b <= beliefRep.one() && b >= beliefRep.zero() : "b = " + b;
         assert x.marginal(1-v) <= beliefRep.one() && x.marginal(1-v) >= beliefRep.zero() : "x.marginal(not v) = " + x.marginal(1-v);
         x.setMarginal(1-v, beliefRep.multiply(x.marginal(1-v), b));
+    }
+
+    @Override
+    public void setForBranching(boolean b) {
+        x.setForBranching(b);;
+    }
+
+    @Override
+    public boolean isForBranching() {
+        return x.isForBranching();
     }
 
     @Override

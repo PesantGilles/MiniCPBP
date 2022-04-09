@@ -62,8 +62,9 @@ public class MiniCP implements Solver {
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
-    // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
+    // use dynamic stopping criterion for BP iterations
     private static boolean dynamicStopBP = false;
+    // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */

@@ -788,6 +788,18 @@ public final class Factory {
     }
 
     /*
+     * Returns a constraint imposing that the
+     * a first variable is larger than a second one.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @return a constraint so that {@code x > y}
+     */
+    public static Constraint larger(IntVar x, IntVar y) {
+        return new LessOrEqual(y, minus(x,1));
+    }
+
+    /*
      * Returns a constraint imposing that array[y] = z
      * @param array an array of int
      * @param y a variable
@@ -802,18 +814,6 @@ public final class Factory {
         return new Element1DVar(array, y, z);
     }
   
-    /*
-     * Returns a constraint imposing that the
-     * a first variable is larger than a second one.
-     *
-     * @param x a variable
-     * @param y a variable
-     * @return a constraint so that {@code x > y}
-     */
-    public static Constraint larger(IntVar x, IntVar y) {
-        return new LessOrEqual(y, minus(x,1));
-    }
-
     /**
      * Returns a variable representing
      * the value in an array at the position
