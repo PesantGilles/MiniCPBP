@@ -28,38 +28,46 @@ import minicpbp.util.exception.NotImplementedException;
 
 /**
  *
- * Element Constraint modeling {@code array[y] = z}
+ * Element Constraint modeling {@code matrix[x][y] = z}
  *
  */
-public class Element1DDomainConsistent extends AbstractConstraint {
+public class Element2DDomainConsistent extends AbstractConstraint {
 
-    private final int[] t;
-    private final IntVar y;
+    private final int[][] m;
+    private final IntVar x, y;
     private final IntVar z;
 
     /**
-     * Creates an element constraint {@code array[y] = z}
+     * Creates an element constraint {@code matrix[x][y] = z}
      *
-     * @param array the array to index
-     * @param y the index variable
-     * @param z the result variable
+     * @param matrix the 2d array representing a matrix to index
+     * @param x   the first dimension index variable
+     * @param y   the second dimention index variable
+     * @param z   the result variable
      */
-    public Element1DDomainConsistent(int[] array, IntVar y, IntVar z) {
-        super(y.getSolver(), new IntVar[]{y,z});
-        setName("Element1DDomainConsistent");
-        this.t = array;
+    public Element2DDomainConsistent(int[][] matrix, IntVar x, IntVar y, IntVar z) {
+        super(y.getSolver(), new IntVar[]{x,y,z});
+        setName("Element2DDomainConsistent");
+        this.m = matrix;
+        this.x = x;
         this.y = y;
         this.z = z;
+	setExactWCounting(true);
     }
 
     @Override
     public void post() {
-        int [][] table = new int [t.length][2];
-        for (int i = 0; i < table.length; i++) {
-            table[i][0] = i;
-            table[i][1] = t[i];
+        int xDim = m.length;
+        int yDim = m[0].length;
+        int [][] table = new int [xDim*yDim][3];
+        for (int i = 0; i < xDim; i++) {
+	    for (int j = 0; j < yDim; j++) {
+		table[i*yDim + j][0] = i;
+		table[i*yDim + j][1] = j;
+		table[i*yDim + j][2] = m[i][j];
+	    }
         }
-        getSolver().post(new TableCT(new IntVar[]{y,z},table));
+        getSolver().post(new TableCT(new IntVar[]{x,y,z},table));
         setActive(false);
     }
 }

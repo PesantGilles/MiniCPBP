@@ -799,7 +799,7 @@ public final class Factory {
         return new LessOrEqual(y, minus(x,1));
     }
 
-    /*
+    /**
      * Returns a constraint imposing that array[y] = z
      * @param array an array of int
      * @param y a variable
@@ -814,6 +814,18 @@ public final class Factory {
         return new Element1DVar(array, y, z);
     }
   
+    /**
+     * Returns a constraint imposing that array[x][y] = z
+     * @param array an array of int
+     * @param x a variable
+     * @param y a variable
+     * @param z a variable
+     * @return a constraint so that {@code array[x][y] = z}
+     */
+    public static Constraint element(int[][] array, IntVar x, IntVar y, IntVar z) {
+        return new Element2DDomainConsistent(array, x, y, z);
+    }
+
     /**
      * Returns a variable representing
      * the value in an array at the position
@@ -854,7 +866,7 @@ public final class Factory {
             }
         }
         IntVar z = makeIntVar(x.getSolver(), min, max);
-        x.getSolver().post(new Element2D(matrix, x, y, z));
+        x.getSolver().post(new Element2DDomainConsistent(matrix, x, y, z));
         return z;
     }
 
