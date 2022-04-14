@@ -469,6 +469,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> minEntropy(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -508,6 +510,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> minEntropyRegisterImpact(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -534,6 +538,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> impactEntropy(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -572,6 +578,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> minEntropyBiasedWheelSelectVal(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -610,6 +618,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalStrength(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -648,7 +658,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalStrengthRandomTieBreak(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
-
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -687,7 +698,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalRegretRandomTieBreak(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
-
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -726,6 +738,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> minMarginalStrength(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -764,6 +778,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -802,6 +818,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> minMarginal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,

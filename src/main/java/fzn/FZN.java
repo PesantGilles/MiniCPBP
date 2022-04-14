@@ -195,16 +195,6 @@ public class FZN {
 	
 		m.addSolver(minicp);
 		m.buildModel();
-		//System.out.println("Model built");
-		for(IntVar a: m.getDecisionsVar()){
-			//System.out.println(a.getName());
-			a.setForBranching(true);
-		}
-
-		/*for(Constraint c : m.getListeConstraint()){
-			minicp.post(c);
-		}*/
-		//System.out.println("Constraint posted");
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
 		switch (heuristic) {
