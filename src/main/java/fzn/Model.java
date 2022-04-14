@@ -304,7 +304,7 @@ public class Model {
 
     private void constructConstraint(String name, ArrayList<ASTLit> args) {
 
-        ConstraintBuilder builder = new ConstraintBuilder(solver);
+        constraintBuilder builder = new constraintBuilder(solver);
         switch(name){
             case "all_different_int":
                 builder.makeAllDifferentInt(getIntVarArray(args.get(0)));

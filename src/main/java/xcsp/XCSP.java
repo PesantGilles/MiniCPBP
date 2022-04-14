@@ -1072,10 +1072,7 @@ public class XCSP implements XCallbacks2 {
 		Stream<IntVar> nonDecisionVars = mapVar.entrySet().stream().sorted(new EntryComparator())
 				.map(Map.Entry::getValue).filter(v -> !decisionVars.contains(v));
 		IntVar[] vars = Stream.concat(decisionVars.stream(),
-		 nonDecisionVars).peek(x-> {
-			if(!x.isBound()){
-			x.setForBranching(true);}
-		}).toArray(IntVar[]::new);
+		 nonDecisionVars).toArray(IntVar[]::new);
 
 		Search search = null;
 		switch (heuristic) {
