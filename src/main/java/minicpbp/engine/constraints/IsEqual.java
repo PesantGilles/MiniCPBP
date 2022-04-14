@@ -56,16 +56,16 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
     @Override
     public void post() {
         propagate();
-	switch (getSolver().getMode()) {
-	case BP:
-	    break;
-	case SP:
-	case SBP:
-	    if (isActive()) {
-		x.propagateOnDomainChange(this);
-		b.propagateOnBind(this);
+	    switch (getSolver().getMode()) {
+        case BP:
+	        break;
+	    case SP:
+	    case SBP:
+	        if (isActive()) {
+		        x.propagateOnDomainChange(this);
+		        b.propagateOnBind(this);
+	        }
 	    }
-	}
     }
 
     @Override
@@ -83,7 +83,7 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
             b.assign(true);
             setActive(false);
         }
-//    }
+    }
 
     @Override
     public void updateBelief() {

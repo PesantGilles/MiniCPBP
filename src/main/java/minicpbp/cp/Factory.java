@@ -807,7 +807,7 @@ public final class Factory {
      * @return a constraint so that {@code array[y] = z}
      */
     public static Constraint element(int[] array, IntVar y, IntVar z) {
-        return new Element1D(array, y, z);
+        return new Element1DDomainConsistent(array, y, z);
     }
 
     public static Constraint element(IntVar[] array, IntVar y, IntVar z) {
@@ -818,7 +818,7 @@ public final class Factory {
      * Returns a variable representing
      * the value in an array at the position
      * specified by the given index variable
-     * This relation is enforced by the {@link Element1D} constraint
+     * This relation is enforced by the {@link Element1DDomainConsistent} constraint
      * posted by calling this method.
      *
      * @param array the array of values
@@ -828,7 +828,7 @@ public final class Factory {
     public static IntVar element(int[] array, IntVar y) {
         Solver cp = y.getSolver();
         IntVar z = makeIntVar(cp, IntStream.of(array).min().getAsInt(), IntStream.of(array).max().getAsInt());
-        cp.post(new Element1D(array, y, z));
+        cp.post(new Element1DDomainConsistent(array, y, z));
         return z;
     }
 
