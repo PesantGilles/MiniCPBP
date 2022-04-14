@@ -11,6 +11,9 @@
  * along with mini-cp. If not, see http://www.gnu.org/licenses/lgpl-3.0.en.html
  *
  * Copyright (c)  2018. by Laurent Michel, Pierre Schaus, Pascal Van Hentenryck
+ *
+ * mini-cpbp, replacing classic propagation by belief propagation
+ * Copyright (c)  2019. by Gilles Pesant
  */
 
 package minicpbp.engine.constraints;
@@ -47,6 +50,7 @@ public class Or extends AbstractConstraint { // x1 or x2 or ... xn
         this.n = x.length;
         wL = getSolver().getStateManager().makeStateInt(0);
         wR = getSolver().getStateManager().makeStateInt(n - 1);
+        setExactWCounting(true);
     }
 
     @Override
@@ -86,9 +90,31 @@ public class Or extends AbstractConstraint { // x1 or x2 or ... xn
             assert (wL.value() != wR.value());
             assert (!x[wL.value()].isBound());
             assert (!x[wR.value()].isBound());
-            x[wL.value()].propagateOnBind(this);
-            x[wR.value()].propagateOnBind(this);
+    	    switch (getSolver().getMode()) {
+                case BP:
+                    break;
+                case SP:
+                case SBP:
+		            x[wL.value()].propagateOnBind(this);
+		            x[wR.value()].propagateOnBind(this);
+	        }
         }
+    }
+
+    @Override
+    public void updateBelief() {
+	    double beliefAllFalse = beliefRep.one();
+        for (int i = wL.value(); i <= wR.value(); i++) {
+	        beliefAllFalse = beliefRep.multiply(beliefAllFalse, outsideBelief(i,0));
+	    }
+        for (int i = wL.value(); i <= wR.value(); i++) {
+	        if (!x[i].isBound()) {
+		        assert(!beliefRep.isZero(outsideBelief(i,0)));
+		        // will be normalized
+		        setLocalBelief(i, 1, beliefRep.one());
+		        setLocalBelief(i, 0, beliefRep.complement(beliefRep.divide(beliefAllFalse,outsideBelief(i,0))));
+	        }
+	    }
     }
 
 }

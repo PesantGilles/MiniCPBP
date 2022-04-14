@@ -50,6 +50,7 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
         this.b = b;
         this.x = x;
         this.c = c;
+	    setExactWCounting(true);
     }
 
     @Override
@@ -82,7 +83,7 @@ public class IsEqual extends AbstractConstraint { // b <=> x == c
             b.assign(true);
             setActive(false);
         }
-    }
+//    }
 
     @Override
     public void updateBelief() {
