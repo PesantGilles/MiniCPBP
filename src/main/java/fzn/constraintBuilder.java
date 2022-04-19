@@ -47,7 +47,7 @@ public class constraintBuilder {
     }
 
     public void makeIntEqReif(IntVar a, IntVar b, BoolVar r) {
-        throw new NotImplementedException();
+        minicp.post(Factory.equal(Factory.isEqual(a, b),r));
     }
 
     public void makeIntNe(IntVar a, IntVar b) {
@@ -55,7 +55,7 @@ public class constraintBuilder {
     }
 
     public void makeIntNeReif(IntVar a, IntVar b, BoolVar r) {
-        throw new NotImplementedException();
+        minicp.post(Factory.equal(Factory.isNotEqual(a, b),r));
     }
 
     public void makeIntLe(IntVar a, IntVar b) {
@@ -63,15 +63,15 @@ public class constraintBuilder {
     }
 
     public void makeIntLeReif(IntVar a, IntVar b, BoolVar r) {
-        throw new NotImplementedException();
+        minicp.post(Factory.equal(Factory.isLessOrEqual(a, b),r));
     }
 
     public void makeIntLt(IntVar a, IntVar b) {
-        throw new NotImplementedException();
+        minicp.post(Factory.less(a, b));
     }
 
     public void makeIntLtReif(IntVar a, IntVar b, BoolVar r) {
-        throw new NotImplementedException();
+        minicp.post(Factory.equal(Factory.isLess(a, b),r));
     }
 
     public void makeBoolEq(BoolVar a, BoolVar b) {
@@ -79,7 +79,7 @@ public class constraintBuilder {
     }
 
     public void makeBoolLt(BoolVar a, BoolVar b) {
-        throw new NotImplementedException();
+        minicp.post(Factory.less(a, b));
     }
 
     public void makeBoolOr(BoolVar a, BoolVar b, BoolVar r) {

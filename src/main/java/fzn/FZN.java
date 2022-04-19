@@ -40,20 +40,15 @@ import static java.lang.reflect.Array.newInstance;
 public class FZN {
 
     private String fileName;
-    //private final Map<XVarInteger, IntVar> mapVar = new HashMap<>();
-	//private final List<XVarInteger> xVars = new LinkedList<>();
 	private final List<IntVar> minicpVars = new LinkedList<>();
 
-
-	
-	//private final Set<IntVar> decisionVars = new LinkedHashSet<>();
-	//private final Set<IntVar> nonDecisionVars = new LinkedHashSet<>();
 
 	private final Solver minicp = makeSolver();
 
 	private Optional<IntVar> objectiveMinimize = Optional.empty();
 	private Optional<IntVar> realObjective = Optional.empty();
 
+	//Model containing all constraints, parameters, variables and functions of the problem
 	private Model m;
 
 	private boolean hasFailed;
@@ -61,15 +56,17 @@ public class FZN {
     public FZN(String filename) throws Exception {
         this.fileName = filename;
         hasFailed = false;
+		//read the Flatzinc File
 		this.m = FZParser.readFlatZincModelFromFile(filename, false);
     }
 
+	/**
+	 * 
+	 * @return true if the problem is a COP, false if the problem is a CSP
+	 */
     public boolean isCOP() {
 		return objectiveMinimize.isPresent();
 	}
-
-	
-	
 
 	private String solutionStr = null;
 	private boolean extractSolutionStr = false;
@@ -159,6 +156,11 @@ public class FZN {
 		FZN.traceNbIter = traceNbIter;
 	}
 
+	/**
+	 * Creates a search (either DFS or LDS) with a given branching heuristic
+	 * @param branching a branching heuristic
+	 * @return a search object
+	 */
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
 		switch (searchType) {
@@ -174,6 +176,7 @@ public class FZN {
 		}
 		return search;
 	}
+
 
 	public void solve(BranchingHeuristic heuristic, int timeout, String statsFileStr, String solFileStr) {
 
@@ -194,9 +197,13 @@ public class FZN {
 		}
 	
 		m.addSolver(minicp);
+
+		//build the model from the Flatzinc file
 		m.buildModel();
+		
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
+		//create search and branching heuristic
 		switch (heuristic) {
 		case FFRV:
 			minicp.setMode(PropaMode.SP);
@@ -219,11 +226,13 @@ public class FZN {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(m.getDecisionsVar()));
+			//optionnal initialisation of impacts
 			if(FZN.initImpact)
 				search.initializeImpact(m.getDecisionsVar());
 			break;
 		case MIE:
 			search = makeDfs(minicp, minEntropyRegisterImpact(m.getDecisionsVar()),impactEntropy(m.getDecisionsVar()));
+			//optionnal initialisation of impacts
 			if(FZN.initImpact)
 				search.initializeImpact(m.getDecisionsVar());
 			break;
@@ -238,6 +247,7 @@ public class FZN {
 		if (checkSolution || (solFileStr != ""))
 			extractSolutionStr = true;
 
+		//procedure executed when a solution is found
 		search.onSolution(() -> {
 			foundSolution = true;
 			if (extractSolutionStr) {
@@ -254,13 +264,16 @@ public class FZN {
 			}
 		});
 		SearchStatistics stats;
+		//start the search
 		switch (m.getGoal()) {
+			//find a solution that maximize the cost function
 			case ASTSolve.MAX:
 				stats = search.optimize(minicpbp.maximize(m.getObjective()),
 					ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
 					});
 				break;
+			//find a solution that minimize the cost function
 			case ASTSolve.MIN:
 				stats = search.optimize(minicpbp.minimize(m.getObjective()),
 				ss -> {
@@ -268,11 +281,13 @@ public class FZN {
 				});
 				break;
 			default:
+				//find a solution that satisfies all constraints without restart
 				if(!restart) {
 					stats = search.solve(ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
 					});
 				}
+				//find a solution that satisfies all constraints with restarts during the search
 				else {
 					stats = search.solveRestarts(ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
@@ -281,6 +296,8 @@ public class FZN {
 				break;
 		}
 
+		//verify the solution (TODO)
+		//and print it
 		if (foundSolution) {
 			System.out.println("solution found");
 			//if (checkSolution)
@@ -294,6 +311,10 @@ public class FZN {
 
 	}
 
+	/**
+	 * Prints the solution in the given file
+	 * @param solFileStr the path to the file
+	 */
 	private void printSolution(String solFileStr) {
 		if (solFileStr != "")
 			try {
@@ -307,6 +328,12 @@ public class FZN {
 			}
 	}
 
+	/**
+	 * Prints statistic about the search
+	 * @param stats statistics about the search
+	 * @param statsFileStr a path to save the stats 
+	 * @param runtime
+	 */
 	private void printStats(SearchStatistics stats, String statsFileStr, Long runtime) {
 		PrintStream out = null;
 		if (statsFileStr == "")

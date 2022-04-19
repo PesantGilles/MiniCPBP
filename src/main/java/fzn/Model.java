@@ -32,12 +32,20 @@ import static minicpbp.cp.Factory.*;
 public class Model {
 
     private Solver solver;
+
+    //the intermediate model build by the parser
     private ASTModel m;
 
+    //contains all function declaration
     private final Map<String, ASTFuncDecl> funcDict = new HashMap<>();
+
+    //contains all variables declarations
 	private final Map<String, ASTDecl> declDict = new HashMap<>();
+
+    //contains all the variables of the problem
 	private final Map<String, IntVar> varDict = new HashMap<>();
-	private final List<Constraint> listeConstraint = new LinkedList<>();
+
+    //contains all the variables of the problem
     private final ArrayList<IntVar> decisionsVar = new ArrayList<>();
 
     private int type;
@@ -58,20 +66,26 @@ public class Model {
     }
 
     public void buildModel() {
+        //load each parameter
         for(ASTParamDecl p : m.getParamDecls())
             addParam(p);
+        //load each variables
         for(ASTVarDecl v : m.getVarDecls())
             addVar(v);
+        //build and post each constraint
         for(ASTConstraint c : m.getConstraints())
             addConstraint(c);
+        //load each function declared in the model, these functions are ignored by MiniCP-BP
         for(ASTFuncDecl f : m.getFuncDecls())
             addFunc(f);
-            
+        
         setObjective(m.getSolve());
     }
 
     private void setObjective(ASTSolve solve) {
         this.type = solve.getType();
+
+        //load the cost funtion if the problem is a COP
         if(type != ASTSolve.SAT) {
             objective = getIntVar(solve.getExpr());
         }
@@ -80,6 +94,10 @@ public class Model {
         //ArrayList<ASTLit> anns =  solve.getAnns();
     }
 
+    /**
+     * 
+     * @return an integer indicating if the problem is a COP or a CSP
+     */
     public int getGoal() {
         return this.type;
     }
@@ -87,20 +105,19 @@ public class Model {
     public IntVar getObjective() {
         return this.objective;
     }
-
-    private void addDecl(ASTDecl decl) {
-        if(decl instanceof ASTParamDecl)
-            addParam((ASTParamDecl) decl);
-        else if(decl instanceof ASTVarDecl)
-            addVar((ASTVarDecl) decl);
-    }
     
     private void addParam(ASTParamDecl decl) {
         //List<ASTLit> anns = decl.getAnns();
         declDict.put(decl.getId().getValue(), decl);
     }
+
+    /**
+     * build a variable from its declaration
+     * @param decl the declaration of the variable
+     */
     private void addVar(ASTVarDecl decl) {
         //List<ASTLit> anns = decl.getAnns();
+
         if(decl.hasExpr() && decl.getExpr() instanceof ASTId) {
             ASTId alias = (ASTId) decl.getExpr();
             ASTDecl aliasDecl = declDict.get(alias.getValue());
@@ -115,13 +132,14 @@ public class Model {
                 //TODO
             }
         }
-    
+        //if the variable is an integer 
         if(!(decl.getType() instanceof ASTArrayType)) {
             if(decl.getType().getDataType() == ASTConstants.INT) {
                 IntVar varToAdd = getIntVar(decl.getId());
                 varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
             }
+            //if the variable is a boolean
             else if(decl.getType().getDataType() == ASTConstants.BOOL) {
                 BoolVar varToAdd = getBoolVar(decl.getId());
                 varToAdd.setName(decl.getId().getValue());
@@ -142,11 +160,18 @@ public class Model {
         constructConstraint(name, args);
     } 
 
+    /**
+     * build an return an integer from a literal
+     * @param lit the literal of the integer
+     * @return the integer
+     */
     private int getInt(ASTLit lit) {
+        //if the literal is a value, this value is returned as an integer
         if(lit instanceof ASTInt) {
             int valeur = ((ASTInt) lit).getValue();
             return valeur;
         }
+        //if the literal is an id linked to a declaration, the value in the declaration is returned
         else if (lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             if(declDict.get(id.getValue()).getId() != id) {
@@ -157,7 +182,13 @@ public class Model {
         else throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build an return an integer variable from a literal
+     * @param lit the literal of the variable
+     * @return the variable
+     */
     private IntVar getIntVar(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
         if (lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             if(declDict.get(id.getValue()).getId() != id) {
@@ -168,6 +199,7 @@ public class Model {
             }
             return createSingleVarInt(declDict.get(id.getValue()));
         }
+        //case where the literal is the variable's declaration
         else if(lit instanceof ASTInt) {
             int valeur = ((ASTInt) lit).getValue();
             return makeIntVar(solver, valeur, valeur);
@@ -175,11 +207,18 @@ public class Model {
         else throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build and return an array of integer from a literal
+     * @param lit the literal
+     * @return the array of integer
+     */
     private int[] getIntArray(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
         if(lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             return getIntArray(declDict.get(id.getValue()).getExpr());
         }
+        //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             int array[] = new int[astarray.size()];
@@ -192,11 +231,18 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build and return an array of integer variable from a literal
+     * @param lit the literal
+     * @return the array of variable
+     */
     private IntVar[] getIntVarArray(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
         if(lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             return getIntVarArray(declDict.get(id.getValue()).getExpr());
         }
+        //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             IntVar array[] = new IntVar[astarray.size()];
@@ -208,11 +254,18 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build an return a boolean from a literal
+     * @param lit the literal of the boolean
+     * @return the boolean
+     */
     private boolean getBool(ASTLit lit) {
+        // case where the literal is the value of the boolean
         if(lit instanceof ASTInt) {
             boolean valeur = ((ASTBool) lit).getValue();
             return valeur;
         }
+        //case where the literal is an Id linked to a declaration
         else if (lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             if(declDict.get(id.getValue()).getId() != id) {
@@ -223,7 +276,13 @@ public class Model {
         else throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build an return a boolean variable from a literal
+     * @param lit the literal of the variable
+     * @return the variable
+     */
     private BoolVar getBoolVar(ASTLit lit) {
+        //case where the literal is the variable's declaration
         if(lit instanceof ASTBool) {
             ASTBool constant = (ASTBool) lit;
             boolean b = constant.getValue();
@@ -231,6 +290,7 @@ public class Model {
             newVar.assign(b);
             return newVar;
         }
+        //case where the literal is an Id linked to a declaration
         else if(lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             if(declDict.get(id.getValue()).getId() != id) {
@@ -246,11 +306,18 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * build and return an array of boolean variable from a literal
+     * @param lit the literal
+     * @return the array of variable
+     */
     private BoolVar[] getBoolVarArray(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
         if(lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             return getBoolVarArray(declDict.get(id.getValue()).getExpr());
         }
+        //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             BoolVar array[] = new BoolVar[astarray.size()];
@@ -262,11 +329,18 @@ public class Model {
         throw new NotImplementedException(lit.toString());  
     }
 
+    /**
+     * build and return an array of integer from a literal
+     * @param lit the literal
+     * @return the array of integer
+     */
     private boolean[] getBoolArray(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
         if(lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             return getBoolArray(declDict.get(id.getValue()).getExpr());
         }
+        //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             boolean array[] = new boolean[astarray.size()];
@@ -278,18 +352,26 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    /**
+     * Creates an IntVar from a declaration
+     * @param v the declaration
+     * @return the variable
+     */
     private IntVar createSingleVarInt(ASTDecl v) {
         IntVar newVar;
         ASTVarType type = (ASTVarType) v.getType();
+        //case where the domain of the variable is given as an interval
 		if(type.getDom() instanceof ASTRange) {
 			newVar =  Factory.makeIntVar(solver,
 				((ASTRange) type.getDom()).getLb().getValue(),
 				((ASTRange) type.getDom()).getUb().getValue());
 		}
+        //case where the domain of the variable is given as a set
 		else if(type.getDom() instanceof ASTSet){
 			newVar = Factory.makeIntVar(solver,
 				((ASTSet) type.getDom()).getSet().stream().map(e -> e.getValue()).collect(Collectors.toSet()));
 		}
+        //case where there is no given domain
         else if(type.getDom() == null) {
             newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE, Integer.MAX_VALUE);
         }
@@ -302,6 +384,11 @@ public class Model {
         return newVar;
 	}
 
+    /**
+     * build and post a given constraint
+     * @param name the id of the constraint
+     * @param args the variables subjects to the constraint
+     */
     private void constructConstraint(String name, ArrayList<ASTLit> args) {
 
         constraintBuilder builder = new constraintBuilder(solver);
@@ -331,22 +418,26 @@ public class Model {
                 builder.makeIntEq(getIntVar(args.get(0)),getIntVar(args.get(1)));
                 break;
             case "int_eq_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntEqReif(getIntVar(args.get(0)), getIntVar(args.get(1)), getBoolVar(args.get(2)));
+                break;
             case "int_ne":
                 builder.makeIntNe(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
             case "int_ne_reif":
-                throw new NotImplementedException("Constraint : " +name);   
+                builder.makeIntNeReif(getIntVar(args.get(0)), getIntVar(args.get(1)), getBoolVar(args.get(2)));
+                break;  
             case "int_le":
                 builder.makeIntLe(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
             case "int_le_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntLeReif(getIntVar(args.get(0)), getIntVar(args.get(1)), getBoolVar(args.get(2)));
+                break;  
             case "int_lt":
                 builder.makeIntLt(getIntVar(args.get(0)),getIntVar(args.get(1)));
                 break;
             case "int_lt_reif":
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntLtReif(getIntVar(args.get(0)), getIntVar(args.get(1)), getBoolVar(args.get(2)));
+                break; 
             case "array_int_element":
                 builder.makeArrayIntElement(getIntVar(args.get(0)), getIntArray(args.get(1)), getIntVar(args.get(2)));
                 break;
@@ -357,7 +448,8 @@ public class Model {
                 builder.makeBoolEq(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
                 break;
             case "bool_lt":  
-                throw new NotImplementedException("Constraint : " +name); 
+                builder.makeBoolLt(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
+                break;
             case "bool_le":  
                 builder.makeBoolLe(getBoolVar(args.get(0)),getBoolVar(args.get(1)));
                 break; 
@@ -467,14 +559,14 @@ public class Model {
         }
     }
 
+    /**
+     * 
+     * @return the variables of the problem
+     */
     public IntVar[] getDecisionsVar() {
         IntVar vars[] = new IntVar[decisionsVar.size()];
         decisionsVar.forEach(x -> x.setForBranching(true));
         decisionsVar.toArray(vars);
         return vars;
-    }
-
-    public List<Constraint> getListeConstraint() {
-        return listeConstraint;
     }
 }
