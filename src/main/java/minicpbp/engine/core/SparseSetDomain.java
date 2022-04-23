@@ -37,8 +37,7 @@ public class SparseSetDomain implements IntDomain {
     private HashMap<Integer, ArrayList<Double>> impactValues; //a map containing the registered impact of an assignement
     private Solver cp;
     private Belief beliefRep;
-
-    static Random rand = new Random();
+    static Random rand;
 
     public SparseSetDomain(Solver cp, int min, int max) {
         domain = new StateSparseWeightedSet(cp, max - min + 1, min);
@@ -47,6 +46,7 @@ public class SparseSetDomain implements IntDomain {
         impactValues = new HashMap<Integer, ArrayList<Double>>();
         this.cp = cp;
         beliefRep = cp.getBeliefRep();
+        rand = cp.getRandomNbGenerator();
     }
 
     @Override
@@ -164,8 +164,8 @@ public class SparseSetDomain implements IntDomain {
         if (domain.isEmpty())
             throw new NoSuchElementException();
         int s = fillArray(domainValues);
-	// to avoid this linear-time step, could replace max by upper bound 1
-	// alternatively, could decide to maintain max marginal of domain
+	    // to avoid this linear-time step, could replace max by upper bound 1
+	    // alternatively, could decide to maintain max marginal of domain
         double max = beliefRep.zero();
         for (int j = 0; j < s; j++) {
             int v = domainValues[j];
@@ -173,12 +173,12 @@ public class SparseSetDomain implements IntDomain {
                 max = marginal(v);
             }
         }
-	// stochastic acceptance algorithm
-	while (true) {
+	    // stochastic acceptance algorithm
+	    while (true) {
             int v = domainValues[rand.nextInt(s)];
-	    if (Math.random() < marginal(v)/max)
-		return v;
-	}
+	        if (rand.nextDouble() < marginal(v)/max)
+		    return v;
+	    }
     }
 
     @Override

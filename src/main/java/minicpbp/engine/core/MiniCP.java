@@ -47,6 +47,8 @@ public class MiniCP implements Solver {
     private StateStack<IntVar> variables;
     private StateStack<Constraint> constraints;
 
+    private Random rand;
+
     //******** PARAMETERS ********
     // SP  /* support propagation (aka standard constraint propagation) */
     // BP  /* belief propagation */
@@ -81,6 +83,7 @@ public class MiniCP implements Solver {
     // for message damping
     private boolean prevOutsideBeliefRecorded = false;
 
+    // for entropy-based branching heuristics
     private double oldEntropy;
     private static double variationThreshold = 0.1;
 
@@ -88,6 +91,14 @@ public class MiniCP implements Solver {
         this.sm = sm;
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
+        rand = new Random();
+    }
+
+    public MiniCP(StateManager sm, long seed) {
+        this.sm = sm;
+        variables = new StateStack<>(sm);
+        constraints = new StateStack<>(sm);
+        rand = new Random(seed);
     }
 
     @Override
@@ -99,6 +110,9 @@ public class MiniCP implements Solver {
     public StateStack<IntVar> getVariables() {
         return variables;
     }
+
+    @Override
+    public Random getRandomNbGenerator() { return rand; }
 
     @Override
     public Belief getBeliefRep() {
@@ -377,7 +391,6 @@ public class MiniCP implements Solver {
  	final double initialAccuracy = 0.01; // relative error threshold of cell size wrt fraction
  	final double maxNumerator = 100.0; // beyond this, we relax the accuracy
 	assert (fraction > 0) && (fraction < 1.0);
-	Random rand = new Random();
 	// the prime numbers under 100
 	int primes[] = {5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97}; // don't use very small primes because it leaves very little room for rhs of inequalities
 	int i;

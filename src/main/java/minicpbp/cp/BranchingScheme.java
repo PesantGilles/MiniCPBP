@@ -64,7 +64,6 @@ import static minicpbp.cp.Factory.*;
 public final class BranchingScheme {
 
     // TODO
-    static Random rand = new Random();
     static int nbTied;
     // static final int precisionForTie = 10000; // 4 decimal places
     static final int precisionForTie = 100; // 2 decimal places
@@ -127,7 +126,7 @@ public final class BranchingScheme {
      * <p>Example of usage.
      * <pre>
      * {@code
-     * IntVar xs = selectMinRandomTieBreak(x,xi -> xi.size() > 1,xi -> xi.size());
+     * IntVar xs = selectMinRandomTieBreak(x,xi -> xi.size() > 1,xi -> xi.size(),rand);
      * }
      * </pre>
      *
@@ -136,10 +135,11 @@ public final class BranchingScheme {
      * @param f   the evaluation function that returns a comparable when applied on an element of x
      * @param <T> the type of the elements in x, for instance {@link IntVar}
      * @param <N> the type on which the minimum is computed, for instance {@link Integer}
+     * @param rand the random number generator from the solver
      * @return a minimum element in x that satisfies the predicate p, chosen uniformly at random,
      * or null if no element satisfies the predicate.
      */
-    public static <T, N extends Comparable<N>> T selectMinRandomTieBreak(T[] x, Predicate<T> p, Function<T, N> f) {
+    public static <T, N extends Comparable<N>> T selectMinRandomTieBreak(T[] x, Predicate<T> p, Function<T, N> f, Random rand) {
         nbTied = 0;
         T sel = null;
         for (T xi : x) {
@@ -322,10 +322,12 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> firstFailRandomTieBreakRandomVal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-                    xi -> xi.size());
+                    xi -> xi.size(),
+                    rand);
             if (xs == null)
                 return EMPTY;
             else {
@@ -393,11 +395,13 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailRandomTieBreakMaxMarginalValue(IntVar... x) {
-	boolean tracing = x[0].getSolver().tracingSearch();
+	    boolean tracing = x[0].getSolver().tracingSearch();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-		    xi -> xi.size());
+		            xi -> xi.size(),
+                    rand);
             if (xs == null)
                 return EMPTY;
             else {
@@ -431,10 +435,12 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> randomVarRandomVal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-                    xi -> 1); // any constant value
+                    xi -> 1, // any constant value
+                    rand);
             if (xs == null)
                 return EMPTY;
             else {
@@ -551,7 +557,7 @@ public final class BranchingScheme {
                 return branch(
                         () -> {
                             if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; entropy=" + xs.entropy());
                             branchEqualRegisterImpact(xs, v);
                         },
                         () -> {
@@ -591,7 +597,7 @@ public final class BranchingScheme {
                 return branch(
                         () -> {
                             if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; entropy=" + xs.entropy());
                             branchEqual(xs, v);
                         },
                         () -> {
@@ -658,12 +664,14 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalStrengthRandomTieBreak(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-                    xi -> Math.floor(precisionForTie * (1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()))) / precisionForTie); // tie = same first few decimal places
+                    xi -> Math.floor(precisionForTie * (1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()))) / precisionForTie, // tie = same first few decimal places
+                    rand);
             if (xs == null)
                 return EMPTY;
             else {
@@ -698,12 +706,14 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> maxMarginalRegretRandomTieBreak(IntVar[] x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-                    xi -> Math.floor(precisionForTie * (-beliefRep.rep2std(xi.maxMarginalRegret()))) / precisionForTie); // tie = same first few decimal places
+                    xi -> Math.floor(precisionForTie * (-beliefRep.rep2std(xi.maxMarginalRegret()))) / precisionForTie, // tie = same first few decimal places
+                    rand);
             if (xs == null)
                 return EMPTY;
             else {

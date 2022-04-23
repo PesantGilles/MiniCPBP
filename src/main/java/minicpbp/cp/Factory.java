@@ -77,6 +77,16 @@ public final class Factory {
     /**
      * Creates a constraint programming solver
      *
+     * @param seed the random number generator seed
+     * @return a constraint programming solver with trail-based memory management
+     */
+    public static Solver makeSolver(long seed) {
+        return new MiniCP(new Trailer(), seed);
+    }
+
+    /**
+     * Creates a constraint programming solver
+     *
      * @param byCopy a value that should be true to specify
      *               copy-based state management
      *               or false for a trail-based memory management
@@ -84,6 +94,19 @@ public final class Factory {
      */
     public static Solver makeSolver(boolean byCopy) {
         return new MiniCP(byCopy ? new Copier() : new Trailer());
+    }
+
+    /**
+     * Creates a constraint programming solver
+     *
+     * @param byCopy a value that should be true to specify
+     *               copy-based state management
+     *               or false for a trail-based memory management
+     * @param seed the random number generator seed
+     * @return a constraint programming solver
+     */
+    public static Solver makeSolver(boolean byCopy, long seed) {
+        return new MiniCP(byCopy ? new Copier() : new Trailer(), seed);
     }
 
     /**

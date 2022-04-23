@@ -24,6 +24,8 @@ import minicpbp.state.StateStack;
 import minicpbp.util.Procedure;
 import minicpbp.util.Belief;
 
+import java.util.Random;
+
 public interface Solver {
 
     public enum PropaMode {
@@ -182,6 +184,13 @@ public interface Solver {
      * @return the variables
      */
     StateStack<IntVar> getVariables();
+
+    /**
+     * Returns the random number generator for the solver.
+     *
+     * @return random number generator
+     */
+    Random getRandomNbGenerator();
 
     /**
      * Returns the belief representation being used (Std or Log)
