@@ -231,21 +231,19 @@ public class XCSP implements XCallbacks2 {
 		try {
 			switch (operator) {
 			case EQ:
-				// TODO: implement equal
-				minicp.post(lessOrEqual(x, y));
-				minicp.post(lessOrEqual(y, x));
+				minicp.post(equal(x, y));
 				break;
 			case GE:
-				minicp.post(lessOrEqual(y, x));
+			        minicp.post(largerOrEqual(x, y));
 				break;
 			case GT:
-				minicp.post(lessOrEqual(y, minus(x, 1)));
+			        minicp.post(larger(x, y));
 				break;
 			case LE:
 				minicp.post(lessOrEqual(x, y));
 				break;
 			case LT:
-				minicp.post(lessOrEqual(x, minus(y, 1)));
+				minicp.post(less(x, y));
 				break;
 			case NE:
 				minicp.post(notEqual(x, y));
@@ -277,9 +275,10 @@ public class XCSP implements XCallbacks2 {
 					expr.removeBelow((int) op.min);
 					break;
 				case NOTIN:
-					BoolVar le = isLessOrEqual(expr, (int) op.min - 1);
-					BoolVar ge = isLessOrEqual(minus(expr), (int) -op.max - 1);
-					sum(le, ge).removeBelow(1);
+				        BoolVar[] ltOrGt = new BoolVar[2];
+					ltOrGt[0] = isLess(expr, (int) op.min);
+				        ltOrGt[1] = isLarger(expr, (int) op.max);
+					minicp.post(or(ltOrGt));
 					break;
 				default:
 					throw new InvalidParameterException("unknown condition");
@@ -375,8 +374,8 @@ public class XCSP implements XCallbacks2 {
 		case ABS:
 			return Factory.abs(x);
 		case NOT:
-			// TODO student: you may want to implement it with a new type of view.
-			throw new IllegalArgumentException("not implemented");
+		        // TODO student: you may want to implement it with a new type of view.
+		        throw new IllegalArgumentException("not implemented");
 		case SQR:
 		default:
 			// Not needed
