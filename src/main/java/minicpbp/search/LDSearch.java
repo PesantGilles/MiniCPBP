@@ -117,9 +117,9 @@ public class LDSearch extends Search{
 		    }
                 statistics.setCompleted();
             } catch (StopSearchException ignored) {
- 		System.out.println("LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
+ 		System.out.println("c LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
             } catch (StackOverflowError e) {
-                throw new NotImplementedException("lds with explicit stack needed to pass this test");
+                throw new NotImplementedException("c lds with explicit stack needed to pass this test");
             }
         });
         return statistics;
@@ -215,7 +215,7 @@ public class LDSearch extends Search{
         SearchStatistics statistics = new SearchStatistics();
 //         onSolution(() -> obj.tighten());
         onSolution(() -> {
-		System.out.println(" (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
+		System.out.println("c (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
 		obj.tighten();});
         return solve(statistics, limit);
     }

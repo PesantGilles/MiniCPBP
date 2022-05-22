@@ -121,7 +121,7 @@ public abstract class AbstractConstraint implements Constraint {
     }
 
     public void setWeight(double w) {
-        assert w >= 0 : "A constraint's weight should be nonnegative";
+        assert w >= 0 : "c A constraint's weight should be nonnegative";
         weight = w;
     }
 
@@ -177,7 +177,7 @@ public abstract class AbstractConstraint implements Constraint {
         for (int j = 0; j < s; j++) {
             int val = domainValues[j];
             f2.set(i, val, beliefRep.divide(f1.get(i, val), normalizingConstant));
-            assert f1.get(i, val) <= beliefRep.one() && f1.get(i, val) >= beliefRep.zero() : "Should be normalized! f1.get(i,val) = " + f1.get(i, val);
+            assert f1.get(i, val) <= beliefRep.one() && f1.get(i, val) >= beliefRep.zero() : "c Should be normalized! f1.get(i,val) = " + f1.get(i, val);
         }
     }
 
@@ -209,7 +209,7 @@ public abstract class AbstractConstraint implements Constraint {
                 int s = vars[i].fillArray(domainValues);
                 for (int j = 0; j < s; j++) {
                     int val = domainValues[j];
-                    assert localBelief(i, val) <= beliefRep.one() && localBelief(i, val) >= beliefRep.zero() : "Should be normalized! localBelief(i,val) = " + localBelief(i, val);
+                    assert localBelief(i, val) <= beliefRep.one() && localBelief(i, val) >= beliefRep.zero() : "c Should be normalized! localBelief(i,val) = " + localBelief(i, val);
                     setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), weight)));
                 }
                 normalizeBelief(i, (j, val) -> outsideBelief(j, val),
@@ -236,7 +236,7 @@ public abstract class AbstractConstraint implements Constraint {
                 for (int j = 0; j < s; j++) {
                     int val = domainValues[j];
                     double localB = localBelief(i, val);
-                    assert localB <= beliefRep.one() && localB >= beliefRep.zero() : "Should be normalized! localB = " + localB;
+                    assert localB <= beliefRep.one() && localB >= beliefRep.zero() : "c Should be normalized! localB = " + localB;
                     if (getSolver().actingOnZeroOneBelief() && isExactWCounting()) {
                         if (beliefRep.isZero(localB)) { // no support from this constraint
 //  			    System.out.println(getName()+".sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
@@ -266,7 +266,7 @@ public abstract class AbstractConstraint implements Constraint {
     protected void updateBelief() {
         if (!updateBeliefWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
-                System.out.println("Warning: method updateBelief not implemented yet for " + getName() + " constraint. Using uniform belief instead.");
+                System.out.println("c Warning: method updateBelief not implemented yet for " + getName() + " constraint. Using uniform belief instead.");
             updateBeliefWarningPrinted = true;
         }
         for (int i = 0; i < vars.length; i++) {

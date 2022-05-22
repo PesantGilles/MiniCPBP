@@ -35,6 +35,7 @@ import org.xcsp.checker.SolutionChecker;
 import org.xcsp.common.Condition;
 import org.xcsp.common.Constants;
 import org.xcsp.common.Types;
+import org.xcsp.common.Types.TypeRank;
 import org.xcsp.common.predicates.XNodeParent;
 import org.xcsp.parser.XCallbacks2;
 import org.xcsp.parser.entries.XVariables.XVarInteger;
@@ -502,6 +503,42 @@ public class XCSP implements XCallbacks2 {
 
 		return ret;
 
+	}
+
+	//TODO
+	@Override
+	public void buildCtrElement(String id, XVarInteger[] list, XVarInteger value) {
+		System.out.println("s UNSUPPORTED");
+		System.out.println("c Element Constraint is not supported yet");
+		System.exit(1);
+	}
+
+	@Override
+	public void buildCtrElement(String id, XVarInteger[] list, int value) {
+		System.out.println("s UNSUPPORTED");
+		System.out.println("c Element Constraint is not supported yet");
+		System.exit(1);
+	}
+
+	@Override
+	public void buildCtrElement(String id, XVarInteger[] list, int startIndex, XVarInteger index, TypeRank rank, XVarInteger value) {
+		System.out.println("s UNSUPPORTED");
+		System.out.println("c Element Constraint is not supported yet");
+		System.exit(1);
+	}
+
+	@Override
+	public void buildCtrElement(String id, XVarInteger[] list, int startIndex, XVarInteger index, TypeRank rank, int value) {
+		System.out.println("s UNSUPPORTED");
+		System.out.println("c Element Constraint is not supported yet");
+		System.exit(1);
+	}
+
+	@Override
+	public void buildCtrElement(String id, int[] list, int startIndex, XVarInteger index, TypeRank rank, XVarInteger value) {
+		System.out.println("s UNSUPPORTED");
+		System.out.println("c Element Constraint is not supported yet");
+		//System.exit(1);
 	}
 
 	@Override
@@ -1033,6 +1070,12 @@ public class XCSP implements XCallbacks2 {
 	public void traceNbIter(boolean traceNbIter) {
 		XCSP.traceNbIter = traceNbIter;
 	}
+	
+	private static boolean competitionOutput = false;
+
+	public void competitionOutput(boolean competitionOutput) {
+		XCSP.competitionOutput = competitionOutput;
+	}
 
 	private Search makeSearch(Supplier<Procedure[]> branching) {
 		Search search = null;
@@ -1129,6 +1172,17 @@ public class XCSP implements XCallbacks2 {
 				sol.append("\n\t</values>\n</instantiation>");
 				solutionStr = sol.toString();
 			}
+			if(competitionOutput) {
+				StringBuilder sol = new StringBuilder("v <instantiation>\nv\t<list> ");
+				for (XVarInteger x : xVars)
+					sol.append(x.id()).append(" ");
+				sol.append("</list>\nv\t<values> ");
+				for (IntVar x : minicpVars) {
+					sol.append(x.min()).append(" ");
+				}
+				sol.append("\t</values>\nv </instantiation>");
+				solutionStr = sol.toString();
+			}
 		});
 		SearchStatistics stats;
 		if(!restart) {
@@ -1142,17 +1196,31 @@ public class XCSP implements XCallbacks2 {
 			}, nbFailCutof, restartFactor);
 		}
 
-		if (foundSolution) {
-			
-			System.out.println("solution found");
-			if (checkSolution)
-				verifySolution();
-			printSolution(solFileStr);
-		} else
-			System.out.println("no solution was found");
+		if(!competitionOutput) {
+			if (foundSolution) {
+				if(competitionOutput) {}
+				System.out.println("solution found");
+				if (checkSolution)
+					verifySolution();
+				printSolution(solFileStr);
+			} else
+				System.out.println("no solution was found");
 
-		Long runtime = System.currentTimeMillis() - t0;
-		printStats(stats, statsFileStr, runtime);
+			Long runtime = System.currentTimeMillis() - t0;
+			printStats(stats, statsFileStr, runtime);
+		}
+		else {
+			if(foundSolution) {
+				System.out.println("s SATISFIABLE");
+				System.out.println(solutionStr);
+			}
+			else if(stats.isCompleted()) {
+				System.out.println("s UNSATISFIABLE");
+			}
+			else {
+				System.out.println("s UNKNOWN");
+			}
+		}
 
 	}
 
