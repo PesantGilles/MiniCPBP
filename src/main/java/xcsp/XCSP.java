@@ -235,10 +235,10 @@ public class XCSP implements XCallbacks2 {
 				minicp.post(equal(x, y));
 				break;
 			case GE:
-			        minicp.post(largerOrEqual(x, y));
+				minicp.post(largerOrEqual(x, y));
 				break;
 			case GT:
-			        minicp.post(larger(x, y));
+				minicp.post(larger(x, y));
 				break;
 			case LE:
 				minicp.post(lessOrEqual(x, y));
@@ -276,9 +276,9 @@ public class XCSP implements XCallbacks2 {
 					expr.removeBelow((int) op.min);
 					break;
 				case NOTIN:
-				        BoolVar[] ltOrGt = new BoolVar[2];
+					BoolVar[] ltOrGt = new BoolVar[2];
 					ltOrGt[0] = isLess(expr, (int) op.min);
-				        ltOrGt[1] = isLarger(expr, (int) op.max);
+					ltOrGt[1] = isLarger(expr, (int) op.max);
 					minicp.post(or(ltOrGt));
 					break;
 				default:
@@ -375,8 +375,8 @@ public class XCSP implements XCallbacks2 {
 		case ABS:
 			return Factory.abs(x);
 		case NOT:
-		        // TODO student: you may want to implement it with a new type of view.
-		        throw new IllegalArgumentException("not implemented");
+			// TODO student: you may want to implement it with a new type of view.
+			throw new IllegalArgumentException("not implemented");
 		case SQR:
 		default:
 			// Not needed
@@ -395,11 +395,16 @@ public class XCSP implements XCallbacks2 {
 		case MUL:
 			return Factory.mul(x, p);
 		case DIV:
-			// Not needed
-			throw new IllegalArgumentException("Division between vars is not implemented");
+			IntVar y = makeIntVar(minicp, (p>=0? (int) Math.floor(x.min()/p): (int) Math.floor(x.max()/p)), (p>=0? (int) Math.ceil(x.max()/p): (int) Math.ceil(x.min()/p)));
+			minicp.post(equal(x, Factory.mul(y, p)));
+			return y;
 		case MOD:
-			// Not needed
-			throw new IllegalArgumentException("Modulo between vars is not implemented");
+			IntVar[] xs = new IntVar[2];
+			xs[0] = x;
+			IntVar yy = makeIntVar(minicp, 0, p-1);
+			xs[1] = Factory.minus(yy);
+			minicp.post(sumModP(xs, 0, p));
+			return yy;
 		case POW:
 			// Not needed
 			throw new IllegalArgumentException("Pow between vars is not implemented");
