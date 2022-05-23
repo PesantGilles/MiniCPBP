@@ -422,11 +422,9 @@ public class XCSP implements XCallbacks2 {
 		case SUB:
 			return sum(x, minus(y));
 		case DIV:
-			// Not needed
 			throw new IllegalArgumentException("Division between vars is not implemented");
 		case MUL:
-			// Not needed
-			throw new IllegalArgumentException("Multiplication between vars is not implemented");
+			return product(x, y);
 		case MOD:
 			// Not needed
 			throw new IllegalArgumentException("Modulo between vars is not implemented");

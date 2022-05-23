@@ -823,6 +823,33 @@ public final class Factory {
     }
 
     /**
+     * Returns a constraint imposing that the product of two variables
+     * is equal to the third one.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @param z a variable
+     * @return a constraint so that {@code x * y = z}
+     */
+    public static Constraint product(IntVar x, IntVar y, IntVar z) {
+        return new Product(x, y, z);
+    }
+
+    /**
+     * Returns a variable representing the product of two variables
+     *
+     * @param x a variable
+     * @param y a variable
+     * @return a variable equal to {@code x * y}
+     */
+    public static IntVar product(IntVar x, IntVar y) {
+        Solver cp = x.getSolver();
+	IntVar z = makeIntVar(cp, Math.min(Math.min(Math.min(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()), Math.max(Math.max(Math.max(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()));
+        cp.post(new Product(x, y, z));
+	return z;
+    }
+
+    /**
      * Returns a constraint imposing that array[y] = z
      * @param array an array of int
      * @param y a variable
