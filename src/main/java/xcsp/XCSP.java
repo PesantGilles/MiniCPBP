@@ -510,40 +510,119 @@ public class XCSP implements XCallbacks2 {
 
 	}
 
-	//TODO
 	@Override
 	public void buildCtrElement(String id, XVarInteger[] list, XVarInteger value) {
-		System.out.println("s UNSUPPORTED");
-		System.out.println("c Element Constraint is not supported yet");
-		System.exit(1);
+		if(hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar z = mapVar.get(value);
+			IntVar y = makeIntVar(minicp, 0, xs.length-1);
+			minicp.post(element(xs, y, z));
+		} catch(InconsistencyException e) {
+			hasFailed = true;
+		}
+		
+
 	}
 
 	@Override
 	public void buildCtrElement(String id, XVarInteger[] list, int value) {
-		System.out.println("s UNSUPPORTED");
-		System.out.println("c Element Constraint is not supported yet");
-		System.exit(1);
+		if(hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar y = makeIntVar(minicp, 0, xs.length-1);
+			IntVar z = makeIntVar(minicp, value, value);
+			minicp.post(element(xs, y, z));
+		} catch(InconsistencyException e) {
+			hasFailed = true;
+		}
 	}
 
 	@Override
 	public void buildCtrElement(String id, XVarInteger[] list, int startIndex, XVarInteger index, TypeRank rank, XVarInteger value) {
-		System.out.println("s UNSUPPORTED");
-		System.out.println("c Element Constraint is not supported yet");
-		System.exit(1);
+		if(hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar z = mapVar.get(value);
+			IntVar y;
+			switch(rank) {
+				case ANY:
+					y = minus(mapVar.get(index),startIndex);
+					minicp.post(element(xs, y, z));
+					break;
+				case FIRST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+				case LAST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+			}
+			
+
+		} catch(InconsistencyException e) {
+			hasFailed = true;
+		}
 	}
 
 	@Override
 	public void buildCtrElement(String id, XVarInteger[] list, int startIndex, XVarInteger index, TypeRank rank, int value) {
-		System.out.println("s UNSUPPORTED");
-		System.out.println("c Element Constraint is not supported yet");
-		System.exit(1);
+		if(hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar z = makeIntVar(minicp, value, value);
+			IntVar y;
+			switch(rank) {
+				case ANY:
+					y = minus(mapVar.get(index),startIndex);
+					minicp.post(element(xs, y, z));
+					break;
+				case FIRST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+				case LAST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+			}
+			
+
+		} catch(InconsistencyException e) {
+			hasFailed = true;
+		}
 	}
 
 	@Override
 	public void buildCtrElement(String id, int[] list, int startIndex, XVarInteger index, TypeRank rank, XVarInteger value) {
-		System.out.println("s UNSUPPORTED");
-		System.out.println("c Element Constraint is not supported yet");
-		//System.exit(1);
+		if(hasFailed)
+			return;
+		try {
+			IntVar z = mapVar.get(value);
+			IntVar y;
+			switch(rank) {
+				case ANY:
+					y = minus(mapVar.get(index),startIndex);
+					minicp.post(element(list, y, z));
+					break;
+				case FIRST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+				case LAST:
+					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					System.exit(1);
+					break;
+			}
+
+		} catch(InconsistencyException e) {
+			hasFailed = true;
+		}
 	}
 
 	@Override
