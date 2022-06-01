@@ -3,6 +3,7 @@ package fzn;
 import minicpbp.engine.core.Constraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.engine.core.Solver.ConstraintWeighingScheme;
 import minicpbp.engine.core.Solver.PropaMode;
 import minicpbp.search.Search;
 import minicpbp.search.SearchStatistics;
@@ -200,6 +201,9 @@ public class FZN {
 
 		//build the model from the Flatzinc file
 		m.buildModel();
+
+		if(minicp.getWeighingScheme() == ConstraintWeighingScheme.ARITY || minicp.getWeighingScheme() == ConstraintWeighingScheme.ANTI)
+			minicp.computeMinArity();
 		
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;

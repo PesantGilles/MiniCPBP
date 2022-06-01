@@ -36,7 +36,8 @@ public interface Solver {
 
     public enum ConstraintWeighingScheme {
 	SAME   /* constraints all have the same weight; = 1.0 (default) */,
-	ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
+	ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */,
+    ANTI /* a constraint's weight is related to its arity, but in a opposite way*/
     } 
 
     /**
@@ -269,5 +270,15 @@ public interface Solver {
      * @return an array of branching variables
      */
     IntVar[] sample(double fraction, IntVar[] vars);
+
+    /**
+     * @return the minimal arity among all contraints
+     */
+    double minArity();
+
+    /**
+     * Makes MiniCP compute the minimal arity among all contraints
+     */
+    void computeMinArity();
 }
 

@@ -69,7 +69,8 @@ public class MiniCP implements Solver {
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
-    // ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
+    // ARITY  /* a constraint's weight is related to its arity; = 1 + (arity - min_arity)/total_nb_of_vars */
+    // ANTI   /* a constraint's weight is related to its arity; = 1 - (arity- min_arity)/total_nb_of_vars */
     private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
     //****************************
 
@@ -86,6 +87,9 @@ public class MiniCP implements Solver {
     // for entropy-based branching heuristics
     private double oldEntropy;
     private static double variationThreshold = 0.1;
+
+    //for weighing
+    private double minArity;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -206,6 +210,21 @@ public class MiniCP implements Solver {
 
     private void notifyFixPoint() {
         fixPointListeners.forEach(s -> s.call());
+    }
+
+    @Override
+    public void computeMinArity() {
+        this.minArity = Double.MAX_VALUE;
+        for(int i = 0; i < constraints.size(); i++){
+            if(this.minArity > constraints.get(i).arity())
+                this.minArity = constraints.get(i).arity();
+        }
+        
+    }
+
+    @Override
+    public double minArity() {
+        return this.minArity;
     }
 
     @Override

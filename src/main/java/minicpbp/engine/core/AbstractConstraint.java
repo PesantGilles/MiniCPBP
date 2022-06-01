@@ -23,6 +23,8 @@ import minicpbp.state.StateDouble;
 
 import minicpbp.util.Belief;
 
+import minicpbp.util.exception.NotImplementedException;
+
 /**
  * Abstract class the most of the constraints
  * should extend.
@@ -56,7 +58,7 @@ public abstract class AbstractConstraint implements Constraint {
         beliefRep = cp.getBeliefRep();
         this.vars = new IntVar[vars.length];
         System.arraycopy(vars,0,this.vars,0,vars.length); // required if constraint sets up offseted vars in the same array
-        switch (cp.getWeighingScheme()) {
+        /*switch (cp.getWeighingScheme()) {
             case SAME:
                 weight = 1.0;
                 break;
@@ -64,7 +66,7 @@ public abstract class AbstractConstraint implements Constraint {
                 // assumes all model variables have already been declared/registered
                 weight = 1.0 + ((double) vars.length) / ((double) cp.getVariables().size());
                 break;
-        }
+        }*/
         localBelief = new StateDouble[vars.length][];
         ofs = new int[vars.length];
         outsideBelief = new double[vars.length][];
@@ -85,6 +87,25 @@ public abstract class AbstractConstraint implements Constraint {
         domainValues = new int[maxDomainSize];
         beliefValues = new double[maxDomainSize];
     }
+
+    public double arity() {
+        return (double) vars.length;
+    }
+
+    public double getWeight() {
+		switch(cp.getWeighingScheme()) {
+			case SAME:
+				return 1.0;
+			case ARITY:
+				// assumes all model variables have already been declared/registered
+				return 1.0 + ((double) vars.length - cp.minArity())/ ((double) cp.getVariables().size()); 
+			case ANTI:
+                return 1.0 - ((double) vars.length - cp.minArity()) / ((double) cp.getVariables().size());
+			default:
+				throw new NotImplementedException();
+			}
+
+	}
 
     public void post() {
     }
@@ -210,7 +231,7 @@ public abstract class AbstractConstraint implements Constraint {
                 for (int j = 0; j < s; j++) {
                     int val = domainValues[j];
                     assert localBelief(i, val) <= beliefRep.one() && localBelief(i, val) >= beliefRep.zero() : "c Should be normalized! localBelief(i,val) = " + localBelief(i, val);
-                    setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), weight)));
+                    setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), this.getWeight())));
                 }
                 normalizeBelief(i, (j, val) -> outsideBelief(j, val),
                         (j, val, b) -> setOutsideBelief(j, val, b));
@@ -248,9 +269,9 @@ public abstract class AbstractConstraint implements Constraint {
                             getSolver().fixPoint();
                             break; // all other values in this loop will have been removed from the domain
                         } else
-                            vars[i].receiveMessage(val, beliefRep.pow(localB, weight));
+                            vars[i].receiveMessage(val, beliefRep.pow(localB, this.getWeight()));
                     } else
-                        vars[i].receiveMessage(val, beliefRep.pow(localB, weight));
+                        vars[i].receiveMessage(val, beliefRep.pow(localB, this.getWeight()));
                 }
             }
         }
