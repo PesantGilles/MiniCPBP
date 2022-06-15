@@ -1199,9 +1199,6 @@ public class XCSP implements XCallbacks2 {
 		IntVar[] vars = Stream.concat(decisionVars.stream(),
 		 nonDecisionVars).toArray(IntVar[]::new);
 
-		if(minicp.getWeighingScheme() == ConstraintWeighingScheme.ARITY || minicp.getWeighingScheme() == ConstraintWeighingScheme.ANTI)
-			minicp.computeMinArity();
-
 		Search search = null;
 		switch (heuristic) {
 		case FFRV:

@@ -201,9 +201,6 @@ public class FZN {
 
 		//build the model from the Flatzinc file
 		m.buildModel();
-
-		if(minicp.getWeighingScheme() == ConstraintWeighingScheme.ARITY || minicp.getWeighingScheme() == ConstraintWeighingScheme.ANTI)
-			minicp.computeMinArity();
 		
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;

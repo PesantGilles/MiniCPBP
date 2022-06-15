@@ -109,11 +109,6 @@ public interface Constraint {
     public double weight();
 
     /**
-     * @return the constraint's weight based on the weighing scheme
-     */
-    public double getWeight();
-
-    /**
      * @return the constraint's weight
      */
     public double arity();

@@ -70,7 +70,6 @@ public class MiniCP implements Solver {
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + (arity - min_arity)/total_nb_of_vars */
-    // ANTI   /* a constraint's weight is related to its arity; = 1 - (arity- min_arity)/total_nb_of_vars */
     private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
     //****************************
 
@@ -218,6 +217,10 @@ public class MiniCP implements Solver {
         for(int i = 0; i < constraints.size(); i++){
             if(this.minArity > constraints.get(i).arity())
                 this.minArity = constraints.get(i).arity();
+        }
+        for(int i = 0; i < constraints.size(); i++){
+            double w = 1.0 + (constraints.get(i).arity() - this.minArity)/ ((double) constraints.size());
+            constraints.get(i).setWeight(w);
         }
         
     }

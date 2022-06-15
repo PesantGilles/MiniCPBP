@@ -92,7 +92,7 @@ public abstract class AbstractConstraint implements Constraint {
         return (double) vars.length;
     }
 
-    public double getWeight() {
+    /*public double getWeight() {
 		switch(cp.getWeighingScheme()) {
 			case SAME:
 				return 1.0;
@@ -105,7 +105,7 @@ public abstract class AbstractConstraint implements Constraint {
 				throw new NotImplementedException();
 			}
 
-	}
+	}*/
 
     public void post() {
     }
@@ -231,7 +231,7 @@ public abstract class AbstractConstraint implements Constraint {
                 for (int j = 0; j < s; j++) {
                     int val = domainValues[j];
                     assert localBelief(i, val) <= beliefRep.one() && localBelief(i, val) >= beliefRep.zero() : "c Should be normalized! localBelief(i,val) = " + localBelief(i, val);
-                    setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), this.getWeight())));
+                    setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), this.weight)));
                 }
                 normalizeBelief(i, (j, val) -> outsideBelief(j, val),
                         (j, val, b) -> setOutsideBelief(j, val, b));
@@ -269,9 +269,9 @@ public abstract class AbstractConstraint implements Constraint {
                             getSolver().fixPoint();
                             break; // all other values in this loop will have been removed from the domain
                         } else
-                            vars[i].receiveMessage(val, beliefRep.pow(localB, this.getWeight()));
+                            vars[i].receiveMessage(val, beliefRep.pow(localB, this.weight));
                     } else
-                        vars[i].receiveMessage(val, beliefRep.pow(localB, this.getWeight()));
+                        vars[i].receiveMessage(val, beliefRep.pow(localB, this.weight));
                 }
             }
         }
