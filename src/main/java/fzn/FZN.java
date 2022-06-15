@@ -3,6 +3,7 @@ package fzn;
 import minicpbp.engine.core.Constraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.engine.core.Solver.ConstraintWeighingScheme;
 import minicpbp.engine.core.Solver.PropaMode;
 import minicpbp.search.Search;
 import minicpbp.search.SearchStatistics;

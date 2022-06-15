@@ -77,8 +77,9 @@ public class CompetitionInterface {
 			xcsp.dampingFactor(0.5);
 			xcsp.restart(false);
 			xcsp.initImpact(false);
-			xcsp.dynamicStopBP(false);
+			xcsp.dynamicStopBP(true);
 			xcsp.traceNbIter(false);
+			xcsp.variationThreshold(0.1);
             xcsp.competitionOutput(true);
 			xcsp.solve(BranchingHeuristic.MNE, timeout, statsFileStr, solFileStr);
 		} catch (Exception e) {

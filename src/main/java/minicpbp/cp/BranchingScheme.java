@@ -20,6 +20,7 @@ package minicpbp.cp;
 
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.engine.core.Solver.ConstraintWeighingScheme;
 import minicpbp.search.LimitedDiscrepancyBranching;
 import minicpbp.search.Sequencer;
 import minicpbp.util.Procedure;
@@ -477,6 +478,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -518,6 +521,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -546,6 +551,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -586,6 +593,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -626,6 +635,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -667,6 +678,8 @@ public final class BranchingScheme {
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -709,6 +722,8 @@ public final class BranchingScheme {
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -750,6 +765,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -790,6 +807,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -830,6 +849,8 @@ public final class BranchingScheme {
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,

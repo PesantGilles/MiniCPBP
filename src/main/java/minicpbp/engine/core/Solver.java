@@ -269,5 +269,15 @@ public interface Solver {
      * @return an array of branching variables
      */
     IntVar[] sample(double fraction, IntVar[] vars);
+
+    /**
+     * @return the minimal arity among all contraints
+     */
+    double minArity();
+
+    /**
+     * Makes MiniCP compute the minimal arity among all contraints
+     */
+    void computeMinArity();
 }
 
