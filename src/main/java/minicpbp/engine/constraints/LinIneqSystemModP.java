@@ -43,6 +43,7 @@ public class LinIneqSystemModP extends AbstractConstraint {
     private int m, n, nNonparam, nDisjuncts;
     private int[] inverse; // multiplicative inverse (reciprocal) of each nonzero element of F_p
     private int[] unBounds;
+	private int[] colIdx;
     private StateInt nUnBounds;
     private static final int maxNbTuples = 100000; // size of allocated data structures for table constraint
     private static final double likelihoodThreshold = 0.5; // apply DC when likelihood of non-parametric variables supporting combination of parametric values < threshold
@@ -103,13 +104,16 @@ public class LinIneqSystemModP extends AbstractConstraint {
         int nU = n;
         for (int i = nU - 1; i >= 0; i--) {
             int idx = unBounds[i];
-            if (x[idx].isBound()) {
-                unBounds[i] = unBounds[nU - 1]; // Swap the variables
+			if (x[idx].isBound()) {
+               unBounds[i] = unBounds[nU - 1]; // Swap the variables
                 unBounds[nU - 1] = idx;
                 nU--;
             }
-        } 
-        nUnBounds = cp.getStateManager().makeStateInt(nU);
+        }
+		// initialize column indices for matrix A, which will be synchronized with changes to unBounds
+		colIdx = IntStream.range(0, nU).toArray();
+
+		nUnBounds = cp.getStateManager().makeStateInt(nU);
 
 	// map all constants to their canonical representative (from the set {0,1,...,p-1}) in the congruence relation's equivalence class of finite field F_p, while taking into account bound variables
 	// Whereas a system of equalities has one column as rhs, our system will have \Pi_{0 \leq i < m}(b[i]+1) columns, each representing one of a disjunction of systems of linear equalities
@@ -147,7 +151,7 @@ public class LinIneqSystemModP extends AbstractConstraint {
 	    }
 	}
 
-	/* 
+	/*
    	System.out.println("before GJ Elim");
   	for (int i=0; i<m; i++) {
   	    System.out.println(Arrays.toString(this.A[i]));
@@ -157,7 +161,7 @@ public class LinIneqSystemModP extends AbstractConstraint {
 	// put A in reduced row echelon form
 	GaussJordanElimination(m,nU,nDisjuncts);
 
-	/* 
+	/*
    	System.out.println("after GJ Elim");
   	for (int i=0; i<m; i++) {
   	    System.out.println(Arrays.toString(this.A[i]));
@@ -294,8 +298,11 @@ public class LinIneqSystemModP extends AbstractConstraint {
 	int tmp = unBounds[j];
 	unBounds[j] = unBounds[i];
 	unBounds[i] = tmp;
+		tmp = colIdx[j];
+		colIdx[j] = colIdx[i];
+		colIdx[i] = tmp;
     }
-    
+
     @Override
     public void post() {
 	switch(getSolver().getMode()) {
@@ -333,6 +340,9 @@ public class LinIneqSystemModP extends AbstractConstraint {
 		if (x[idx].isBound()) {
 		    unBounds[i] = unBounds[nU - 1]; // Swap the variables
 		    unBounds[nU - 1] = idx;
+			int tmp = colIdx[i];
+			colIdx[i] = colIdx[nU - 1]; // swap column indices (keep synchronized)
+			colIdx[nU - 1] = tmp;
 		    nU--;
 		}
 		else {
@@ -359,8 +369,8 @@ public class LinIneqSystemModP extends AbstractConstraint {
 	    // TODO? switch to domain events for all vars
 	    // TODO: map domain values to their canonical rep
 
-// 	    System.out.println("\n enumerating tuples:");
-// 	    System.out.println("posting Table with "+nU+" unbounds");
+ //	    System.out.println("\n enumerating tuples:");
+ //	    System.out.println("posting Table with "+nU+" unbounds");
 	    // enumerate tuples over parametric variables and accumulate them in Tuples
 	    nTuples = 0;
 	    paramEnum(1);
@@ -438,18 +448,18 @@ public class LinIneqSystemModP extends AbstractConstraint {
 		int i;
 		for (i = 0; i < nNonparam; i++) {
 		    int sum = A[i][A[i].length-nDisjuncts+k]; // rhs
-//  		    System.out.print("for nonparam "+x[unBounds[i]].getName()+": "+sum);
+ // 		    System.out.print("for nonparam "+x[unBounds[i]].getName()+": "+sum);
 		    for (int j = nNonparam; j < nUnBounds.value(); j++) { // unbound parametric vars
-			sum -= A[i][unBounds[j]]*tuple[j];
-//  		        System.out.print("-"+A[i][unBounds[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
+				sum -= A[i][colIdx[j]]*tuple[j];
+ //		        System.out.print("-"+A[i][colIdx[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
 		    }
 		    for (int j = nUnBounds.value(); j < A[i].length-nDisjuncts; j++) { // bound parametric vars
 			assert( x[unBounds[j]].isBound() );
-			sum -= A[i][unBounds[j]]*x[unBounds[j]].min();
-//  		        System.out.print("--"+A[i][unBounds[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
+			sum -= A[i][colIdx[j]]*x[unBounds[j]].min();
+ // 		        System.out.print("--"+A[i][colIdx[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
 		    }
 		    sum = Math.floorMod( sum, p );
-//  		    System.out.println();
+ // 		    System.out.println();
 		    if (!x[unBounds[i]].contains(sum))
 			break;
 		    tuple[i] = sum;
