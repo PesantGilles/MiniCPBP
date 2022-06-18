@@ -20,6 +20,7 @@ import minicpbp.engine.constraints.*;
 import minicpbp.engine.core.BoolVar;
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.engine.core.Solver.ConstraintWeighingScheme;
 import minicpbp.engine.core.Solver.PropaMode;
 import minicpbp.search.LDSearch;
 import minicpbp.search.Search;
@@ -1262,7 +1263,7 @@ public class XCSP implements XCallbacks2 {
 				for (IntVar x : minicpVars) {
 					sol.append(x.min()).append(" ");
 				}
-				sol.append("\t</values>\nv </instantiation>");
+				sol.append("</values>\nv </instantiation>");
 				solutionStr = sol.toString();
 			}
 		});
