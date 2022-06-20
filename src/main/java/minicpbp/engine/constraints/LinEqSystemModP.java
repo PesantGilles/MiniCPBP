@@ -44,6 +44,7 @@ public class LinEqSystemModP extends AbstractConstraint {
     private int[] inverse; // multiplicative inverse (reciprocal) of each nonzero element of F_p
     Constraint[] linEq; // the SumModP constraint associated to each linear equation of the reduced row echelon form
     private int[] unBounds;
+	private int[] colIdx;
     private StateInt nUnBounds;
     private int[] paramIdx; // indices of the parametric variables in the RRE form
     private static final int maxNbTuples = 100000; // size of allocated data structures for table constraint
@@ -109,6 +110,9 @@ public class LinEqSystemModP extends AbstractConstraint {
                 nU--;
             }
         }
+		// initialize column indices for matrix A, which will be synchronized with changes to unBounds
+		colIdx = IntStream.range(0, nU).toArray();
+
         nUnBounds = cp.getStateManager().makeStateInt(nU);
 
         // map all constants to their canonical representative (from the set {0,1,...,p-1}) in the congruence relation's equivalence class of finite field F_p, while taking into account bound variables
@@ -321,6 +325,9 @@ public class LinEqSystemModP extends AbstractConstraint {
         int tmp = unBounds[j];
         unBounds[j] = unBounds[i];
         unBounds[i] = tmp;
+		tmp = colIdx[j];
+		colIdx[j] = colIdx[i];
+		colIdx[i] = tmp;
     }
 
     @Override
@@ -357,6 +364,9 @@ public class LinEqSystemModP extends AbstractConstraint {
 		if (x[idx].isBound()) {
 		    unBounds[i] = unBounds[nU - 1]; // Swap the variables
 		    unBounds[nU - 1] = idx;
+			int tmp = colIdx[i];
+			colIdx[i] = colIdx[nU - 1]; // swap column indices (keep synchronized)
+			colIdx[nU - 1] = tmp;
 		    nU--;
 		}
  		else {
@@ -471,13 +481,13 @@ public class LinEqSystemModP extends AbstractConstraint {
                 int sum = A[i][A[i].length - 1]; // rhs
 //  		System.out.print("for nonparam "+x[unBounds[i]].getName()+": "+sum);
                 for (int j = nNonparam; j < nUnBounds.value(); j++) { // unbound parametric vars
-                    sum -= A[i][unBounds[j]] * tuple[j];
-//  		    System.out.print("-"+A[i][unBounds[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
+                    sum -= A[i][colIdx[j]] * tuple[j];
+//  		    System.out.print("-"+A[i][colIdx[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
                 }
                 for (int j = nUnBounds.value(); j < A[i].length - 1; j++) { // bound parametric vars
                     assert (x[unBounds[j]].isBound());
-                    sum -= A[i][unBounds[j]] * x[unBounds[j]].min();
-//  		    System.out.print("--"+A[i][unBounds[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
+                    sum -= A[i][colIdx[j]] * x[unBounds[j]].min();
+//  		    System.out.print("--"+A[i][colIdx[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
                 }
                 sum = Math.floorMod(sum, p);
 //  		System.out.println();
