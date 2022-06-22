@@ -232,6 +232,30 @@ public class Model {
     }
 
     /**
+     * build and return a 2D array of integer from a literal
+     * @param lit the literal
+     * @return the array of integer
+     */
+    /*private int[][] get2DIntArray(ASTLit lit) {
+        //case where the literal is an Id linked to a declaration
+        if(lit instanceof ASTId) {
+            ASTId id = (ASTId) lit;
+            return get2DIntArray(declDict.get(id.getValue()).getExpr());
+        }
+        //case where the literal is the array's declaration
+        else if(lit instanceof ASTArray) {
+            ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
+            int array[] = new int[astarray.size()];
+            for(int i = 0; i < astarray.size(); i++) {
+                array[i] = getInt(astarray.get(i));
+            }
+            return array;
+            //return (Integer[]) array.toArray();
+        }
+        throw new NotImplementedException(lit.toString());
+    }*/
+
+    /**
      * build and return an array of integer variable from a literal
      * @param lit the literal
      * @return the array of variable
@@ -393,7 +417,10 @@ public class Model {
 
         constraintBuilder builder = new constraintBuilder(solver);
         switch(name){
-            case "all_different_int":
+            case "fzn_among":
+                builder.makeAmong(getIntVarArray(args.get(1)), getIntArray(args.get(2)), getIntVar(args.get(0)));
+                break;
+            case "fzn_all_different_int":
                 builder.makeAllDifferentInt(getIntVarArray(args.get(0)));
                 break;
             case "int_lin_ne":
@@ -484,19 +511,15 @@ public class Model {
             case "array_var_bool_element":  
                 builder.makeArrayVarBoolElement(getIntVar(args.get(0)), getBoolVarArray(args.get(1)), getBoolVar(args.get(2)));
                 break;
-            case "count":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "exactly_int":  
+            case "fzn_exactly_int":  
                 builder.makeExactlyInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
-            case "at_least_int":  
+            case "fzn_at_least_int":  
                 builder.makeAtLeastInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
-            case "at_most_int":  
+            case "fzn_at_most_int":  
                 builder.makeAtMostInt(getInt(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
-            case "count_eq":  
-                throw new NotImplementedException("Constraint : " +name);
             case "int_max":  
                 builder.makeIntMax(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
@@ -517,43 +540,24 @@ public class Model {
             case "int_abs":  
                 builder.makeIntAbs(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
-            case "set_in":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "member_int":  
-                throw new NotImplementedException("Constraint : " +name);
             case "maximum_int":  
                 builder.makeMaximumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
             case "minimum_int":  
                 builder.makeMinimumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
-            case "inverse_no_offset":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "subcircuit_no_offset":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "circuit_no_offset":  
+            case "fzn_circuit":  
                 builder.makeCircuit(getIntVarArray(args.get(0)));
                 break;
-            case "global_cardinality":  
+            case "fzn_global_cardinality":  
                 builder.makeGlobalCardinality(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntVarArray(args.get(2)));
                 break;
-            case "global_cardinality_closed":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "global_cardinality_low_up":  
+            case "fzn_global_cardinality_low_up":  
                 builder.makeGlobalCardinalityLowUp(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntArray(args.get(2)), getIntArray(args.get(3)));
                 break;
-            case "global_cardinality_low_up_closed":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "cumulative":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "nvalue_int":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "bin_packing_load":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "table_int":  
-                throw new NotImplementedException("Constraint : " +name);
-            case "table_bool":  
-                throw new NotImplementedException("Constraint : " +name);
+            /*case "fzn_table_int":
+                builder.makeTable(getIntVarArray(args.get(0)), getIntArray(args.get(1)));
+                break;*/
             default:
                 throw new NotImplementedException("Constraint : " + name);
         }

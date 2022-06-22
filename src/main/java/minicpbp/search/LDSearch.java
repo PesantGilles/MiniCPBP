@@ -216,7 +216,8 @@ public class LDSearch extends Search{
 //         onSolution(() -> obj.tighten());
         onSolution(() -> {
 		System.out.println("c (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
-		obj.tighten();});
+		obj.tighten();
+    });
         return solve(statistics, limit);
     }
 

@@ -211,4 +211,13 @@ public class constraintBuilder {
         x[0].getSolver().post(Factory.circuit(x));
     }
 
+    public void makeAmong(IntVar[] x, int[] V, IntVar o) {
+        x[0].getSolver().post(Factory.among(x, V, o));
+    }
+
+    public void makeTable(IntVar[] x, int[][] table) {
+        x[0].getSolver().post(Factory.table(x, table));
+    }
+
+
 }
