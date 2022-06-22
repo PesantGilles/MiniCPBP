@@ -1,0 +1,16 @@
+{
+  "id": "org.minicpbp.minicpbp",
+  "name": "MiniCPBP",
+  "description": "MiniCPBP FlatZinc executable",
+  "version": "1.0",
+  "mznlib": "mzn_lib",
+  "executable": "fzn-minicpbp",
+  "tags": ["cp"],
+  "stdFlags": ["-i","-f"],
+  "supportsMzn": false,
+  "supportsFzn": true,
+  "needsSolns2Out": true,
+  "needsMznExecutable": false,
+  "needsStdlibDir": false,
+  "isGUIApplication": false
+}

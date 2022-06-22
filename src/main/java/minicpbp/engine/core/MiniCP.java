@@ -70,7 +70,7 @@ public class MiniCP implements Solver {
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + (arity - min_arity)/total_nb_of_vars */
-    private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
+    private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.ARITY;
     //****************************
 
     //***** TRACING SWITCHES *****

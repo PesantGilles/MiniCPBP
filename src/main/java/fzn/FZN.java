@@ -70,7 +70,7 @@ public class FZN {
 	}
 
 	private String solutionStr = null;
-	private boolean extractSolutionStr = false;
+	private boolean extractSolutionStr = true;
 	private boolean foundSolution = false;
 
 	private static boolean checkSolution = false;
@@ -252,16 +252,19 @@ public class FZN {
 		search.onSolution(() -> {
 			foundSolution = true;
 			if (extractSolutionStr) {
-				StringBuilder sol = new StringBuilder("<instantiation>\n\t<list>\n\t\t");
-				for (IntVar x : m.getDecisionsVar())
+				StringBuilder sol = new StringBuilder("");
+				/*for (IntVar x : m.getDecisionsVar())
 					sol.append(x.getName()).append(" ");
 				sol.append("\n\t</list>\n\t<values>\n\t\t");
 				for (IntVar x : m.getDecisionsVar()){
 					System.out.println(x.size());
 					sol.append(x.min()).append(" ");
-				}
-				sol.append("\n\t</values>\n</instantiation>");
+				}*/
+				for (IntVar x : m.getDecisionsVar())
+					sol.append(x.getName() + " = " + x.min()+";\n");;
+				sol.append("----------\n");
 				solutionStr = sol.toString();
+				System.out.println(solutionStr);
 			}
 		});
 		SearchStatistics stats;
@@ -269,6 +272,7 @@ public class FZN {
 		switch (m.getGoal()) {
 			//find a solution that maximize the cost function
 			case ASTSolve.MAX:
+				System.out.println("maximize");
 				stats = search.optimize(minicpbp.maximize(m.getObjective()),
 					ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
@@ -276,12 +280,14 @@ public class FZN {
 				break;
 			//find a solution that minimize the cost function
 			case ASTSolve.MIN:
+				System.out.println("minimize");
 				stats = search.optimize(minicpbp.minimize(m.getObjective()),
 				ss -> {
 					return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
 				});
 				break;
 			default:
+				System.out.println("default");
 				//find a solution that satisfies all constraints without restart
 				if(!restart) {
 					stats = search.solve(ss -> {
@@ -329,6 +335,10 @@ public class FZN {
 			}
 	}
 
+	public void outputSolution() {
+		
+	}
+
 	/**
 	 * Prints statistic about the search
 	 * @param stats statistics about the search
@@ -356,11 +366,13 @@ public class FZN {
 		else
 			statusStr = "TIMEOUT";
 
-		out.println("status: " + statusStr);
-		out.println("failures: " + stats.numberOfFailures());
-		out.println("nodes: " + stats.numberOfNodes());
-		out.println("runtime (ms): " + runtime);
-
+		//out.println("status: " + statusStr);
+		out.println("%%%mzn-stat: failures=" + stats.numberOfFailures());
+		if(m.getGoal() != ASTSolve.SAT)
+			out.println("%%%mzn-stat: objective=" + m.getObjective());
+		out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
+		out.println("%%%mzn-stat: solveTime=" + runtime);
+		out.println("%%%mzn-stat-end");
 		out.close();
 
 	}
