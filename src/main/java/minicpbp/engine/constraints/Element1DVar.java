@@ -50,6 +50,7 @@ public class Element1DVar extends AbstractConstraint {
         for (IntVar t : array) {
             t.propagateOnBoundChange(this);
         }
+
         y.propagateOnDomainChange(this);
         z.propagateOnBoundChange(this);
 
@@ -85,7 +86,6 @@ public class Element1DVar extends AbstractConstraint {
     private void filterY() {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
-
         int i = y.fillArray(yValues);
         while (i > 0) {
             i -= 1;

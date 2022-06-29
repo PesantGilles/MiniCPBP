@@ -138,22 +138,22 @@ public class constraintBuilder {
     }
 
     public void makeArrayIntElement(IntVar b, int[] as, IntVar c) {
-        minicp.post(Factory.element(as, b, c));
+        minicp.post(Factory.element(as, Factory.minus(b,1), c));
     }
 
     public void makeArrayVarIntElement(IntVar b, IntVar[] as, IntVar c) {
-        minicp.post(Factory.element(as, b, c));
+        minicp.post(Factory.element(as, Factory.minus(b,1), c));
     }
 
     public void makeArrayBoolElement(IntVar b, boolean[] as, BoolVar c) {
         int asInt[] = new int[as.length];
         for(int i = 0; i < as.length; i++)
             asInt[i] = as[i] ? 1 : 0;
-        minicp.post(Factory.element(asInt, b, c));
+        minicp.post(Factory.element(asInt, Factory.minus(b,1), c));
     }
 
     public void makeArrayVarBoolElement(IntVar b, BoolVar[] as, BoolVar c) {
-        minicp.post(Factory.element(as, b, c));
+        minicp.post(Factory.element(as, Factory.minus(b,1), c));
     }
 
     public void makeCount() {
@@ -208,7 +208,10 @@ public class constraintBuilder {
     }
 
     public void makeCircuit(IntVar[] x) {
-        x[0].getSolver().post(Factory.circuit(x));
+        IntVar xOffset[] = new IntVar[x.length];
+        for(int i = 0; i < x.length; i++)
+            xOffset[i] = Factory.minus(x[i], 1);  
+        x[0].getSolver().post(Factory.circuit(xOffset));
     }
 
     public void makeAmong(IntVar[] x, int[] V, IntVar o) {
