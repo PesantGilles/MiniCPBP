@@ -92,6 +92,46 @@ public class TableCT extends AbstractConstraint {
         }
     }
 
+    /**
+     * Special case using only the first "tableLength" tuples
+     *
+     * @param x     the non empty set of variables to constraint
+     * @param table the possible set of solutions for x.
+     *              The second dimension must be of the same size as the array x.
+     * @param tableLength the number of tuples i.e. the actual size of the first dimension of table
+     */
+    public TableCT(IntVar[] x, int[][] table, int tableLength) {
+        super(x[0].getSolver(), x);
+        setName("TableCT");
+        this.x = x;
+        this.xLength = x.length;
+        this.table = table;
+        this.tableLength = tableLength;
+        setExactWCounting(true);
+        ofs = new int[xLength];
+        tupleWeight = new double[tableLength];
+        supportedTuples = new BitSet(tableLength);
+        supporti = new BitSet(tableLength);
+
+        // Allocate supportedByVarVal
+        supports = new BitSet[xLength][];
+        for (int i = 0; i < xLength; i++) {
+            ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
+            supports[i] = new BitSet[x[i].max() - x[i].min() + 1];
+            for (int j = 0; j < supports[i].length; j++)
+                supports[i][j] = new BitSet();
+        }
+
+        // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
+        for (int i = 0; i < tableLength; i++) { //i is the index of the tuple (in table)
+            for (int j = 0; j < xLength; j++) { //j is the index of the current variable (in x)
+                if (x[j].contains(table[i][j])) {
+                    supports[j][table[i][j] - ofs[j]].set(i);
+                }
+            }
+        }
+    }
+
     @Override
     public void post() {
         switch (getSolver().getMode()) {

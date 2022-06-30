@@ -864,6 +864,19 @@ public final class Factory {
     }
 
     /**
+     * Returns a constraint imposing that the first variable elevated to the power of the second variable
+     * is equal to the third one.
+     *
+     * @param x base variable
+     * @param y exponent variable
+     * @param z a variable
+     * @return a constraint so that {@code x ^ y = z}
+     */
+    public static Constraint pow(IntVar x, IntVar y, IntVar z) {
+        return new Pow(x, y, z);
+    }
+
+    /**
      * Returns a constraint imposing that the remainder of the modulo operation on two variables
      * is equal to the third one.
      *
@@ -1246,7 +1259,7 @@ public final class Factory {
      * special case using only the first "tableLength" tuples
      */
     public static Constraint table(IntVar[] x, int[][] table, int tableLength) {
-        return new TableCT(x, table);
+        return new TableCT(x, table, tableLength);
     }
 
     /**
