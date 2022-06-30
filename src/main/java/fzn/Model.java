@@ -491,9 +491,9 @@ public class Model {
                 break;
             case "bool_xor":  
                 if(args.size() == 2)
-                    builder.makeBoolXor(getBoolVar(args.get(0)), getBoolVar(args.get(1)));
+                    builder.makeArrayBoolXor(getBoolVar(args.get(0)), getBoolVar(args.get(1)));
                 else 
-                    builder.makeBoolXor(getBoolVar(args.get(0)), getBoolVar(args.get(1)));
+                    builder.makeArrayBoolXorReif(getBoolVar(args.get(2)), getBoolVar(args.get(0)), getBoolVar(args.get(1)));
                 break; 
             case "array_bool_or":  
                 builder.makeArrayBoolOr(getBoolVarArray(args.get(0)), getBoolVar(args.get(1)));
@@ -540,7 +540,8 @@ public class Model {
                 builder.makeIntPlus(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "int_div":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntDiv(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
+                break;
             case "int_mod":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_abs":  

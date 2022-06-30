@@ -92,8 +92,8 @@ public class constraintBuilder {
         minicp.post(Factory.isOr(not(r), array));
     }
 
-    public void makeBoolXor(BoolVar a, BoolVar b, BoolVar r) {
-        minicp.post(Factory.isXor(a, b, r));
+    public void makeArrayBoolXorReif(BoolVar r, BoolVar... as) {
+        minicp.post(Factory.equal(Factory.sumModP(as, 2),r));
     }
 
     public void makeBoolLe(BoolVar a, BoolVar b) {
@@ -104,23 +104,12 @@ public class constraintBuilder {
         minicp.post(Factory.notEqual(a, b));
     }    
 
-    public void makeBoolXor(BoolVar a, BoolVar b) {
-        BoolVar as[] = {a,b};
-        BoolVar asOppose[] = {Factory.not(a), Factory.not(b)};
-        minicp.post(Factory.or(as));
-        minicp.post(Factory.or(asOppose));
-    }
-
     public void makeArrayBoolOr(BoolVar[] as, BoolVar r) {
         minicp.post(Factory.isOr(r, as));
     }
 
-    public void makeArrayBoolXor(BoolVar[] as) {
-        BoolVar r = Factory.isXor(as[0], as[1]);
-        for(int i = 2; i < as.length-1; i++) {
-            r = Factory.isXor(r, as[i]);
-        }
-        makeBoolXor(r, as[as.length-1]);
+    public void makeArrayBoolXor(BoolVar... as) {
+        minicp.post(Factory.sumModP(as, 1, 2));
     }
 
     public void makeArrayBoolAnd(BoolVar[] as, BoolVar r) {
@@ -237,5 +226,12 @@ public class constraintBuilder {
         minicp.post(Factory.product(a, b, c));
     }
 
+    public void makeIntDiv(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.quotient(a, b, c));
+    }
+
+    public void makeIntMod(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.modulo(a, b, c));
+    }
 
 }
