@@ -201,7 +201,7 @@ public class FZN {
 
 		//build the model from the Flatzinc file
 		m.buildModel();
-		
+
 		Search search = null;
 		MiniCP minicpbp = (MiniCP) minicp;
 		//create search and branching heuristic
