@@ -92,6 +92,10 @@ public class constraintBuilder {
         minicp.post(Factory.isOr(not(r), array));
     }
 
+    public void makeArrayBoolXorReif(BoolVar r, BoolVar... as) {
+        minicp.post(Factory.equal(Factory.sumModP(as, 2),r));
+    }
+
     public void makeBoolLe(BoolVar a, BoolVar b) {
         minicp.post(Factory.lessOrEqual(a, b));
     }
@@ -100,16 +104,12 @@ public class constraintBuilder {
         minicp.post(Factory.notEqual(a, b));
     }    
 
-    public void makeBoolXor(BoolVar a, BoolVar b) {
-        throw new NotImplementedException();
-    }
-
     public void makeArrayBoolOr(BoolVar[] as, BoolVar r) {
         minicp.post(Factory.isOr(r, as));
     }
 
-    public void makeArrayBoolXor(BoolVar[] as, BoolVar r) {
-        throw new NotImplementedException();
+    public void makeArrayBoolXor(BoolVar... as) {
+        minicp.post(Factory.sumModP(as, 1, 2));
     }
 
     public void makeArrayBoolAnd(BoolVar[] as, BoolVar r) {
@@ -188,39 +188,50 @@ public class constraintBuilder {
     }
 
     public void makeExactlyInt(int n, IntVar[] x, int v) {
-        x[0].getSolver().post(Factory.exactly(x, v, n));
+        minicp.post(Factory.exactly(x, v, n));
     }
 
     public void makeAtLeastInt(int n, IntVar[] x, int v) {
-        x[0].getSolver().post(Factory.atleast(x, v, n));
+        minicp.post(Factory.atleast(x, v, n));
     }
 
     public void makeAtMostInt(int n, IntVar[] x, int v) {
-        x[0].getSolver().post(Factory.atmost(x, v, n));
+        minicp.post(Factory.atmost(x, v, n));
     }
 
     public void makeGlobalCardinality(IntVar[] x, int[] cover, IntVar[] counts) {
-        x[0].getSolver().post(Factory.cardinality(x, cover, counts));
+        minicp.post(Factory.cardinality(x, cover, counts));
     }
 
     public void makeGlobalCardinalityLowUp(IntVar[] x, int[] cover, int[] lbound, int[] ubound) {
-        x[0].getSolver().post(Factory.cardinality(x, cover, lbound, ubound));
+        minicp.post(Factory.cardinality(x, cover, lbound, ubound));
     }
 
     public void makeCircuit(IntVar[] x) {
         IntVar xOffset[] = new IntVar[x.length];
         for(int i = 0; i < x.length; i++)
             xOffset[i] = Factory.minus(x[i], 1);  
-        x[0].getSolver().post(Factory.circuit(xOffset));
+        minicp.post(Factory.circuit(xOffset));
     }
 
     public void makeAmong(IntVar[] x, int[] V, IntVar o) {
-        x[0].getSolver().post(Factory.among(x, V, o));
+        minicp.post(Factory.among(x, V, o));
     }
 
     public void makeTable(IntVar[] x, int[][] table) {
-        x[0].getSolver().post(Factory.table(x, table));
+        minicp.post(Factory.table(x, table));
     }
 
+    public void makeIntTimes(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.product(a, b, c));
+    }
+
+    public void makeIntDiv(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.quotient(a, b, c));
+    }
+
+    public void makeIntMod(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.modulo(a, b, c));
+    }
 
 }

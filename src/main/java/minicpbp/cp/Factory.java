@@ -1044,6 +1044,49 @@ public final class Factory {
     }
 
     /**
+     * Returns a variable representing
+     * the sum modulo p of a given set of variable.
+     *
+     * @param x an array of variables
+     * @param y a constant
+     * @param p the modulus
+     * @return a constraint so that {@code y = x[0]+x[1]+...+x[n-1] (mod p)}
+     */
+    public static IntVar sumModP(IntVar[] x, int p) {
+        Solver cp = x[0].getSolver();
+        // merge repeated variables among x
+        int nbUnique = 0;
+        int[] nbOcc = new int[x.length];
+        for (int i = 0; i < x.length; i++)
+            nbOcc[i] = 1;
+        for (int i = 0; i < x.length; i++)
+            if (nbOcc[i] == 1) {
+                nbUnique++;
+                for (int j = i + 1; j < x.length; j++)
+                    if (x[i] == x[j]) { // repeated var
+                        nbOcc[i]++;
+                        nbOcc[j] = 0;
+                    }
+            }
+        IntVar[] vars = new IntVar[nbUnique + 1];
+        for (int i = 0; i < x.length; i++)
+            switch (nbOcc[i]) {
+                case 0:
+                    break;
+                case 1:
+                    vars[nbUnique] = x[i];
+                    nbUnique--;
+                    break;
+                default:
+                    vars[nbUnique] = mul(x[i], nbOcc[i]);
+                    nbUnique--;
+            }
+        vars[0] = makeIntVar(cp, -p, 0);
+        cp.post(new SumModP(vars, p));
+        return minus(vars[0]);
+    }
+
+    /**
      * Returns a sum constraint.
      *
      * @param x an array of variables
