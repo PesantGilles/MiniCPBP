@@ -494,6 +494,36 @@ public final class Factory {
     }
 
     /**
+     * Returns a constraint imposing that (p XOR q) <-> r
+     * @param p a variable
+     * @param q a variable
+     * @param r a variable
+     * @return a constraint so that {@code r <-> p XOR q}
+     */
+    public static Constraint isXor(BoolVar p, BoolVar q, BoolVar r) {
+        BoolVar a[] = {p,q};
+        BoolVar b[] = {not(p), not(q)};
+        BoolVar c[] = {not(isOr(a)), not(isOr(b))};
+        return new IsOr(not(r), c);
+    }
+
+    /**
+     * Returns a constraint imposing that p XOR q is True
+     * @param p a variable
+     * @param q a variable
+     * @param r a variable
+     * @return a constraint so that {@code p XOR q = True}
+     */
+    public static BoolVar isXor(BoolVar p, BoolVar q) {
+        //p XOR q -> (p \/ q) /\ (¬p \/ ¬q)
+        //-> ¬(¬(p\/q)\/¬(¬p\/¬q))
+        BoolVar a[] = {p,q};
+        BoolVar b[] = {not(p), not(q)};
+        BoolVar c[] = {not(isOr(a)), not(isOr(b))};
+        return not(isOr(c));
+    }
+
+    /**
      * Computes a variable that is the maximum of a set of variables.
      * This relation is enforced by the {@link Maximum} constraint
      * posted by calling this method.

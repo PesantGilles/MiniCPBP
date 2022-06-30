@@ -490,12 +490,17 @@ public class Model {
                 builder.makeBoolOr(getBoolVar(args.get(0)),getBoolVar(args.get(1)), getBoolVar(args.get(2)));
                 break;
             case "bool_xor":  
-                throw new NotImplementedException("Constraint : " +name); 
+                if(args.size() == 2)
+                    builder.makeBoolXor(getBoolVar(args.get(0)), getBoolVar(args.get(1)));
+                else 
+                    builder.makeBoolXor(getBoolVar(args.get(0)), getBoolVar(args.get(1)));
+                break; 
             case "array_bool_or":  
                 builder.makeArrayBoolOr(getBoolVarArray(args.get(0)), getBoolVar(args.get(1)));
                 break;
             case "array_bool_xor":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeArrayBoolXor(getBoolVarArray(args.get(0)));
+                break;
             case "array_bool_and":  
                 builder.makeArrayBoolAnd(getBoolVarArray(args.get(0)), getBoolVar(args.get(1)));
                 break;
@@ -529,7 +534,8 @@ public class Model {
             case "int_pow":  
                 throw new NotImplementedException("Constraint : " +name);
             case "int_times":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntTimes(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
+                break;
             case "int_plus":  
                 builder.makeIntPlus(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
