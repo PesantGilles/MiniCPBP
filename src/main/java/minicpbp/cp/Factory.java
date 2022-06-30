@@ -880,6 +880,52 @@ public final class Factory {
     }
 
     /**
+     * Returns a constraint imposing that the quotient of two variables
+     * is equal to the third one.
+     *
+     * @param x a variable
+     * @param y a variable
+     * @param z a variable
+     * @return a constraint so that {@code x / y = z}
+     */
+    public static Constraint quotient(IntVar x, IntVar y, IntVar z) {
+	    y.remove(0);
+        return new Product(y, z, x);
+    }
+
+    /**
+     * Returns a constraint imposing that the remainder of the modulo operation on two variables
+     * is equal to the third one.
+     *
+     * @param x a variable
+     * @param p a variable (the modulus)
+     * @param z a variable (the remainder)
+     * @return a constraint so that {@code x % p = z}
+     */
+    public static Constraint modulo(IntVar x, IntVar p, IntVar z) {
+	    p.removeBelow(2); // a modulus is > 1
+	    z.removeBelow(0);
+        x.getSolver().post(less(z,p)); // the remainder lies between 0 and p-1
+	    // decomposed into x = k*p + z for some integer k
+        int min, max;
+        if (x.max()>=0) {
+            max = x.max() / p.min();
+        } else {
+            max = 0;
+        }
+        if (x.min()<0) {
+            min = x.min() / p.min();
+            if (x.min() % p.min() != 0) {
+               min--;
+            }
+        } else {
+            min = 0;
+        }
+        IntVar k = makeIntVar(x.getSolver(), min, max); // min( 0, floor(min(x) / min(p)) ) <= k <= max( 0, floor(max(x) / min(p)) )
+        return new Equal(x,sum(product(k,p),z));
+    }
+
+    /**
      * Returns a constraint imposing that array[y] = z
      * @param array an array of int
      * @param y a variable
