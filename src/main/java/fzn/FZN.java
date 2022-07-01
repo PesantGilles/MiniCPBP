@@ -157,6 +157,11 @@ public class FZN {
 		FZN.traceNbIter = traceNbIter;
 	}
 
+	public static boolean printStats = false;
+	public void printStats(boolean printStats) {
+		FZN.printStats = printStats;
+	}
+
 	/**
 	 * Creates a search (either DFS or LDS) with a given branching heuristic
 	 * @param branching a branching heuristic
@@ -251,28 +256,14 @@ public class FZN {
 		//procedure executed when a solution is found
 		search.onSolution(() -> {
 			foundSolution = true;
-			if (extractSolutionStr) {
-				StringBuilder sol = new StringBuilder("");
-				/*for (IntVar x : m.getDecisionsVar())
-					sol.append(x.getName()).append(" ");
-				sol.append("\n\t</list>\n\t<values>\n\t\t");
-				for (IntVar x : m.getDecisionsVar()){
-					System.out.println(x.size());
-					sol.append(x.min()).append(" ");
-				}*/
-				for (IntVar x : m.getDecisionsVar())
-					sol.append(x.getName() + " = " + x.min()+";\n");;
-				sol.append("----------\n");
-				solutionStr = sol.toString();
-				System.out.println(solutionStr);
-			}
+			solutionStr = m.getSolutionOutput();
+			System.out.print(solutionStr);
 		});
 		SearchStatistics stats;
 		//start the search
 		switch (m.getGoal()) {
 			//find a solution that maximize the cost function
 			case ASTSolve.MAX:
-				System.out.println("maximize");
 				stats = search.optimize(minicpbp.maximize(m.getObjective()),
 					ss -> {
 						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
@@ -280,14 +271,12 @@ public class FZN {
 				break;
 			//find a solution that minimize the cost function
 			case ASTSolve.MIN:
-				System.out.println("minimize");
 				stats = search.optimize(minicpbp.minimize(m.getObjective()),
 				ss -> {
 					return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
 				});
 				break;
 			default:
-				System.out.println("default");
 				//find a solution that satisfies all constraints without restart
 				if(!restart) {
 					stats = search.solve(ss -> {
@@ -303,40 +292,21 @@ public class FZN {
 				break;
 		}
 
-		//verify the solution (TODO)
-		//and print it
-		if (foundSolution) {
-			System.out.println("solution found");
-			//if (checkSolution)
-				//verifySolution();
-			printSolution(solFileStr);
-		} else
-			System.out.println("no solution was found");
+
+		
+		if (!foundSolution) {
+			if (stats.isCompleted())
+				System.out.println("=====UNSATISFIABLE=====");
+			else
+				System.out.println("=====UNKNOWN=====");
+		}
+		else if(stats.isCompleted()) {
+			System.out.println("==========");
+		}
 
 		Long runtime = System.currentTimeMillis() - t0;
-		printStats(stats, statsFileStr, runtime);
-
-	}
-
-	/**
-	 * Prints the solution in the given file
-	 * @param solFileStr the path to the file
-	 */
-	private void printSolution(String solFileStr) {
-		if (solFileStr != "")
-			try {
-				PrintWriter out = new PrintWriter(new File(solFileStr));
-				out.print(solutionStr);
-				out.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				System.out.println("unable to create file " + solFileStr);
-				System.exit(1);
-			}
-	}
-
-	public void outputSolution() {
-		
+		if(printStats)
+			printStats(stats, statsFileStr, runtime);
 	}
 
 	/**
@@ -346,34 +316,13 @@ public class FZN {
 	 * @param runtime
 	 */
 	private void printStats(SearchStatistics stats, String statsFileStr, Long runtime) {
-		PrintStream out = null;
-		if (statsFileStr == "")
-			out = System.out;
-		else
-			try {
-				out = new PrintStream(new File(statsFileStr));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				System.out.println("unable to create file " + statsFileStr);
-				System.exit(1);
-			}
-
-		String statusStr;
-		if (foundSolution)
-			statusStr = "SAT";
-		else if (stats.isCompleted())
-			statusStr = "UNSAT";
-		else
-			statusStr = "TIMEOUT";
-
 		//out.println("status: " + statusStr);
-		out.println("%%%mzn-stat: failures=" + stats.numberOfFailures());
+		System.out.println("%%%mzn-stat: failures=" + stats.numberOfFailures());
 		if(m.getGoal() != ASTSolve.SAT)
-			out.println("%%%mzn-stat: objective=" + m.getObjective());
-		out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
-		out.println("%%%mzn-stat: solveTime=" + runtime);
-		out.println("%%%mzn-stat-end");
-		out.close();
+			System.out.println("%%%mzn-stat: objective=" + m.getObjective().min());
+		System.out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
+		System.out.println("%%%mzn-stat: solveTime=" + runtime);
+		System.out.println("%%%mzn-stat-end");
 
 	}
 

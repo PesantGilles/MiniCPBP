@@ -8,6 +8,9 @@ import minicpbp.util.exception.NotImplementedException;
 import minicpbp.engine.core.Solver;
 
 
+import java.util.Set;
+
+
 import static minicpbp.cp.Factory.*;
 
 public class constraintBuilder {
@@ -232,6 +235,14 @@ public class constraintBuilder {
 
     public void makeIntMod(IntVar a, IntVar b, IntVar c) {
         minicp.post(Factory.modulo(a, b, c));
+    }
+
+    public void makeIntPow(IntVar a, IntVar b, IntVar c) {
+        minicp.post(Factory.pow(a,b,c));
+    }
+
+    public void makeSetIn(IntVar x, Set<Integer> s) {
+        x.removeOutside(s);
     }
 
 }

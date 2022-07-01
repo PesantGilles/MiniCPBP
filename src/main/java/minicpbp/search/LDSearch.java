@@ -215,7 +215,7 @@ public class LDSearch extends Search{
         SearchStatistics statistics = new SearchStatistics();
 //         onSolution(() -> obj.tighten());
         onSolution(() -> {
-		System.out.println("c (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
+		//System.out.println("c (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
 		obj.tighten();
     });
         return solve(statistics, limit);
