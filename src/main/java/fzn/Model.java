@@ -243,6 +243,25 @@ public class Model {
         throw new NotImplementedException(lit.toString());
     }
 
+    private Set<Integer> getSetInt(ASTLit lit) {
+        if(lit instanceof ASTId) {
+            ASTId id = (ASTId) lit;
+            return getSetInt(declDict.get(id.getValue()).getExpr()); 
+        }
+        Set<Integer> set;
+        if(lit instanceof ASTRange) {
+            ASTRange range = (ASTRange) lit;
+            set = new HashSet<>();
+            for(int i = range.getLb().getValue(); i <= range.getUb().getValue(); i++)
+                set.add(i);
+        }
+        else if(lit instanceof ASTSet)
+            set = ((ASTSet)lit).getSet().stream().map(e -> e.getValue()).collect(Collectors.toSet());
+        else 
+            throw new NotImplementedException(lit.toString());
+        return set;
+    }
+
     /**
      * build and return a 2D array of integer from a literal
      * @param lit the literal
@@ -543,8 +562,9 @@ public class Model {
             case "int_min":  
                 builder.makeIntMin(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
-            case "int_pow":  
-                throw new NotImplementedException("Constraint : " +name);
+            case "int_pow": 
+                builder.makeIntPow(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2))); 
+                break;
             case "int_times":  
                 builder.makeIntTimes(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
@@ -555,7 +575,8 @@ public class Model {
                 builder.makeIntDiv(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
                 break;
             case "int_mod":  
-                throw new NotImplementedException("Constraint : " +name);
+                builder.makeIntMod(getIntVar(args.get(0)), getIntVar(args.get(1)), getIntVar(args.get(2)));
+                break;
             case "int_abs":  
                 builder.makeIntAbs(getIntVar(args.get(0)), getIntVar(args.get(1)));
                 break;
@@ -574,9 +595,9 @@ public class Model {
             case "fzn_global_cardinality_low_up":  
                 builder.makeGlobalCardinalityLowUp(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntArray(args.get(2)), getIntArray(args.get(3)));
                 break;
-            /*case "fzn_table_int":
-                builder.makeTable(getIntVarArray(args.get(0)), getIntArray(args.get(1)));
-                break;*/
+            case "set_in":
+                builder.makeSetIn(getIntVar(args.get(0)), getSetInt(args.get(1)));
+                break;
             default:
                 throw new NotImplementedException("Constraint : " + name);
         }
