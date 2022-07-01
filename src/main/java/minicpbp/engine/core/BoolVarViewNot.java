@@ -244,6 +244,7 @@ public class BoolVarViewNot implements BoolVar {
         return x.isForBranching();
     }
 
+
     @Override
     public String getName() {
         if (this.name != null)

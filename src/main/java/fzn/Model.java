@@ -51,6 +51,8 @@ public class Model {
     private int type;
     private IntVar objective;
 
+    private final Map<String,ASTLit> outputVars = new HashMap<>(); 
+
     private boolean acceptAnyCstr;
 
     public Model(boolean acceptAnyCstr) {
@@ -116,34 +118,44 @@ public class Model {
      * @param decl the declaration of the variable
      */
     private void addVar(ASTVarDecl decl) {
-        //List<ASTLit> anns = decl.getAnns();
-
+        List<ASTLit> anns = decl.getAnns();
         if(decl.hasExpr() && decl.getExpr() instanceof ASTId) {
             ASTId alias = (ASTId) decl.getExpr();
             ASTDecl aliasDecl = declDict.get(alias.getValue());
             declDict.put(decl.getId().getValue(), aliasDecl);
-            if(decl.getAnns() != null) {
-                //TODO
-            }
         }
-        else {
+        else
             declDict.put(decl.getId().getValue(), decl);
-            if(decl.getAnns() != null) {
-                //TODO
+
+        for(ASTLit ann: anns) {
+            if(ann instanceof ASTId) {
+                if(((ASTId) ann).getValue().contains("output_var")) {
+                    outputVars.put(decl.getId().getValue(), ann);
+                }
+            }
+            else if(ann instanceof ASTAnnotation) {
+                if(((ASTAnnotation) ann).getId().getValue().contains("output_array"))
+                    outputVars.put(decl.getId().getValue(), ann);
             }
         }
-        //if the variable is an integer 
+
+        
         if(!(decl.getType() instanceof ASTArrayType)) {
+            IntVar varToAdd;
+            //if the variable is an integer 
             if(decl.getType().getDataType() == ASTConstants.INT) {
-                IntVar varToAdd = getIntVar(decl.getId());
+                varToAdd = getIntVar(decl.getId());
                 varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
             }
             //if the variable is a boolean
             else if(decl.getType().getDataType() == ASTConstants.BOOL) {
-                BoolVar varToAdd = getBoolVar(decl.getId());
+                varToAdd = getBoolVar(decl.getId());
                 varToAdd.setName(decl.getId().getValue());
                 decisionsVar.add(varToAdd);
+            }
+            else {
+                throw new NotImplementedException();
             }
         }
     }
@@ -579,5 +591,35 @@ public class Model {
         decisionsVar.forEach(x -> x.setForBranching(true));
         decisionsVar.toArray(vars);
         return vars;
+    }
+
+    public String getSolutionOutput() {
+        StringBuilder sol = new StringBuilder("");
+        for(Map.Entry<String, ASTLit> entry : outputVars.entrySet()) {
+            String var = entry.getKey();
+            ASTLit ann = entry.getValue();
+            if(ann instanceof ASTId) {
+                IntVar x = varDict.get(var);
+                sol.append(x.getName() + " = " + x.min()+";\n");
+            }
+            else {
+                ASTAnnotation annot = (ASTAnnotation) ann;
+                ASTArray dimensions = (ASTArray) annot.getArgs().get(0);
+                sol.append(var);
+                sol.append(" = array");
+                sol.append(dimensions.getElems().size());
+                sol.append("d(");
+                for(ASTLit elem : dimensions.getElems())
+                    sol.append(elem.toString() + ", ");
+                sol.append("[");
+                IntVar array[] = getIntVarArray(declDict.get(var).getExpr());
+                for(int i = 0; i < array.length-1; i++) 
+                    sol.append(array[i].min() + ", ");
+                    //System.out.println(array[i].getName());
+                sol.append(array[array.length-1].min() + "]);\n");
+            }
+        }
+        sol.append("----------\n");
+        return sol.toString();
     }
 }

@@ -188,7 +188,6 @@ public class DFSearch extends Search{
     }
 
     public void initializeImpact(IntVar... x) {
-        System.out.println("initializing impacts");
         int[] arrayVal;
         IntHolder value = new IntHolder();
         for(IntVar a: x) {
@@ -280,7 +279,7 @@ public class DFSearch extends Search{
         SearchStatistics statistics = new SearchStatistics();
 //         onSolution(() -> obj.tighten());
         onSolution(() -> {
-		System.out.println(" (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
+		//System.out.println(" (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
 		obj.tighten();});
         return solve(statistics, limit);
     }

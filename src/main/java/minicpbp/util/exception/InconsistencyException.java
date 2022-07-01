@@ -23,7 +23,8 @@ public class InconsistencyException extends RuntimeException {
     private static final long serialVersionUID = 1240061199250453776L;
 
     public String toString() {
-        return "inconsistency";
+        return "=====UNSATISFIABLE=====";
+        //return "inconsistency";
     }
 
     @Override
