@@ -22,51 +22,8 @@ public class MznCompetition {
 
 	public static void main(String[] args) {
 
-		
-		Option fznFileOpt = Option.builder().longOpt("input").argName("FILE").required().hasArg()
-				.desc("input FZN file").build();
-		
-		Option timeoutOpt = Option.builder().longOpt("timeout").argName("SECONDS").required().hasArg()
-				.desc("timeout in seconds").build();
-
-		Option tmpDirOpt = Option.builder().longOpt("tmpdir").argName("TMPDIR").hasArg()
-				.desc("path to the dir for temporary files").build();
-
-
-
-		Options options = new Options();
-		options.addOption(fznFileOpt);
-		options.addOption(timeoutOpt);
-		options.addOption(tmpDirOpt);
-
-		CommandLineParser parser = new DefaultParser();
-		CommandLine cmd = null;
 		try {
-			cmd = parser.parse(options, args);
-		} catch (ParseException exp) {
-			System.err.println(exp.getMessage());
-			new HelpFormatter().printHelp("solve-FZN", options);
-			System.exit(1);
-		}
-
-
-		String inputStr = cmd.getOptionValue("input");
-		checkInputOption(inputStr);
-
-		String timeoutStr = cmd.getOptionValue("timeout");
-		int timeout = checkTimeoutOption(timeoutStr);
-
-		String tempDirStr = "";
-        String statsFileStr = "";
-        String solFileStr = "";
-		if (cmd.hasOption("tmpdir")) {
-			tempDirStr = cmd.getOptionValue("tmpdir");
-			checkCreateFile(tempDirStr);
-            //TODO : nom fichier stats et fichier solution
-		}
-
-		try {
-			FZN fzn = new FZN(inputStr);
+			FZN fzn = new FZN(args[0]);
 			fzn.searchType(TreeSearchType.LDS);
 			fzn.checkSolution(false);
 			fzn.traceBP(false);
@@ -80,7 +37,7 @@ public class MznCompetition {
 			fzn.traceNbIter(false);
 			fzn.variationThreshold(0.1);
             //fzn.competitionOutput(true);
-			fzn.solve(BranchingHeuristic.MNE, timeout, statsFileStr, solFileStr);
+			fzn.solve(BranchingHeuristic.MNE, 1200, "", "");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
