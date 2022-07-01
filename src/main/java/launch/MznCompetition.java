@@ -68,7 +68,7 @@ public class MznCompetition {
 		try {
 			FZN fzn = new FZN(inputStr);
 			fzn.searchType(TreeSearchType.LDS);
-			fzn.checkSolution(false); //à décider
+			fzn.checkSolution(false);
 			fzn.traceBP(false);
 			fzn.traceSearch(false);
 			fzn.maxIter(5);

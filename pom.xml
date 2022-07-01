@@ -99,7 +99,7 @@
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>launch.SolveXCSPFZN</mainClass>
+									<mainClass>launch.MznCompetition</mainClass>
 								</transformer>
 							</transformers>
 							<artifactSet>
