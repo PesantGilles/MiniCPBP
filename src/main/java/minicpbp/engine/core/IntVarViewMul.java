@@ -26,6 +26,8 @@ import minicpbp.util.Belief;
 import minicpbp.util.exception.IntOverFlowException;
 import minicpbp.util.exception.NotImplementedException;
 
+import java.util.Set;
+
 /**
  * A view on a variable of type {@code a*x}
  */
@@ -144,6 +146,18 @@ public class IntVarViewMul implements IntVar {
     @Override
     public void removeAbove(int v) {
         x.removeAbove(floorDiv(v, a));
+    }
+
+    @Override
+    public void removeOutside(Set<Integer> S) {
+        for (int i = x.min(); i <= x.max(); i++) {
+            if (!S.contains(i*a)) {
+                try {
+                    x.remove(i);
+                } catch (InconsistencyException e) {
+                }
+            }
+        }
     }
 
     // Java's division always rounds to the integer closest to zero, but we need flooring/ceiling versions.

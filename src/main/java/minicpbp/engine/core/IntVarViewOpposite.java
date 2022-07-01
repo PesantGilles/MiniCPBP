@@ -21,6 +21,9 @@ package minicpbp.engine.core;
 
 import minicpbp.util.Procedure;
 import minicpbp.util.Belief;
+import minicpbp.util.exception.InconsistencyException;
+
+import java.util.Set;
 
 /**
  * A view on a variable of type {@code -x}
@@ -123,6 +126,18 @@ public class IntVarViewOpposite implements IntVar {
     @Override
     public void removeAbove(int v) {
         x.removeBelow(-v);
+    }
+
+    @Override
+    public void removeOutside(Set<Integer> S) {
+        for (int i = x.min(); i <= x.max(); i++) {
+            if (!S.contains(-i)) {
+                try {
+                    x.remove(i);
+                } catch (InconsistencyException e) {
+                }
+            }
+        }
     }
 
     @Override

@@ -220,6 +220,18 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public void removeOutside(Set<Integer> S) {
+        for (int i = min(); i <= max(); i++) {
+            if (!S.contains(i)) {
+                try {
+                    this.remove(i);
+                } catch (InconsistencyException e) {
+                }
+            }
+        }
+    }
+
+    @Override
     public int randomValue() {
         return domain.randomValue();
     }

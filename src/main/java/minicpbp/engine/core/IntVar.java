@@ -21,6 +21,8 @@ package minicpbp.engine.core;
 import minicpbp.util.Procedure;
 import minicpbp.util.exception.InconsistencyException;
 
+import java.util.Set;
+
 public interface IntVar {
 
     /**
@@ -164,6 +166,15 @@ public interface IntVar {
      *            is thrown if the domain becomes empty
      */
     void removeAbove(int v);
+
+    /**
+     * Remove all the values outside of S
+     *
+     * @param S the set of allowed values
+     * @exception InconsistencyException
+     *            is thrown if the domain becomes empty
+     */
+    void removeOutside(Set<Integer> S);
 
     /**
      * Returns a value in the domain chosen uniformly at random.
