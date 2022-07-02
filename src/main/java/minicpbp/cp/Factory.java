@@ -1263,6 +1263,39 @@ public final class Factory {
     }
 
     /**
+     * Returns a disjunctive constraint.
+     * This relation is enforced by the {@link Disjunctive} constraint
+     * posted by calling this method.
+     *
+     * For any two pair i,j of activities we have
+     * {@code start[i]+duration[i] <= start[j] or start[j]+duration[j] <= start[i]}.
+     *
+     * @param start    the start times of the activities
+     * @param duration the durations of the activities
+     * @return a disjunctive constraint
+     */
+    public static Constraint disjunctive(IntVar[] start, int[] duration) {
+	return new Disjunctive(start, duration);
+    }
+
+    /**
+     * Returns a cumulative constraint with a time-table filtering.
+     * This relation is enforced by the {@link Cumulative} constraint
+     * posted by calling this method.
+     *
+     * At any time-point t, the sum of the demands
+     * of the activities overlapping t do not overlap the capacity.
+     *
+     * @param start    the start time of each activities
+     * @param duration the duration of each activities (non negative)
+     * @param demand   the demand of each activities, non negative
+     * @param capa     the capacity of the constraint
+     */
+    public static Constraint cumulative(IntVar[] start, int[] duration, int[] demand, int capa) {
+        return new Cumulative(start, duration, demand, capa);
+    }
+
+    /**
      * Returns a regular constraint.
      * This relation is enforced by the {@link Regular} constraint
      * posted by calling this method.
