@@ -33,7 +33,7 @@ public class MznCompetition {
 			fzn.dampingFactor(0.5);
 			fzn.restart(false);
 			fzn.initImpact(false);
-			fzn.dynamicStopBP(true);
+			fzn.dynamicStopBP(false);
 			fzn.traceNbIter(false);
 			fzn.variationThreshold(0.01);
             //fzn.competitionOutput(true);
