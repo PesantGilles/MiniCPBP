@@ -28,7 +28,7 @@ public class MznCompetition {
 			fzn.checkSolution(false);
 			fzn.traceBP(false);
 			fzn.traceSearch(false);
-			fzn.maxIter(5);
+			fzn.maxIter(15);
 			fzn.damp(true);
 			fzn.dampingFactor(0.5);
 			fzn.restart(false);
