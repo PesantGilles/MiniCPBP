@@ -117,7 +117,7 @@ public class LDSearch extends Search{
 		    }
                 statistics.setCompleted();
             } catch (StopSearchException ignored) {
- 		System.out.println("c LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
+ 		//System.out.println("c LDS: currently on search tree with max discrepancy = "+maxDiscrepancy);
             } catch (StackOverflowError e) {
                 throw new NotImplementedException("c lds with explicit stack needed to pass this test");
             }
