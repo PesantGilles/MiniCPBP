@@ -429,6 +429,8 @@ public class Model {
 		}
         //case where there is no given domain
         else if(type.getDom() == null) {
+            //Integer.MIN_VALUE and Integer.MAX_VALUE is divided by 3,
+            //otherwise the solver tries to create an array of size : 2*Integer*MAX_VALUE wich is impossible
             newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE/3, Integer.MAX_VALUE/3);
             System.out.println(newVar);
         }
