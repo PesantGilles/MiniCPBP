@@ -35,7 +35,7 @@ public class MznCompetition {
 			fzn.initImpact(false);
 			fzn.dynamicStopBP(true);
 			fzn.traceNbIter(false);
-			fzn.variationThreshold(0.1);
+			fzn.variationThreshold(0.01);
             //fzn.competitionOutput(true);
 			fzn.solve(BranchingHeuristic.MNE, 1200, "", "");
 		} catch (Exception e) {
