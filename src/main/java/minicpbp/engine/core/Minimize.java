@@ -27,7 +27,10 @@ public class Minimize implements Objective {
 
     public Minimize(IntVar x) {
         this.x = x;
-        x.getSolver().onFixPoint(() -> x.removeAbove(bound));
+        if(x.getSolver().getMode() == Solver.PropaMode.BP)
+            x.getSolver().onBeliefPropa(() -> x.removeAbove(bound));
+        else
+            x.getSolver().onFixPoint(() -> x.removeAbove(bound));
     }
 
     public void tighten() {
