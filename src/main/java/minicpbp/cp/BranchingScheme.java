@@ -238,6 +238,42 @@ public final class BranchingScheme {
     }
 
     /**
+     * Lexicographic variable selection and  biased-wheel value selection.
+     * It selects the first variable with a domain larger than one.
+     * Then it creates two branches:
+     * the left branch assigning the variable nondeterministically using biased wheel selection based on marginal distribution;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the lexicographic/biased-wheel strategy is applied.
+     * @return a lexicographic/biased-wheel branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> lexicoBiasedWheelSelectVal(IntVar... x) {
+	boolean tracing = x[0].getSolver().tracingSearch();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+		    xi -> 1); // any constant value
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.biasedWheelValue();
+                return branch(
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  branchEqual(xs, v);
+			      },
+			      () -> {
+				  if (tracing)
+				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  branchNotEqual(xs, v);
+			      } );
+            }
+        };
+    }
+
+    /**
      * First-Fail strategy.
      * It selects the first unbound variable with a smallest domain.
      * Then it creates two branches:
