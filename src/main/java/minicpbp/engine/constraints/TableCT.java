@@ -23,8 +23,6 @@ import minicpbp.engine.core.IntVar;
 
 import java.util.BitSet;
 
-import static minicpbp.cp.Factory.minus;
-
 /**
  * Implementation of Compact Table algorithm described in
  * <p><i>Compact-Table: Efficiently Filtering Table Constraints with Reversible Sparse Bit-Sets</i>
@@ -39,10 +37,10 @@ public class TableCT extends AbstractConstraint {
     private int[] ofs; //offsets for each variable's domain
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
-    private double[] tupleWeight;
     //supportedTuples is the set of tuples supported by the current domains of the variables
     private BitSet supportedTuples;
     private BitSet supporti;
+    private double[] tupleWeight;
 
     /**
      * Table constraint.
@@ -56,7 +54,7 @@ public class TableCT extends AbstractConstraint {
      * as the user enumerates the set of solutions that can be taken
      * by the variables.
      *
-     * @param x     the non empty set of variables to constraint
+     * @param x     the non empty set of variables to constrain.
      * @param table the possible set of solutions for x.
      *              The second dimension must be of the same size as the array x.
      */
@@ -67,11 +65,10 @@ public class TableCT extends AbstractConstraint {
         this.xLength = x.length;
         this.table = table;
         this.tableLength = table.length;
-        setExactWCounting(true);
         ofs = new int[xLength];
-        tupleWeight = new double[tableLength];
         supportedTuples = new BitSet(tableLength);
         supporti = new BitSet(tableLength);
+        tupleWeight = new double[tableLength];
 
         // Allocate supportedByVarVal
         supports = new BitSet[xLength][];
@@ -90,12 +87,13 @@ public class TableCT extends AbstractConstraint {
                 }
             }
         }
+        setExactWCounting(true);
     }
 
     /**
      * Special case using only the first "tableLength" tuples
      *
-     * @param x     the non empty set of variables to constraint
+     * @param x     the non empty set of variables to constrain
      * @param table the possible set of solutions for x.
      *              The second dimension must be of the same size as the array x.
      * @param tableLength the number of tuples i.e. the actual size of the first dimension of table
@@ -107,11 +105,10 @@ public class TableCT extends AbstractConstraint {
         this.xLength = x.length;
         this.table = table;
         this.tableLength = tableLength;
-        setExactWCounting(true);
         ofs = new int[xLength];
-        tupleWeight = new double[tableLength];
         supportedTuples = new BitSet(tableLength);
         supporti = new BitSet(tableLength);
+        tupleWeight = new double[tableLength];
 
         // Allocate supportedByVarVal
         supports = new BitSet[xLength][];
@@ -130,6 +127,7 @@ public class TableCT extends AbstractConstraint {
                 }
             }
         }
+        setExactWCounting(true);
     }
 
     @Override
@@ -153,6 +151,7 @@ public class TableCT extends AbstractConstraint {
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
         supportedTuples.set(0, tableLength); // set them all to true
+
         for (int i = 0; i < xLength; i++) {
             supporti.clear(); // set them all to false
             int s = x[i].fillArray(domainValues);
@@ -165,7 +164,7 @@ public class TableCT extends AbstractConstraint {
         for (int i = 0; i < xLength; i++) {
             int s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
-                // The condition for removing the setValue v from x[i] is to check if
+                // The condition for removing value v from x[i] is to check if
                 // there is no intersection between supportedTuples and the support[i][v]
                 int v = domainValues[j];
                 if (!supports[i][v - ofs[i]].intersects(supportedTuples)) {
