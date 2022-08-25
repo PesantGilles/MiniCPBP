@@ -225,6 +225,14 @@ public class constraintBuilder {
         minicp.post(Factory.table(x, table));
     }
 
+    public void makeDisjunctive(IntVar[] start, int[] duration) {
+        minicp.post(Factory.disjunctive(start, duration));
+    }
+
+    public void makeCumulative(IntVar[] start, int[] duration, int[] demand, int capa) {
+        minicp.post(Factory.cumulative(start, duration, demand, capa));
+    }
+
     public void makeIntTimes(IntVar a, IntVar b, IntVar c) {
         minicp.post(Factory.product(a, b, c));
     }

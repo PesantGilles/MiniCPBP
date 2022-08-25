@@ -17,12 +17,8 @@ package minicpbp.engine.constraints;
 
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
-import minicpbp.util.exception.NotImplementedException;
 
-import java.util.Arrays;
 import java.util.BitSet;
-
-import static minicpbp.cp.Factory.minus;
 
 /**
  * Table constraint with short tuples (having {@code *} entries)
@@ -30,10 +26,17 @@ import static minicpbp.cp.Factory.minus;
 public class ShortTableCT extends AbstractConstraint {
 
     private final IntVar[] x; //variables
+    private int xLength;
     private final int[][] table; //the table
+    private int tableLength;
+    private final int star; //the "any" value
+    private int[] ofs; //offsets for each variable's domain
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
-    private int[] dom; // domain iterator
+    //supportedTuples is the set of tuples supported by the current domains of the variables
+    private BitSet supportedTuples;
+    private BitSet supporti;
+    private double[] tupleWeight;
 
     /**
      * Create a Table constraint with short tuples.
@@ -47,14 +50,20 @@ public class ShortTableCT extends AbstractConstraint {
     public ShortTableCT(IntVar[] x, int[][] table, int star) {
         super(x[0].getSolver(), x);
         setName("ShortTableCT");
-        this.x = new IntVar[x.length];
+        this.x = x;
+        this.xLength = x.length;
         this.table = table;
-        dom = new int[Arrays.stream(x).map(var -> var.size()).max(Integer::compare).get()];
+        this.tableLength = table.length;
+	this.star = star;
+        ofs = new int[xLength];
+        supportedTuples = new BitSet(tableLength);
+        supporti = new BitSet(tableLength);
+        tupleWeight = new double[tableLength];
 
         // Allocate supportedByVarVal
         supports = new BitSet[x.length][];
         for (int i = 0; i < x.length; i++) {
-            this.x[i] = minus(x[i], x[i].min()); // map the variables domain to start at 0
+            ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
             supports[i] = new BitSet[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < supports[i].length; j++)
                 supports[i][j] = new BitSet();
@@ -65,46 +74,116 @@ public class ShortTableCT extends AbstractConstraint {
             for (int i = 0; i < x.length; i++) { //i is the index of the current variable (in x)
                 if (table[t][i] == star) {
                     for (int v = 0; v < supports[i].length; v++) {
-                        supports[i][v].set(t);
+                        supports[i][v - ofs[i]].set(t);
                     }
                 } else if (x[i].contains(table[t][i])) {
-                    supports[i][table[t][i] - x[i].min()].set(t);
+                    supports[i][table[t][i] - ofs[i]].set(t);
                 }
             }
         }
+        setExactWCounting(true);
     }
 
     @Override
     public void post() {
-        for (IntVar var : x)
-            var.propagateOnDomainChange(this);
+        switch (getSolver().getMode()) {
+            case BP:
+                break;
+            case SP:
+            case SBP:
+                for (IntVar var : x)
+                    var.propagateOnDomainChange(this);
+        }
         propagate();
     }
 
     @Override
     public void propagate() {
-        // Bit-set of tuple indices all set to 0
-        BitSet supportedTuples = new BitSet(table.length);
-        supportedTuples.flip(0, table.length);
+
+        supportedTuples.set(0, tableLength); // set them all to true
 
         for (int i = 0; i < x.length; i++) {
-            BitSet supporti = new BitSet();
-            int nVal = x[i].fillArray(dom);
-            for (int v = 0; v < nVal; v++) {
-                supporti.or(supports[i][dom[v]]);
+            supporti.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                supporti.or(supports[i][domainValues[j] - ofs[i]]);
             }
             supportedTuples.and(supporti);
         }
 
         for (int i = 0; i < x.length; i++) {
-            int nVal = x[i].fillArray(dom);
-            for (int v = 0; v < nVal; v++) {
-                if (!supports[i][dom[v]].intersects(supportedTuples)) {
-                    x[i].remove(dom[v]);
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                // The condition for removing value v from x[i] is to check if
+                // there is no intersection between supportedTuples and the support[i][v]
+                int v = domainValues[j];
+                if (!supports[i][v - ofs[i]].intersects(supportedTuples)) {
+                    x[i].remove(v);
                 }
             }
         }
+    }
 
+    @Override
+    public void updateBelief() {
+
+        // Compute supportedTuples as
+        // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
+        //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
+        //
+        supportedTuples.set(0, tableLength); // set them all to true
+        for (int i = 0; i < xLength; i++) {
+            supporti.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                supporti.or(supports[i][domainValues[j] - ofs[i]]);
+            }
+            supportedTuples.and(supporti);
+        }
+
+        // Each tuple has its own weight given by the product of the outside_belief of its elements.
+        // Compute these products, but only for supported tuples.
+        for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k + 1)) {
+            tupleWeight[k] = beliefRep.one();
+            for (int i = 0; i < xLength; i++) {
+		if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
+		    tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
+            }
+        }
+
+        for (int i = 0; i < xLength; i++) {
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                double belief = beliefRep.zero();
+                double outsideBelief_i_v = outsideBelief(i, v);
+                BitSet support_i_v = supports[i][v - ofs[i]];
+                // Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
+                if (!beliefRep.isZero(outsideBelief_i_v)) {
+                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
+                        if (supportedTuples.get(k)) {
+                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
+                        }
+                    }
+                } else { // special case of null outside belief (avoid division by zero)
+                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
+                        if (supportedTuples.get(k)) {
+                            double weight = beliefRep.one();
+                            for (int i2 = 0; i2 < i; i2++) {
+				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            }
+                            for (int i2 = i + 1; i2 < xLength; i2++) {
+				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            }
+                            belief = beliefRep.add(belief, weight);
+                        }
+                    }
+                }
+                setLocalBelief(i, v, belief);
+            }
+        }
     }
 
 }

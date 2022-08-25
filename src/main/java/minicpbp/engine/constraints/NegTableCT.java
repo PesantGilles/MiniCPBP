@@ -29,9 +29,15 @@ import static minicpbp.cp.Factory.minus;
 public class NegTableCT extends AbstractConstraint {
 
     private IntVar[] x; //variables
+    private int xLength;
     private int[][] table; //the table
-    //supports[i][v] is the set of tuples supported by x[i]=v
+    private int tableLength;
+    private int[] ofs; //offsets for each variable's domain
+    //conflicts[i][v] is the set of forbidden tuples featuring x[i]=v
     private BitSet[][] conflicts;
+    private BitSet menacing;
+    private BitSet conflictsi;
+    private double[] tupleWeight;
 
     /**
      * Negative Table constraint.
@@ -39,13 +45,15 @@ public class NegTableCT extends AbstractConstraint {
      * exists a row {@code (v_0, v_1, ...)} in the table.
      * The table represents the infeasible assignments for the variables.
      *
-     * @param x     the variables to constraint. x is not empty.
+     * @param x     the non empty set of variables to constrain.
      * @param table the array of invalid solutions (second dimension must be of same size as the array x)
      */
     public NegTableCT(IntVar[] x, int[][] table) {
         super(x[0].getSolver(), x);
         setName("NegTableCT");
-        this.x = new IntVar[x.length];
+        this.x = x;
+        this.xLength = x.length;
+        ofs = new int[xLength];
 
         // remove duplicate (the negative ct algo does not support it)
         ArrayList<int[]> tableList = new ArrayList<>();
@@ -56,7 +64,7 @@ public class NegTableCT extends AbstractConstraint {
                 for (int j = i + 1; j < table.length; j++) {
                     if (i != j && !duplicate[j]) {
                         boolean same = true;
-                        for (int k = 0; k < x.length; k++) {
+                        for (int k = 0; k < xLength; k++) {
                             same &= table[i][k] == table[j][k];
                         }
                         if (same) {
@@ -67,66 +75,131 @@ public class NegTableCT extends AbstractConstraint {
             }
         }
         this.table = tableList.toArray(new int[0][]);
+        this.tableLength = this.table.length;
+        menacing = new BitSet(tableLength);
+        conflictsi = new BitSet(tableLength);
+        tupleWeight = new double[tableLength];
 
-        // Allocate supportedByVarVal
-        conflicts = new BitSet[x.length][];
-        for (int i = 0; i < x.length; i++) {
-            this.x[i] = minus(x[i], x[i].min()); // map the variables domain to start at 0
+        // Allocate conflicts
+        conflicts = new BitSet[xLength][];
+        for (int i = 0; i < xLength; i++) {
+            ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for conflicts[][]
             conflicts[i] = new BitSet[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < conflicts[i].length; j++)
                 conflicts[i][j] = new BitSet();
         }
 
-        // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
-        for (int i = 0; i < this.table.length; i++) { //i is the index of the tuple (in table)
-            for (int j = 0; j < x.length; j++) { //j is the index of the current variable (in x)
+        // Set values in conflicts, which contains all the forbidden tuples featuring each var-val pair
+        for (int i = 0; i < tableLength; i++) { //i is the index of the tuple (in table)
+            for (int j = 0; j < xLength; j++) { //j is the index of the current variable (in x)
                 if (x[j].contains(this.table[i][j])) {
-                    conflicts[j][this.table[i][j] - x[j].min()].set(i);
+                    conflicts[j][this.table[i][j] - ofs[j]].set(i);
                 }
             }
         }
+        setExactWCounting(true);
     }
 
     @Override
     public void post() {
-        for (IntVar var : x)
-            var.propagateOnDomainChange(this);
+        switch (getSolver().getMode()) {
+            case BP:
+                break;
+            case SP:
+            case SBP:
+                for (IntVar var : x)
+                    var.propagateOnDomainChange(this);
+        }
         propagate();
     }
 
     @Override
     public void propagate() {
-        // Bit-set of tuple indices all set to 0
-        BitSet menacing = new BitSet(table.length);
-        menacing.flip(0, table.length);
+        menacing.set(0, tableLength); // set them all to true
 
-        for (int i = 0; i < x.length; i++) {
-            BitSet conflictsi = new BitSet();
-            for (int v = x[i].min(); v <= x[i].max(); v++) {
-                if (x[i].contains(v)) {
-                    conflictsi.or(conflicts[i][v]);
-                }
+        for (int i = 0; i < xLength; i++) {
+            conflictsi.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                conflictsi.or(conflicts[i][domainValues[j] - ofs[i]]);
             }
             menacing.and(conflictsi);
         }
 
         Long prodDomains = 1L;
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < xLength; i++) {
             prodDomains *= x[i].size();
         }
 
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < xLength; i++) {
             int prodDomainsi = (int) (prodDomains / x[i].size());
-            for (int v = x[i].min(); v <= x[i].max(); v++) {
-                if (x[i].contains(v)) {
-                    BitSet menacingIntersect = (BitSet) menacing.clone();
-                    menacingIntersect.and(conflicts[i][v]);
-                    if (menacingIntersect.cardinality() >= prodDomainsi) {
-                        x[i].remove(v);
-                    }
-                }
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                // The condition for removing value v from x[i] is to check if
+                // there are enough (distinct) forbidden tuples to cover all possible supports
+                int v = domainValues[j];
+		BitSet menacingIntersect = (BitSet) menacing.clone();
+		menacingIntersect.and(conflicts[i][v - ofs[i]]);
+		if (menacingIntersect.cardinality() >= prodDomainsi) {
+		    x[i].remove(v);
+		}
+	    }
+	}
+    }
+
+    @Override
+    public void updateBelief() {
+        menacing.set(0, tableLength); // set them all to true
+
+        for (int i = 0; i < xLength; i++) {
+            conflictsi.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                conflictsi.or(conflicts[i][domainValues[j] - ofs[i]]);
+            }
+            menacing.and(conflictsi);
+        }
+
+        // Each tuple has its own weight given by the product of the outside_belief of its elements.
+        // Compute these products, but only for menacing tuples.
+        for (int k = menacing.nextSetBit(0); k >= 0; k = menacing.nextSetBit(k + 1)) {
+            tupleWeight[k] = beliefRep.one();
+            for (int i = 0; i < xLength; i++) {
+                tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
             }
         }
+
+        for (int i = 0; i < xLength; i++) {
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                double belief = beliefRep.zero();
+                double outsideBelief_i_v = outsideBelief(i, v);
+                BitSet conflicts_i_v = conflicts[i][v - ofs[i]];
+                // Iterate over conflicts[i][v] /\ menacing, accumulating the weight of tuples.
+                if (!beliefRep.isZero(outsideBelief_i_v)) {
+                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
+                        if (menacing.get(k)) {
+                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
+                        }
+                    }
+                } else { // special case of null outside belief (avoid division by zero)
+                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
+                        if (menacing.get(k)) {
+                            double weight = beliefRep.one();
+                            for (int i2 = 0; i2 < i; i2++) {
+                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            }
+                            for (int i2 = i + 1; i2 < xLength; i2++) {
+                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            }
+                            belief = beliefRep.add(belief, weight);
+                        }
+                    }
+		}
+                setLocalBelief(i, v, beliefRep.complement(belief));
+	    }
+	}
     }
 
 }

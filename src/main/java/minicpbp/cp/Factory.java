@@ -1246,8 +1246,8 @@ public final class Factory {
      * as the user enumerates the set of solutions that can be taken
      * by the variables.
      *
-     * @param x     the non empty set of variables to constraint
-     * @param table the possible set of solutions for x.
+     * @param x     the non empty set of variables to constrain
+     * @param table the set of possible solutions for x.
      *              The second dimension must be of the same size as the array x.
      * @return a table constraint
      */
@@ -1260,6 +1260,80 @@ public final class Factory {
      */
     public static Constraint table(IntVar[] x, int[][] table, int tableLength) {
         return new TableCT(x, table, tableLength);
+    }
+
+    /**
+     * Returns a negative table constraint.
+     * This relation is enforced by the {@link NegTableCT} constraint
+     * posted by calling this method.
+     *
+     * <p>The negative table constraint ensures that
+     * {@code x} is NOT a row from the given table.
+     * More exactly, there does not exist any row <i>i</i>
+     * such that
+     * {@code x[0]==table[i][0], x[1]==table[i][1], etc}.
+     *
+     * @param x     the non empty set of variables to constrain
+     * @param table the set of forbidden solutions for x.
+     *              The second dimension must be of the same size as the array x.
+     * @return a negative table constraint
+     */
+    public static Constraint negTable(IntVar[] x, int[][] table) {
+        return new NegTableCT(x, table);
+    }
+
+    /**
+     * Returns a short table constraint.
+     * This relation is enforced by the {@link ShortTableCT} constraint
+     * posted by calling this method.
+     *
+     * <p>The table constraint ensures that
+     * {@code x} is a row from the given table (which may include "star"s).
+     * More exactly, there exist some row <i>i</i>
+     * such that
+     * {@code x[0]==table[i][0], x[1]==table[i][1], etc}.
+     *
+     * @param x     the non empty set of variables to constrain
+     * @param table the set of possible solutions for x.
+     *              The second dimension must be of the same size as the array x.
+     * @param star  the "any" value
+     * @return a short table constraint
+     */
+    public static Constraint shortTable(IntVar[] x, int[][] table, int star) {
+        return new ShortTableCT(x, table, star);
+    }
+
+    /**
+     * Returns a disjunctive constraint.
+     * This relation is enforced by the {@link Disjunctive} constraint
+     * posted by calling this method.
+     *
+     * For any two pair i,j of activities we have
+     * {@code start[i]+duration[i] <= start[j] or start[j]+duration[j] <= start[i]}.
+     *
+     * @param start    the start times of the activities
+     * @param duration the durations of the activities
+     * @return a disjunctive constraint
+     */
+    public static Constraint disjunctive(IntVar[] start, int[] duration) {
+	return new Disjunctive(start, duration);
+    }
+
+    /**
+     * Returns a cumulative constraint with a time-table filtering.
+     * This relation is enforced by the {@link Cumulative} constraint
+     * posted by calling this method.
+     *
+     * At any time-point t, the sum of the demands
+     * of the activities overlapping t do not overlap the capacity.
+     *
+     * @param start    the start time of each activities
+     * @param duration the duration of each activities (non negative)
+     * @param demand   the demand of each activities, non negative
+     * @param capa     the capacity of the constraint
+     */
+    public static Constraint cumulative(IntVar[] start, int[] duration, int[] demand, int capa) {
+        return new Cumulative(start, duration, demand, capa);
     }
 
     /**
