@@ -275,12 +275,13 @@ public class Model {
         }
         //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
+            System.out.println((ASTArray) lit);
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             int array[] = new int[astarray.size()];
             for(int i = 0; i < astarray.size(); i++) {
                 array[i] = getInt(astarray.get(i));
             }
-            return array;
+            return null;
             //return (Integer[]) array.toArray();
         }
         throw new NotImplementedException(lit.toString());
@@ -428,7 +429,10 @@ public class Model {
 		}
         //case where there is no given domain
         else if(type.getDom() == null) {
-            newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            //Integer.MIN_VALUE and Integer.MAX_VALUE is divided by 3,
+            //otherwise the solver tries to create an array of size : 2*Integer*MAX_VALUE wich is impossible
+            newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE/3, Integer.MAX_VALUE/3);
+            System.out.println(newVar);
         }
 		else {
 			System.out.println("Domaine type : " + type.getDom().getClass());
@@ -597,6 +601,9 @@ public class Model {
                 break;
             case "set_in":
                 builder.makeSetIn(getIntVar(args.get(0)), getSetInt(args.get(1)));
+                break;
+            case "fzn_table_int":
+                builder.makeTable(getIntVarArray(args.get(0)), getIntArray(args.get(1)));
                 break;
             default:
                 throw new NotImplementedException("Constraint : " + name);

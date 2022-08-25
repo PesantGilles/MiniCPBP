@@ -253,4 +253,13 @@ public class constraintBuilder {
         x.removeOutside(s);
     }
 
+    public void makeTable(IntVar[] x, int[] t) {
+        int t2D[][] = new int[t.length/x.length][x.length];
+        for(int i = 0; i < t2D.length; i ++) 
+            for(int j = 0; j < t2D[i].length; j++) 
+                t2D[i][j] = t[i*t2D[0].length + j];
+        
+        minicp.post(Factory.table(x, t2D));
+    }
+
 }

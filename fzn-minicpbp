@@ -1,0 +1,3 @@
+#!/bin/bash
+NbArguments=$#
+java -jar /MiniCPBP/target/minicpbp-1.0.jar ${!#}

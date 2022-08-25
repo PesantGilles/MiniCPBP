@@ -3,7 +3,7 @@
   "name": "MiniCPBP",
   "description": "MiniCPBP FlatZinc executable",
   "version": "1.0",
-  "mznlib": "mzn_lib",
+  "mznlib": "src/main/java/fzn/mzn_lib",
   "executable": "fzn-minicpbp",
   "tags": ["cp"],
   "stdFlags": ["-i","-f"],
