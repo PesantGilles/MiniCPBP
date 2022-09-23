@@ -25,6 +25,7 @@ import minicpbp.util.Belief;
 
 import java.security.InvalidParameterException;
 import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * Implementation of a variable
@@ -39,6 +40,7 @@ public class IntVarImpl implements IntVar {
     private StateStack<Constraint> onDomain;
     private StateStack<Constraint> onBind;
     private StateStack<Constraint> onBounds;
+    private ArrayList<Constraint> constraints; //contains all constraints
     private boolean isForBranching = false;
 
     private DomainListener domListener = new DomainListener() {
@@ -95,6 +97,7 @@ public class IntVarImpl implements IntVar {
         onDomain = new StateStack<>(cp.getStateManager());
         onBind = new StateStack<>(cp.getStateManager());
         onBounds = new StateStack<>(cp.getStateManager());
+        constraints = new ArrayList<>();
         cp.registerVar(this);
     }
 
@@ -166,6 +169,11 @@ public class IntVarImpl implements IntVar {
     @Override
     public void propagateOnBoundChange(Constraint c) {
         onBounds.push(c);
+    }
+
+    @Override 
+    public void registerConstraint(Constraint c) {
+        constraints.add(c);
     }
 
 
@@ -296,6 +304,16 @@ public class IntVarImpl implements IntVar {
         //System.out.println("--------------------------------");
         //System.out.println(name);
         return domain.impact();
+    }
+
+    @Override
+    public int wDeg(){
+        int sum = 0;
+        for(int i = 0; i < constraints.size(); i++) {
+            //in dom/wdeg all constraint's weigth are initialized to 1, that's why there is a +1 for each constraint
+            sum += constraints.get(i).getFailureCount() + 1;
+        }
+        return sum;
     }
 
     @Override

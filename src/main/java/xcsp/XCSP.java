@@ -67,6 +67,7 @@ import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
 import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
+import static minicpbp.cp.BranchingScheme.domWdeg;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -1088,6 +1089,12 @@ public class XCSP implements XCallbacks2 {
 		XCSP.traceSearch = traceSearch;
 	}
 
+	private static boolean traceEntropy = false;
+
+	public void traceEntropy(boolean traceEntropy) {
+		XCSP.traceEntropy = traceEntropy;
+	}
+
 	private static int maxIter = 5;
 
 	public void maxIter(int maxIter) {
@@ -1183,6 +1190,7 @@ public class XCSP implements XCallbacks2 {
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
 		minicp.setTraceNbIterFlag(traceNbIter);
+		minicp.setTraceEntropyFlag(traceEntropy);
 		minicp.setMaxIter(maxIter);
 		minicp.setDynamicStopBP(dynamicStopBP);
 		minicp.setDamp(damp);
@@ -1233,6 +1241,10 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case MNEBW:
 			search = makeSearch(minEntropyBiasedWheelSelectVal(vars));
+			break;
+		case WDEG:
+			minicp.setMode(PropaMode.SP);
+			search = makeSearch(domWdeg(vars));
 			break;
 		default:
 			System.out.println("unknown search strategy");

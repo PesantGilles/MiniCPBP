@@ -77,6 +77,7 @@ public class MiniCP implements Solver {
     private static boolean traceBP = false;
     private static boolean traceSearch = false;
     private static boolean traceNbIter = false;
+    private static boolean traceEntropy = false;
     //****************************
 
 
@@ -149,6 +150,10 @@ public class MiniCP implements Solver {
 
     public void setTraceNbIterFlag(boolean traceNbIter) {
         MiniCP.traceNbIter = traceNbIter;
+    }
+
+    public void setTraceEntropyFlag(boolean traceEntropy) {
+        MiniCP.traceEntropy = traceEntropy;
     }
 
     public void setMaxIter(int maxIter) {
@@ -233,15 +238,22 @@ public class MiniCP implements Solver {
     @Override
     public void fixPoint() {
         notifyFixPoint();
-        try {
-            while (!propagationQueue.isEmpty()) {
-                propagate(propagationQueue.remove());
+        if(!propagationQueue.isEmpty()){
+            Constraint c;
+            c = propagationQueue.remove();
+            try {
+                propagate(c);
+                while (!propagationQueue.isEmpty()) {
+                    c = propagationQueue.remove();
+                    propagate(c);
+                }
+            } catch (InconsistencyException e) {
+                // empty the queue and unset the scheduled status
+                c.incrementFailureCount();
+                while (!propagationQueue.isEmpty())
+                    propagationQueue.remove().setScheduled(false);
+                throw e;
             }
-        } catch (InconsistencyException e) {
-            // empty the queue and unset the scheduled status
-            while (!propagationQueue.isEmpty())
-                propagationQueue.remove().setScheduled(false);
-            throw e;
         }
     }
 
@@ -310,9 +322,20 @@ public class MiniCP implements Solver {
                     
                     oldEntropy = sumEntropy;
                 }
+                if(traceEntropy) {
+                    double modelEntropy = 0.0;
+                    for(int i =0; i < variables.size(); i++) {
+                        if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                            modelEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+                        }
+                    }
+                    modelEntropy = modelEntropy/nbVar;
+                    System.out.println("model entropy : " + modelEntropy);
+                }
             }
             if(traceNbIter)
                 System.out.println("nb iter : " +nb_iter);
+                
 
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
