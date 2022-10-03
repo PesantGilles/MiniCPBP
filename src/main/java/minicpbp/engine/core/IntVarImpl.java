@@ -26,6 +26,8 @@ import minicpbp.util.Belief;
 import java.security.InvalidParameterException;
 import java.util.Set;
 
+import java.util.Objects;
+
 /**
  * Implementation of a variable
  * with a {@link SparseSetDomain}.
@@ -317,7 +319,9 @@ public class IntVarImpl implements IntVar {
     public double sendMessage(int v, double b) {
         assert b <= beliefRep.one() && b >= beliefRep.zero() : "b = " + b;
         assert domain.marginal(v) <= beliefRep.one() && domain.marginal(v) >= beliefRep.zero() : "domain.marginal(v) = " + domain.marginal(v);
-        return (beliefRep.isZero(b) ? domain.marginal(v) : beliefRep.divide(domain.marginal(v), b));
+        assert size() > 0 : "domain size is null";
+        return (beliefRep.isZero(b) ? beliefRep.divide(beliefRep.one(), size()) // no info; return uniform belief
+                                    : beliefRep.divide(domain.marginal(v), b));
     }
 
     @Override
