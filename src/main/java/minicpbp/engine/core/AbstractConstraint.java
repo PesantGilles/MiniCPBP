@@ -76,6 +76,7 @@ public abstract class AbstractConstraint implements Constraint {
 
         maxDomainSize = 0;
         for (int i = 0; i < vars.length; i++) {
+            vars[i].registerConstraint(this);
             ofs[i] = vars[i].min();
             localBelief[i] = new StateDouble[vars[i].max() - vars[i].min() + 1];
             outsideBelief[i] = new double[vars[i].max() - vars[i].min() + 1];

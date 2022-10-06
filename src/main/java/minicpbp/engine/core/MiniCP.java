@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Random;
 
@@ -238,23 +239,23 @@ public class MiniCP implements Solver {
     @Override
     public void fixPoint() {
         notifyFixPoint();
-        if(!propagationQueue.isEmpty()){
-            Constraint c;
-            c = propagationQueue.remove();
-            try {
-                propagate(c);
-                while (!propagationQueue.isEmpty()) {
-                    c = propagationQueue.remove();
+        try {
+            while(!propagationQueue.isEmpty()) {
+                Constraint c = propagationQueue.remove();
+                try {
                     propagate(c);
                 }
-            } catch (InconsistencyException e) {
-                // empty the queue and unset the scheduled status
-                c.incrementFailureCount();
-                while (!propagationQueue.isEmpty())
-                    propagationQueue.remove().setScheduled(false);
-                throw e;
+                catch(InconsistencyException e) {
+                    // empty the queue and unset the scheduled status
+                    c.incrementFailureCount();
+                    while (!propagationQueue.isEmpty())
+                        propagationQueue.remove().setScheduled(false);
+                    throw e;
+                }
+
             }
         }
+        catch (NoSuchElementException e) {}
     }
 
     @Override
@@ -323,14 +324,22 @@ public class MiniCP implements Solver {
                     oldEntropy = sumEntropy;
                 }
                 if(traceEntropy) {
+                    double minEntropy = 1;
+                    double maxEntropy = 0;
                     double modelEntropy = 0.0;
                     for(int i =0; i < variables.size(); i++) {
                         if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                            if(minEntropy > variables.get(i).entropy()/Math.log(variables.get(i).size()))
+                                minEntropy = variables.get(i).entropy()/Math.log(variables.get(i).size());
+                            if(maxEntropy < variables.get(i).entropy()/Math.log(variables.get(i).size()))
+                                maxEntropy = variables.get(i).entropy()/Math.log(variables.get(i).size());
                             modelEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
                         }
                     }
                     modelEntropy = modelEntropy/nbVar;
                     System.out.println("model entropy : " + modelEntropy);
+                    System.out.println("min entropy : " + minEntropy);
+                    System.out.println("max entropy : " + maxEntropy);
                 }
             }
             if(traceNbIter)

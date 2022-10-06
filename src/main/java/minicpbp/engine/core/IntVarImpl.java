@@ -40,7 +40,7 @@ public class IntVarImpl implements IntVar {
     private StateStack<Constraint> onDomain;
     private StateStack<Constraint> onBind;
     private StateStack<Constraint> onBounds;
-    private ArrayList<Constraint> constraints; //contains all constraints
+    private StateStack<Constraint> constraints; //contains all constraints, allows us to get the failure count of all constraints applied to the variable
     private boolean isForBranching = false;
 
     private DomainListener domListener = new DomainListener() {
@@ -97,7 +97,7 @@ public class IntVarImpl implements IntVar {
         onDomain = new StateStack<>(cp.getStateManager());
         onBind = new StateStack<>(cp.getStateManager());
         onBounds = new StateStack<>(cp.getStateManager());
-        constraints = new ArrayList<>();
+        constraints = new StateStack<>(cp.getStateManager());
         cp.registerVar(this);
     }
 
@@ -173,7 +173,7 @@ public class IntVarImpl implements IntVar {
 
     @Override 
     public void registerConstraint(Constraint c) {
-        constraints.add(c);
+        constraints.push(c);
     }
 
 
