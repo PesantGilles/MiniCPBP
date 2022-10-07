@@ -98,6 +98,11 @@ public interface Solver {
     void setTraceNbIterFlag(boolean traceNbIter);
 
     /**
+     * Activate trace of model's entropy if @param traceEntropy is true
+     */
+    void setTraceEntropyFlag(boolean traceEntropy);
+
+    /**
      * Activate dynamic stop criterion for BP if @param dynamicStopBP is true
      */
     void setDynamicStopBP(boolean dynamicStopBP);

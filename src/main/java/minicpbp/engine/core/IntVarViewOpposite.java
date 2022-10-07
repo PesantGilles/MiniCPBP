@@ -75,6 +75,11 @@ public class IntVarViewOpposite implements IntVar {
     }
 
     @Override
+    public void registerConstraint(Constraint c) {
+        x.registerConstraint(c);
+    }
+
+    @Override
     public int min() {
         return -x.max();
     }
@@ -87,6 +92,11 @@ public class IntVarViewOpposite implements IntVar {
     @Override
     public int size() {
         return x.size();
+    }
+
+    @Override
+    public int wDeg() {
+        return x.wDeg();
     }
 
     @Override

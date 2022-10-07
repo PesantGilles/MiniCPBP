@@ -112,4 +112,7 @@ public interface Constraint {
      * @return the constraint's weight
      */
     public double arity();
+
+    public int getFailureCount();
+    public void incrementFailureCount();
 }
