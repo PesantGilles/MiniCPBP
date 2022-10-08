@@ -25,6 +25,11 @@ import minicpbp.engine.core.Solver;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.exception.NotImplementedException;
 
+import minicpbp.util.binpacking.densities.LoadSolutionDensitiesSolver;
+import minicpbp.util.binpacking.network.Network;
+import minicpbp.util.binpacking.packing.PackingCounter;
+import minicpbp.util.binpacking.packing.LayerProfile;
+
 import static minicpbp.cp.Factory.sum;
 import static minicpbp.cp.Factory.isEqual;
 
@@ -90,7 +95,38 @@ public class BinPacking extends AbstractConstraint {
 
     @Override
     public void updateBelief() {
-	    // ton code
+        // TODO exclude items whose bin assignment var is bound and restrict final layer profiles accordingly
+
+        // Build flow network
+        Network network = new Network(size, capa);
+//         System.out.println(network);
+
+        // Generate layer profiles to count packings
+        PackingCounter packingCounter = new PackingCounter(network, m);
+
+        System.out.println("Number of packings: " + packingCounter.getPackingCount());
+
+	/*
+        System.out.println("Flow profiles and multiplicities (number of packings for each):");
+        for (Map.Entry<LayerProfile, Long> entry : packingCounter.getFlowProfiles().entrySet()) {
+            System.out.println("    " + entry.getKey() + " (x" + entry.getValue() + ")");
+        }
+
+        // Generate solution densities for load variables
+        List<Set<Integer>> loadVariableDomains = new ArrayList<>() {{
+            add(new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7)));
+            add(new HashSet<>(Arrays.asList(5, 6, 7)));
+            add(new HashSet<>(Arrays.asList(7)));
+        }};
+        LoadSolutionDensitiesSolver loadSolutionDensitiesSolver = new LoadSolutionDensitiesSolver(
+            packingCounter.getFlowProfiles(),
+            network.getLayers().get(network.getLayers().size() - 1),
+            loadVariableDomains
+        );
+        List<Map<Integer, Float>> loadSolutionDensities = loadSolutionDensitiesSolver.getSolutionDensities();
+        System.out.println("Load variable solution densities: " + loadSolutionDensities);
+        System.out.println("Number of bin assignment solutions: " + loadSolutionDensitiesSolver.getSolutionCount());
+	*/
     }
 
 }
