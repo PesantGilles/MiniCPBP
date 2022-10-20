@@ -540,6 +540,50 @@ public final class BranchingScheme {
     }
 
     /**
+     * Minimum entropy strategy with random tie breaking.
+     * It selects an unbound variable with the smallest entropy
+     * of its marginal distribution.
+     * Then it creates two branches:
+     * the left branch assigning the variable to the value with the largest marginal;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the min entropy strategy is applied.
+     * @return minEntropyRandomTieBreak branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> minEntropyRandomTieBreak(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
+        for(IntVar a: x)
+            a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
+        return () -> {
+            IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+		    xi -> Math.floor(precisionForTie * xi.entropy()) / precisionForTie, // tie = same first few decimal places
+		    rand);
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
      * Minimum entropy strategy.
      * It selects an unbound variable with the smallest entropy
      * of its marginal distribution.
@@ -763,7 +807,7 @@ public final class BranchingScheme {
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
-                    xi -> Math.floor(precisionForTie * (-beliefRep.rep2std(xi.maxMarginalRegret()))) / precisionForTie, // tie = same first few decimal places
+		    xi -> Math.floor(precisionForTie * (-beliefRep.rep2std(xi.maxMarginalRegret()))) / precisionForTie, // tie = same first few decimal places
                     rand);
             if (xs == null)
                 return EMPTY;
@@ -849,6 +893,50 @@ public final class BranchingScheme {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
                     xi -> -beliefRep.rep2std(xi.maxMarginal()));
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
+     * Maximum Marginal strategy with random tie breaking.
+     * It selects an unbound variable with the largest marginal
+     * on one of the values in its domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable to that value;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the max marginal strategy is applied.
+     * @return maxMarginalRandomTieBreak branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalRandomTieBreak(IntVar... x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        Random rand = x[0].getSolver().getRandomNbGenerator();
+        for(IntVar a: x)
+            a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
+        return () -> {
+            IntVar xs = selectMinRandomTieBreak(x,
+                    xi -> xi.size() > 1,
+		    xi -> Math.floor(precisionForTie * (- beliefRep.rep2std(xi.maxMarginal()))) / precisionForTie, // tie = same first few decimal places
+		    rand);
             if (xs == null)
                 return EMPTY;
             else {
