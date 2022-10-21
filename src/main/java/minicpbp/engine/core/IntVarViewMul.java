@@ -85,6 +85,11 @@ public class IntVarViewMul implements IntVar {
     }
 
     @Override
+    public void registerConstraint(Constraint c) {
+        x.registerConstraint(c);
+    }
+
+    @Override
     public int min() {
         if (a >= 0)
             return a * x.min();
@@ -101,6 +106,11 @@ public class IntVarViewMul implements IntVar {
     @Override
     public int size() {
         return x.size();
+    }
+
+    @Override
+    public int wDeg() {
+        return x.wDeg();
     }
 
     @Override

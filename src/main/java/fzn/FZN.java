@@ -35,6 +35,7 @@ import static minicpbp.cp.BranchingScheme.minEntropy;
 import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
 import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
+import static minicpbp.cp.BranchingScheme.domWdeg;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -245,6 +246,10 @@ public class FZN {
 		case MNEBW:
 			search = makeSearch(minEntropyBiasedWheelSelectVal(m.getDecisionsVar()));
 			break;
+		case WDEG:
+			minicp.setMode(PropaMode.SP);
+			search = makeSearch(domWdeg(m.getDecisionsVar()));
+			break;
 		default:
 			System.out.println("unknown search strategy");
 			System.exit(1);
@@ -323,6 +328,33 @@ public class FZN {
 		System.out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
 		System.out.println("%%%mzn-stat: solveTime=" + runtime);
 		System.out.println("%%%mzn-stat-end");
+
+		if(statsFileStr != "") {
+			PrintStream out = null;
+			
+			try {
+				out = new PrintStream(new File(statsFileStr));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				System.out.println("unable to create file " + statsFileStr);
+				System.exit(1);
+			}
+
+			String statusStr;
+			if (foundSolution)
+				statusStr = "SAT";
+			else if (stats.isCompleted())
+				statusStr = "UNSAT";
+			else
+				statusStr = "TIMEOUT";
+
+			out.println("status: " + statusStr);
+			out.println("failures: " + stats.numberOfFailures());
+			out.println("nodes: " + stats.numberOfNodes());
+			out.println("runtime (ms): " + runtime);
+
+			out.close();
+		}
 
 	}
 

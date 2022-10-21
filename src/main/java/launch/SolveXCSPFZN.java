@@ -27,6 +27,7 @@ public class SolveXCSPFZN {
 		IE, //impact entropy
 		MIE, //min-entropy followed by impact entropy after first restart,
 		MNEBW, //min-entropy with biased wheel value selection
+		WDEG, //dom-wdeg
 	}
 
 	private static Map<String, BranchingHeuristic> branchingMap = new HashMap<String, BranchingHeuristic>() {
@@ -41,6 +42,7 @@ public class SolveXCSPFZN {
 			put("impact-entropy", BranchingHeuristic.IE);
 			put("impact-min-entropy", BranchingHeuristic.MIE);
 			put("min-entropy-biased", BranchingHeuristic.MNEBW);
+			put("dom-wdeg", BranchingHeuristic.WDEG);
 		}
 	};
 
@@ -99,6 +101,7 @@ public class SolveXCSPFZN {
 
 		Option traceSearchOpt = Option.builder().longOpt("trace-search").hasArg(false).desc("trace the search progress")
 				.build();
+
 		Option restartSearchOpt = Option.builder().longOpt("restart").hasArg(false).desc("authorized restart during search (available with dfs only)")
 				.build();
 		Option nbFailsCutofOpt = Option.builder().longOpt("cutoff").argName("CUTOF").hasArg()
@@ -117,6 +120,9 @@ public class SolveXCSPFZN {
 				.build();
 
 		Option traceNbIterOpt = Option.builder().longOpt("trace-iter").hasArg(false).desc("trace the number of BP iterations before each branching")
+				.build();
+
+		Option traceEntropyOpt = Option.builder().longOpt("trace-entropy").hasArg(false).desc("trace the evolution of model's entropy after each BP iteration")
 				.build();
 
 		Options options = new Options();
@@ -139,6 +145,7 @@ public class SolveXCSPFZN {
 		options.addOption(initImpactOpt);
 		options.addOption(dynamicStopBPOpt);
 		options.addOption(traceNbIterOpt);
+		options.addOption(traceEntropyOpt);
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = null;
@@ -205,6 +212,8 @@ public class SolveXCSPFZN {
 		boolean initImpact = (cmd.hasOption("init-impact"));
 		boolean dynamicStopBP = (cmd.hasOption("dynamic-stop"));
 		boolean traceNbIter = (cmd.hasOption("trace-iter"));
+		boolean traceEntropy = (cmd.hasOption("trace-entropy"));
+
 
 		try {
 			System.out.println(inputStr.substring(inputStr.lastIndexOf('.')+1));
@@ -224,6 +233,7 @@ public class SolveXCSPFZN {
 				fzn.initImpact(initImpact);
 				fzn.dynamicStopBP(dynamicStopBP);
 				fzn.traceNbIter(traceNbIter);
+				fzn.printStats(true);
 				fzn.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 			else {
@@ -243,6 +253,7 @@ public class SolveXCSPFZN {
 				xcsp.initImpact(initImpact);
 				xcsp.dynamicStopBP(dynamicStopBP);
 				xcsp.traceNbIter(traceNbIter);
+				xcsp.traceEntropy(traceEntropy);
 				xcsp.solve(heuristic, timeout, statsFileStr, solFileStr);
 			}
 		} catch (Exception e) {

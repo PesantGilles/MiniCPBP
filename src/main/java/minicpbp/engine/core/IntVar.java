@@ -322,6 +322,9 @@ public interface IntVar {
      */
     public boolean isForBranching();
 
+    public int wDeg();
+
     public String getName();
     public void setName(String name);
+    public void registerConstraint(Constraint c);
 }

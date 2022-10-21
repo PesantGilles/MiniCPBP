@@ -82,6 +82,11 @@ public class IntVarViewOffset implements IntVar {
     }
 
     @Override
+    public void registerConstraint(Constraint c) {
+        x.registerConstraint(c);
+    }
+
+    @Override
     public int min() {
         return x.min() + o;
     }
@@ -94,6 +99,11 @@ public class IntVarViewOffset implements IntVar {
     @Override
     public int size() {
         return x.size();
+    }
+
+    @Override
+    public int wDeg() {
+        return x.wDeg();
     }
 
     @Override

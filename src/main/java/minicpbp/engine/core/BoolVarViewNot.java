@@ -90,6 +90,11 @@ public class BoolVarViewNot implements BoolVar {
     }
 
     @Override
+    public void registerConstraint(Constraint c) {
+        x.registerConstraint(c);
+    }
+
+    @Override
     public int min() {
         return 1-x.max();
     }
@@ -102,6 +107,11 @@ public class BoolVarViewNot implements BoolVar {
     @Override
     public int size() {
         return x.size();
+    }
+
+    @Override
+    public int wDeg() {
+        return x.wDeg();
     }
 
     @Override

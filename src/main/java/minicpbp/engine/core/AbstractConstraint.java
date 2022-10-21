@@ -52,6 +52,8 @@ public abstract class AbstractConstraint implements Constraint {
     private boolean exactWCounting = false;
     private boolean updateBeliefWarningPrinted = false;
 
+    private int failureCount;
+
     public AbstractConstraint(Solver cp, IntVar[] vars) {
         this.cp = cp;
         active = cp.getStateManager().makeStateBool(true);
@@ -74,6 +76,7 @@ public abstract class AbstractConstraint implements Constraint {
 
         maxDomainSize = 0;
         for (int i = 0; i < vars.length; i++) {
+            vars[i].registerConstraint(this);
             ofs[i] = vars[i].min();
             localBelief[i] = new StateDouble[vars[i].max() - vars[i].min() + 1];
             outsideBelief[i] = new double[vars[i].max() - vars[i].min() + 1];
@@ -86,6 +89,7 @@ public abstract class AbstractConstraint implements Constraint {
         }
         domainValues = new int[maxDomainSize];
         beliefValues = new double[maxDomainSize];
+        failureCount = 0;
     }
 
     public double arity() {
@@ -106,6 +110,14 @@ public abstract class AbstractConstraint implements Constraint {
 			}
 
 	}*/
+
+	public void incrementFailureCount() {
+		failureCount+=1;
+	}
+
+	public int getFailureCount() {
+		return failureCount;
+	}
 
     public void post() {
     }

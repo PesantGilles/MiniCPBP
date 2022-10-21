@@ -870,6 +870,34 @@ public final class BranchingScheme {
         };
     }
 
+    public static Supplier<Procedure[]> domWdeg(IntVar... x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
+            return () -> {
+                IntVar xs = selectMin(x,
+                        xi -> xi.size() > 1,
+                        xi -> ((double) xi.size())/((double) xi.wDeg()));
+                if (xs == null)
+                    return EMPTY;
+                else {
+                    int v = xs.valueWithMinMarginal();
+                    return branch(
+                            () -> {
+                                if (tracing)
+                                    System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
+                                branchNotEqual(xs, v);
+                            },
+                            () -> {
+                                if (tracing)
+                                    System.out.println("### branching on " + xs.getName() + "=" + v);
+                                branchEqual(xs, v);
+                            });
+                }
+            };
+    }
+
     /**
      * Maximum Marginal strategy.
      * It selects an unbound variable with the largest marginal
