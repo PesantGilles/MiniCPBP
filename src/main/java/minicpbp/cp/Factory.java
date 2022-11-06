@@ -1583,6 +1583,56 @@ public final class Factory {
     }
 
     /**
+     * Returns a lexicographically less constraint between two arrays of variables of same length.
+     * @param x    an array of variables
+     * @param y    an array of variables
+     * @return a constraint so that {@code x is lexicographically less than y}
+     */
+    public static Constraint lexLess(IntVar[] x, IntVar[] y) {
+      int n = x.length;
+      assert (y.length == n);
+      Solver cp = x[0].getSolver();
+      IntVar[] z = new IntVar[n];
+      for (int i = 0; i < n; i++) {
+	    IntVar b1 = isLess(x[i],y[i]);
+        IntVar b2 = isEqual(x[i],y[i]);
+	    IntVar b3 = isLarger(x[i],y[i]);
+	    z[i] = sum(new int[]{1,2,3,-1}, new IntVar[]{b1,b2,b3,makeIntVar(cp,1,1)});
+	    z[i].removeAbove(2);
+        z[i].removeBelow(0);
+        z[i].setName("z"+i+"(lexLess)");
+      }
+      int[][] A = new int[][]{{1,0,-1},{1,1,1}};
+      List<Integer> f = new ArrayList<Integer>();
+      f.add(1);
+      return regular(z, A, f);
+    }
+
+    /**
+     * Returns a lexicographically less-or-equal constraint between two arrays of variables of same length.
+     * @param x    an array of variables
+     * @param y    an array of variables
+     * @return a constraint so that {@code x is lexicographically less or equal to y}
+     */
+    public static Constraint lexLessOrEqual(IntVar[] x, IntVar[] y) {
+      int n = x.length;
+      assert (y.length == n);
+      Solver cp = x[0].getSolver();
+      IntVar[] z = new IntVar[n];
+      for (int i = 0; i < n; i++) {
+          IntVar b1 = isLess(x[i], y[i]);
+          IntVar b2 = isEqual(x[i], y[i]);
+          IntVar b3 = isLarger(x[i], y[i]);
+          z[i] = sum(new int[]{1, 2, 3, -1}, new IntVar[]{b1, b2, b3, makeIntVar(cp, 1, 1)});
+          z[i].removeAbove(2);
+          z[i].removeBelow(0);
+          z[i].setName("z" + i + "(lexLessOrEqual)");
+      }
+      int[][] A = new int[][]{{1,0,-1},{1,1,1}};
+      return regular(z, A); // all states are accepting
+    }
+
+    /**
      * Returns a sum modulo p constraint.
      *
      * @param x an array of variables
