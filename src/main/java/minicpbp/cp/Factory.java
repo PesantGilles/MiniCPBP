@@ -1594,13 +1594,17 @@ public final class Factory {
       Solver cp = x[0].getSolver();
       IntVar[] z = new IntVar[n];
       for (int i = 0; i < n; i++) {
-	    IntVar b1 = isLess(x[i],y[i]);
-        IntVar b2 = isEqual(x[i],y[i]);
-	    IntVar b3 = isLarger(x[i],y[i]);
-	    z[i] = sum(new int[]{1,2,3,-1}, new IntVar[]{b1,b2,b3,makeIntVar(cp,1,1)});
-	    z[i].removeAbove(2);
-        z[i].removeBelow(0);
-        z[i].setName("z"+i+"(lexLess)");
+        IntVar[] b = new IntVar[4];
+        b[0] = isLess(x[i],y[i]);
+        b[0].setName("b"+i+".0 (lexLess)");
+        b[1] = isEqual(x[i],y[i]);
+        b[1].setName("b"+i+".1 (lexLess)");
+        b[2] = isLarger(x[i],y[i]);
+        b[2].setName("b"+i+".2 (lexLess)");
+        z[i] = makeIntVar(cp, 3);
+        z[i].setName("z"+i+" (lexLess)");
+        b[3] = z[i];
+        cp.post(table(b,new int[][]{{1,0,0,0},{0,1,0,1},{0,0,1,2}}));
       }
       int[][] A = new int[][]{{1,0,-1},{1,1,1}};
       List<Integer> f = new ArrayList<Integer>();
@@ -1620,13 +1624,17 @@ public final class Factory {
       Solver cp = x[0].getSolver();
       IntVar[] z = new IntVar[n];
       for (int i = 0; i < n; i++) {
-          IntVar b1 = isLess(x[i], y[i]);
-          IntVar b2 = isEqual(x[i], y[i]);
-          IntVar b3 = isLarger(x[i], y[i]);
-          z[i] = sum(new int[]{1, 2, 3, -1}, new IntVar[]{b1, b2, b3, makeIntVar(cp, 1, 1)});
-          z[i].removeAbove(2);
-          z[i].removeBelow(0);
-          z[i].setName("z" + i + "(lexLessOrEqual)");
+          IntVar[] b = new IntVar[4];
+          b[0] = isLess(x[i],y[i]);
+          b[0].setName("b"+i+".0 (lexLessOrEqual)");
+          b[1] = isEqual(x[i],y[i]);
+          b[1].setName("b"+i+".1 (lexLessOrEqual)");
+          b[2] = isLarger(x[i],y[i]);
+          b[2].setName("b"+i+".2 (lexLessOrEqual)");
+          z[i] = makeIntVar(cp, 3);
+          z[i].setName("z"+i+" (lexLessOrEqual)");
+          b[3] = z[i];
+          cp.post(table(b,new int[][]{{1,0,0,0},{0,1,0,1},{0,0,1,2}}));
       }
       int[][] A = new int[][]{{1,0,-1},{1,1,1}};
       return regular(z, A); // all states are accepting
