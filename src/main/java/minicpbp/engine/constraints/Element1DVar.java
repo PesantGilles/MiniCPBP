@@ -17,6 +17,7 @@ package minicpbp.engine.constraints;
 
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
+import static minicpbp.cp.Factory.equal;
 import minicpbp.util.exception.NotImplementedException;
 
 public class Element1DVar extends AbstractConstraint {
@@ -47,40 +48,50 @@ public class Element1DVar extends AbstractConstraint {
         y.removeBelow(0);
         y.removeAbove(array.length - 1);
 
-        for (IntVar t : array) {
-            t.propagateOnBoundChange(this);
+        if (z.isBound()) { // special case, important for inverse constraint
+            for (IntVar t : array) {
+                t.propagateOnDomainChange(this);
+            }
+            y.propagateOnDomainChange(this);
         }
-
-        y.propagateOnDomainChange(this);
-        z.propagateOnBoundChange(this);
+        else {
+            for (IntVar t : array) {
+                t.propagateOnBoundChange(this);
+            }
+            y.propagateOnDomainChange(this);
+            z.propagateOnBoundChange(this);
+        }
 
         propagate();
     }
 
     @Override
     public void propagate() {
-        zMin = z.min();
-        zMax = z.max();
-        if (y.isBound()) equalityPropagate();
+        if (y.isBound()) {
+            y.getSolver().post(equal(z,array[y.min()]));
+            setActive(false);
+        }
+        else if (z.isBound()) { // special case, important for inverse constraint
+            filterYwhenZbound();
+            if (y.isBound()) {
+                y.getSolver().post(equal(z,array[y.min()]));
+                setActive(false);
+            }
+        }
         else {
+            zMin = z.min();
+            zMax = z.max();
             filterY();
-            if (y.isBound())
-                equalityPropagate();
+            if (y.isBound()) {
+                y.getSolver().post(equal(z,array[y.min()]));
+                setActive(false);
+            }
             else {
                 z.removeBelow(supMin.min());
                 z.removeAbove(supMax.max());
             }
         }
 
-    }
-
-    private void equalityPropagate() {
-        int id = y.min();
-        IntVar tVar = array[id];
-        tVar.removeBelow(zMin);
-        tVar.removeAbove(zMax);
-        z.removeBelow(tVar.min());
-        z.removeAbove(tVar.max());
     }
 
     private void filterY() {
@@ -108,4 +119,14 @@ public class Element1DVar extends AbstractConstraint {
         }
     }
 
+    private void filterYwhenZbound() {
+        int i = y.fillArray(yValues);
+        while (i > 0) {
+            i -= 1;
+            int id = yValues[i];
+            if (!array[id].contains(z.min())) {
+                y.remove(id);
+            }
+        }
+    }
 }
