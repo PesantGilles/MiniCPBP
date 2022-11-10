@@ -1641,6 +1641,27 @@ public final class Factory {
     }
 
     /**
+     * Returns an inverse constraint between two arrays of variables of same length.
+     * @param f    an array of variables
+     * @param invf an array of variables
+     * @return a constraint so that {@code invf is the inverse function of f}
+     */
+    public static Constraint inverse(IntVar[] f, IntVar[] invf) {
+      int n = f.length;
+      assert (invf.length == n);
+      Solver cp = f[0].getSolver();
+      for (int i = 0; i < n; i++) {
+          invf[i].removeBelow(0);
+          invf[i].removeAbove(n-1);
+      }
+      for (int i = 0; i < n; i++) {
+          cp.post(element(invf,f[i],makeIntVar(cp,i,i)));
+      }
+      cp.post(allDifferent(invf)); // redundant
+      return allDifferent(f);
+    }
+
+    /**
      * Returns a sum modulo p constraint.
      *
      * @param x an array of variables
