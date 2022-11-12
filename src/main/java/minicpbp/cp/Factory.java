@@ -920,7 +920,10 @@ public final class Factory {
     }
 
     public static Constraint element(IntVar[] array, IntVar y, IntVar z) {
-        return new Element1DVar(array, y, z);
+        IntVar[] vars = Arrays.copyOf(array, array.length + 2);
+        vars[array.length] = y;
+        vars[array.length + 1] = z;
+        return new Element1DVar(array, y, z, vars);
     }
   
     /**
@@ -1647,18 +1650,7 @@ public final class Factory {
      * @return a constraint so that {@code invf is the inverse function of f}
      */
     public static Constraint inverse(IntVar[] f, IntVar[] invf) {
-      int n = f.length;
-      assert (invf.length == n);
-      Solver cp = f[0].getSolver();
-      for (int i = 0; i < n; i++) {
-          invf[i].removeBelow(0);
-          invf[i].removeAbove(n-1);
-      }
-      for (int i = 0; i < n; i++) {
-          cp.post(element(invf,f[i],makeIntVar(cp,i,i)));
-      }
-      cp.post(allDifferent(invf)); // redundant
-      return allDifferent(f);
+        return new Inverse(f,invf);
     }
 
     /**
