@@ -78,7 +78,15 @@ public class LogBelief implements Belief {
 		    b + Math.log1p(exp(a-b)) );
     }
 
-    public  double complement(double a) { 
+	public  double subtract(double a, double b) {
+		// adapted from https://en.wikipedia.org/wiki/Log_probability for addition
+		if (isZero(b))
+			return a;
+		else
+			return a + Math.log(1.0 - exp(b-a));
+	}
+
+	public  double complement(double a) {
 	if (isZero(a))
 	    return one();
 	if (isOne(a))

@@ -64,6 +64,10 @@ public class StdBelief implements Belief {
 	return a+b; 
     }
 
+    public  double subtract(double a, double b) {
+        return a-b;
+    }
+
     public  double complement(double a) {
 	return 1 - a;
     }

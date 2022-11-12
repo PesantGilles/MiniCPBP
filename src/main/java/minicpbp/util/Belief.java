@@ -70,6 +70,11 @@ public interface Belief {
     double add(double a, double b);
 
     /**
+     * returns the difference between beliefs a and b
+     */
+    double subtract(double a, double b);
+
+    /**
      * returns b s.t. add(a,b)==ONE
      */
     double complement(double a);
