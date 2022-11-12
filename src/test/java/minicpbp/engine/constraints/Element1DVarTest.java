@@ -51,7 +51,7 @@ public class Element1DVarTest extends SolverTest {
 
             IntVar[] T = new IntVar[]{makeIntVar(cp, 9, 9), makeIntVar(cp, 8, 8), makeIntVar(cp, 7, 7), makeIntVar(cp, 5, 5), makeIntVar(cp, 6, 6)};
 
-            cp.post(new Element1DVar(T, y, z),true);
+            cp.post(new Element1DVar(T, y, z, new IntVar[]{}),true);
 
             assertEquals(0, y.min());
             assertEquals(4, y.max());
@@ -95,7 +95,7 @@ public class Element1DVarTest extends SolverTest {
                     makeIntVar(cp, 7, 8),
                     makeIntVar(cp, 9, 10)};
 
-            cp.post(new Element1DVar(T, y, z),true);
+            cp.post(new Element1DVar(T, y, z, new IntVar[]{}),true);
 
             assertEquals(0, y.min());
             assertEquals(4, y.max());
@@ -134,7 +134,7 @@ public class Element1DVarTest extends SolverTest {
 
             IntVar[] T = new IntVar[]{makeIntVar(cp, 9, 9), makeIntVar(cp, 8, 8), makeIntVar(cp, 7, 7), makeIntVar(cp, 5, 5), makeIntVar(cp, 6, 6)};
 
-            cp.post(new Element1DVar(T, y, z),true);
+            cp.post(new Element1DVar(T, y, z, new IntVar[]{}),true);
 
             DFSearch dfs = makeDfs(cp, firstFail(y, z));
             dfs.onSolution(() ->
@@ -163,7 +163,7 @@ public class Element1DVarTest extends SolverTest {
             IntVar x2 = makeIVar(cp, -2, 0);
 
 
-            cp.post(new Element1DVar(new IntVar[]{x0}, x1, x2),true);
+            cp.post(new Element1DVar(new IntVar[]{x0}, x1, x2, new IntVar[]{}),true);
 
             assertEquals(0, x0.min());
             assertEquals(0, x1.min());

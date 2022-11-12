@@ -25,6 +25,7 @@ public class Element1DVar extends AbstractConstraint {
     private final IntVar[] array;
     private final IntVar y;
     private final IntVar z;
+    private final IntVar[] vars;
 
     private final int[] yValues;
     private IntVar supMin;
@@ -33,14 +34,20 @@ public class Element1DVar extends AbstractConstraint {
     private int zMax;
     
 
-    public Element1DVar(IntVar[] array, IntVar y, IntVar z) {
-        super(y.getSolver(), new IntVar[]{y,z});
+    public Element1DVar(IntVar[] array, IntVar y, IntVar z, IntVar[] vars) {
+        super(y.getSolver(), vars);
 	    setName("Element1DVar");
         this.array = array;
         this.y = y;
         this.z = z;
+        this.vars = vars;
 
         yValues = new int[y.size()];
+
+        if (z.isBound())
+            setExactWCounting(true);
+        else
+            setExactWCounting(false);
     }
 
     @Override
@@ -126,6 +133,49 @@ public class Element1DVar extends AbstractConstraint {
             int id = yValues[i];
             if (!array[id].contains(z.min())) {
                 y.remove(id);
+            }
+        }
+    }
+
+    public void updateBelief() {
+        if (z.isBound()) { // special case: compute exact beliefs
+            double cumul = beliefRep.zero();
+            // for y
+            int nVal = y.fillArray(domainValues);
+            for (int j = 0; j < nVal; j++) {
+                int v = domainValues[j];
+                setLocalBelief(array.length /* i.e. y */, v, outsideBelief(v, z.min()));
+                cumul = beliefRep.add(cumul, beliefRep.multiply(outsideBelief(v,z.min()),
+                        outsideBelief(array.length,v)));
+            }
+            // for array
+            for (int i = 0; i < array.length; i++) {
+                if (y.contains(i)) {
+                    double cumulOthers = beliefRep.subtract(cumul, beliefRep.multiply(outsideBelief(i,z.min()), outsideBelief(array.length,i)));
+                    nVal = array[i].fillArray(domainValues);
+                    for (int j = 0; j < nVal; j++) {
+                        int v = domainValues[j];
+                        if (v == z.min()) {
+                            setLocalBelief(i, v, beliefRep.add(cumulOthers, outsideBelief(array.length, i)));
+                        } else {
+                            setLocalBelief(i, v, cumulOthers);
+                        }
+                    }
+                }
+                else { // its values equally support every solution
+                    nVal = array[i].fillArray(domainValues);
+                    for (int j = 0; j < nVal; j++) {
+                        setLocalBelief(i, domainValues[j], beliefRep.one()); // will be normalized
+                    }
+                }
+            }
+        }
+        else { // default uniform belief
+            for (int i = 0; i < vars.length; i++) {
+                int nVal = vars[i].fillArray(domainValues);
+                for (int j = 0; j < nVal; j++) {
+                    setLocalBelief(i, domainValues[j], beliefRep.one()); // will be normalized
+                }
             }
         }
     }
