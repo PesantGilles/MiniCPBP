@@ -75,10 +75,18 @@ public class Equal extends AbstractConstraint {
     // dom consistent filtering in the direction from -> to
     // every value of to has a support in from
     private void pruneEquals(IntVar from, IntVar to) {
+/*      For some reason, this way causes a runtime error...
         int nVal = to.fillArray(domainValues);
-        for (int k = 0; k < nVal; k++)
-            if (!from.contains(domainValues[k]))
-                to.remove(domainValues[k]);
+        for (int k = 0; k < nVal; k++) {
+            int val = domainValues[k];
+            if (!from.contains(val))
+                to.remove(val);
+        }
+ */
+        for (int k = to.min(); k <= to.max(); k++) {
+            if (to.contains(k) && !from.contains(k))
+                to.remove(k);
+        }
     }
 
     // make sure bound of variables are the same
