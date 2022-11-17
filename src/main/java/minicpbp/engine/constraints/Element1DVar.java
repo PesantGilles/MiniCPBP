@@ -81,7 +81,8 @@ public class Element1DVar extends AbstractConstraint {
         else if (z.isBound()) { // special case, important for inverse constraint
             filterYwhenZbound();
             if (y.isBound()) {
-                y.getSolver().post(equal(z,array[y.min()]));
+                array[y.min()].assign(z.min());
+  //              y.getSolver().post(equal(z,array[y.min()]));
                 setActive(false);
             }
         }
