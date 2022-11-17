@@ -164,7 +164,7 @@ public class constraintBuilder {
     }
 
     public void makeAllDifferentInt(IntVar[] a) {
-        a[0].getSolver().post(Factory.allDifferent(a));
+        minicp.post(Factory.allDifferent(a));
     }
 
     public void makeIntPlus(IntVar a, IntVar b, IntVar c) {
@@ -211,10 +211,7 @@ public class constraintBuilder {
     }
 
     public void makeCircuit(IntVar[] x) {
-        IntVar xOffset[] = new IntVar[x.length];
-        for(int i = 0; i < x.length; i++)
-            xOffset[i] = Factory.minus(x[i], 1);  
-        minicp.post(Factory.circuit(xOffset));
+        minicp.post(Factory.circuit(x));
     }
 
     public void makeAmong(IntVar[] x, int[] V, IntVar o) {
@@ -260,6 +257,18 @@ public class constraintBuilder {
                 t2D[i][j] = t[i*t2D[0].length + j];
         
         minicp.post(Factory.table(x, t2D));
+    }
+
+    public void makeInverse(IntVar[] f, IntVar[] invf) {
+        minicp.post(Factory.inverse(f,invf));
+    }
+
+    public void makeLexLess(IntVar[] x, IntVar[] y) {
+        minicp.post(Factory.lexLess(x,y));
+    }
+
+    public void makeLexLesseq(IntVar[] x, IntVar[] y) {
+        minicp.post(Factory.lexLessOrEqual(x,y));
     }
 
 }

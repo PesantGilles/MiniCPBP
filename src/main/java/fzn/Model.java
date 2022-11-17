@@ -173,7 +173,7 @@ public class Model {
     } 
 
     /**
-     * build an return an integer from a literal
+     * build and return an integer from a literal
      * @param lit the literal of the integer
      * @return the integer
      */
@@ -200,8 +200,13 @@ public class Model {
      * @return the variable
      */
     private IntVar getIntVar(ASTLit lit) {
+        //case where the literal is the variable's declaration
+        if (lit instanceof ASTInt) {
+            int valeur = ((ASTInt) lit).getValue();
+            return makeIntVar(solver, valeur, valeur);
+        }
         //case where the literal is an Id linked to a declaration
-        if (lit instanceof ASTId) {
+        else if (lit instanceof ASTId) {
             ASTId id = (ASTId) lit;
             if(declDict.get(id.getValue()).getId() != id) {
                 return getIntVar(declDict.get(id.getValue()).getId());
@@ -210,11 +215,6 @@ public class Model {
                 return varDict.get(id.getValue());
             }
             return createSingleVarInt(declDict.get(id.getValue()));
-        }
-        //case where the literal is the variable's declaration
-        else if(lit instanceof ASTInt) {
-            int valeur = ((ASTInt) lit).getValue();
-            return makeIntVar(solver, valeur, valeur);
         }
         else throw new NotImplementedException(lit.toString());
     }
@@ -590,7 +590,7 @@ public class Model {
             case "minimum_int":  
                 builder.makeMinimumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
-            case "fzn_circuit":  
+            case "fzn_circuit_indexedFrom0":
                 builder.makeCircuit(getIntVarArray(args.get(0)));
                 break;
             case "fzn_global_cardinality":  
@@ -604,6 +604,15 @@ public class Model {
                 break;
             case "fzn_table_int":
                 builder.makeTable(getIntVarArray(args.get(0)), getIntArray(args.get(1)));
+                break;
+            case "fzn_inverse_indexedFrom0":
+                builder.makeInverse(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)));
+                break;
+            case "fzn_lex_less_int":
+                builder.makeLexLess(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)));
+                break;
+            case "fzn_lex_lesseq_int":
+                builder.makeLexLesseq(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)));
                 break;
             default:
                 throw new NotImplementedException("Constraint : " + name);
