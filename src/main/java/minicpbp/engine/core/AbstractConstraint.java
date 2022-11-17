@@ -60,15 +60,14 @@ public abstract class AbstractConstraint implements Constraint {
         beliefRep = cp.getBeliefRep();
         this.vars = new IntVar[vars.length];
         System.arraycopy(vars,0,this.vars,0,vars.length); // required if constraint sets up offseted vars in the same array
-        /*switch (cp.getWeighingScheme()) {
+        switch (cp.getWeighingScheme()) {
             case SAME:
                 weight = 1.0;
                 break;
             case ARITY:
-                // assumes all model variables have already been declared/registered
-                weight = 1.0 + ((double) vars.length) / ((double) cp.getVariables().size());
+                // will be set in MiniCP.computeMinArity()
                 break;
-        }*/
+        }
         localBelief = new StateDouble[vars.length][];
         ofs = new int[vars.length];
         outsideBelief = new double[vars.length][];
@@ -261,14 +260,17 @@ public abstract class AbstractConstraint implements Constraint {
 
     public void sendMessages() {
         updateBelief();
+ //       System.out.println(getName()+".sendMessages()");
         for (int i = 0; i < vars.length; i++) {
             if (!vars[i].isBound()) { // if the variable is bound, it is pointless to send a "certainly true" message
                 normalizeBelief(i, (j, val) -> localBelief(j, val),
                         (j, val, b) -> setLocalBelief(j, val, b));
                 int s = vars[i].fillArray(domainValues);
+ //               System.out.print(vars[i].getName()+": ");
                 for (int j = 0; j < s; j++) {
                     int val = domainValues[j];
                     double localB = localBelief(i, val);
+ //                   System.out.print(val+" "+localB+", ");
                     assert localB <= beliefRep.one() && localB >= beliefRep.zero() : "c Should be normalized! localB = " + localB;
                     if (getSolver().actingOnZeroOneBelief() && isExactWCounting()) {
                         if (beliefRep.isZero(localB)) { // no support from this constraint
@@ -287,6 +289,7 @@ public abstract class AbstractConstraint implements Constraint {
                 }
             }
         }
+ //       System.out.println();
     }
 
     /**
