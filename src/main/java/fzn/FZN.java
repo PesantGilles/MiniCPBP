@@ -209,7 +209,6 @@ public class FZN {
 		m.buildModel();
 
 		Search search = null;
-		MiniCP minicpbp = (MiniCP) minicp;
 		//create search and branching heuristic
 		switch (heuristic) {
 		case FFRV:
@@ -269,16 +268,16 @@ public class FZN {
 		switch (m.getGoal()) {
 			//find a solution that maximize the cost function
 			case ASTSolve.MAX:
-				stats = search.optimize(minicpbp.maximize(m.getObjective()),
+				stats = search.optimize(minicp.maximize(m.getObjective()),
 					ss -> {
-						return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+						return (System.currentTimeMillis() - t0 >= timeout * 1000 );
 					});
 				break;
 			//find a solution that minimize the cost function
 			case ASTSolve.MIN:
-				stats = search.optimize(minicpbp.minimize(m.getObjective()),
+				stats = search.optimize(minicp.minimize(m.getObjective()),
 				ss -> {
-					return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+					return (System.currentTimeMillis() - t0 >= timeout * 1000 );
 				});
 				break;
 			default:
