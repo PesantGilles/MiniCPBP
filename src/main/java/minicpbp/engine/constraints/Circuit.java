@@ -22,6 +22,7 @@ package minicpbp.engine.constraints;
 
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
+import minicpbp.engine.core.Solver;
 import minicpbp.state.StateInt;
 
 import javax.management.DynamicMBean;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import static minicpbp.cp.Factory.allDifferent;
+import static minicpbp.cp.Factory.allDifferentBinary;
 
 /**
  * Hamiltonian Circuit Constraint with a successor model
@@ -82,7 +84,7 @@ public class Circuit extends AbstractConstraint {
             lengthToDest[i] = getSolver().getStateManager().makeStateInt(0);
         }
 
-        // Update belief
+        // updateBelief
         density = new double[x.length][x.length];
         path = new int[x.length];
         onPath = new boolean[x.length];
@@ -108,7 +110,10 @@ public class Circuit extends AbstractConstraint {
             x[i].removeBelow(0);
             x[i].removeAbove(x.length-1);
         }
-        getSolver().post(allDifferent(x));
+        if (getSolver().getMode() == Solver.PropaMode.SP)
+            getSolver().post(allDifferentBinary(x)); // the original filtering level
+        else
+            getSolver().post(allDifferent(x));
         switch (getSolver().getMode()) {
             case SBP:
 	        case BP: // same as SBP since updateBelief() uses orig/dest
@@ -140,7 +145,7 @@ public class Circuit extends AbstractConstraint {
 
     @Override
     public void propagate() {
-        // Update the unbounded vars for updateBelief()
+        // Update the unbound vars for updateBelief()
         int nU = nUnBounds.value();
         for (int i = nU - 1; i >= 0; i--) {
             int idx = unBounds[i];
@@ -303,7 +308,7 @@ public class Circuit extends AbstractConstraint {
             if (success == target_nb_samples)
                 break;
         }
-// 	    System.out.println(success+" successfully sampled circuits out of at most "+max_nb_samples+" attempts");
+ 	    System.out.println(success+" successfully sampled circuits (target="+target_nb_samples+") out of at most "+max_nb_samples+" attempts");
 
         //Set beliefs
         if (success >= 1) {
