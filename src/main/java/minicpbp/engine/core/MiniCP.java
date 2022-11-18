@@ -60,7 +60,7 @@ public class MiniCP implements Solver {
     // apply damping to variable-to-constraint messages
     private static boolean damping = true;
     // damping factor in interval [0,1] where 1 is equivalent to no damping
-    private static double dampingFactor = 0.5;
+    private static double dampingFactor = 0.75;
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
