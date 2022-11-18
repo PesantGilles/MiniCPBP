@@ -61,6 +61,7 @@ public class Inverse extends AbstractConstraint {
       for (int i = 0; i < n; i++) {
           getSolver().post(Factory.element(invf,f[i],Factory.makeIntVar(getSolver(),i,i)));
       }
+      //     getSolver().post(Factory.allDifferent(f));
       setActive(false);
     }
 }
