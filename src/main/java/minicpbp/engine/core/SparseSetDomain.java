@@ -309,8 +309,8 @@ public class SparseSetDomain implements IntDomain {
         int s = fillArray(domainValues);
         for (int j = 0; j < s; j++) {
             double m = beliefRep.rep2std(marginal(domainValues[j]));
-	    if (m > 0)
-		H += m * Math.log(m);
+	        if (m > 0 && m < 1.0)
+		        H += m * Math.log(m);
         }
         return -H;
     }
