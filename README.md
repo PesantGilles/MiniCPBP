@@ -2,9 +2,10 @@
 
 # README #
 
-* MiniCP-BP: Replacing classic propagation by belief propagation in MiniCPv1.0
+* MiniCPBP: Replacing classic propagation by belief propagation in MiniCPv1.0
+* A paper describing the CP-BP framework  <https://jair.org/index.php/jair/article/view/11487>.
 * Infos on MiniCP can be found <http://minicp.org>.
-* MiniCP-BP is a Java project built with Maven (<https://maven.apache.org>).
+* MiniCPBP is a Java project built with Maven (<https://maven.apache.org>).
 
 
 
