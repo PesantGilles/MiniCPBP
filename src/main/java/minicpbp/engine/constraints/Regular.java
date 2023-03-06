@@ -23,6 +23,7 @@ import minicpbp.engine.core.IntVar;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -35,8 +36,8 @@ public class Regular extends AbstractConstraint {
     private List<Integer> finalStates;
     private int n;
     private int nbStates;
-    private double[][] ip; // ip[i][]>0 for states reached by reading x[0]..x[i-1] from the initial state
-    private double[][] op; // op[i][]>0 for states reaching a final state by reading x[i+1]..x[n-1]
+    private double[][] ip; // ip[i][j]>0 for state j reached by reading x[0]..x[i-1] from the initial state
+    private double[][] op; // op[i][j]>0 for state j reaching a final state by reading x[i+1]..x[n-1]
 
     /**
      * Creates a regular constraint.
@@ -55,25 +56,27 @@ public class Regular extends AbstractConstraint {
         setName("Regular");
         this.x = x;
         n = x.length;
-        transitionFct = A;
         nbStates = A.length;
         initialState = s;
-        finalStates = f;
         assert ((initialState >= 0) && (initialState < nbStates));
-        Iterator<Integer> itr = finalStates.iterator();
+	finalStates = new ArrayList<Integer>();
+        Iterator<Integer> itr = f.iterator();
         while (itr.hasNext()) {
             int state = itr.next().intValue();
             assert ((state >= 0) && (state < nbStates));
+	    finalStates.add(state);
         }
         int maxVal = Integer.MIN_VALUE;
         for (int i = 0; i < n; i++) {
             if (x[i].max() > maxVal)
                 maxVal = x[i].max();
         }
-        for (int i = 0; i < transitionFct.length; i++) {
-            assert (transitionFct[i].length == maxVal + 1);
-            for (int j = 0; j < transitionFct[i].length; j++) {
-                assert (transitionFct[i][j] < nbStates);
+        transitionFct = new int[nbStates][maxVal + 1];
+        for (int i = 0; i < nbStates; i++) {
+            assert (A[i].length == maxVal + 1);
+            for (int j = 0; j < maxVal + 1; j++) {
+                assert (A[i][j] < nbStates);
+		transitionFct[i][j] = A[i][j];
             }
         }
 
