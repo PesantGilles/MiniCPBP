@@ -1515,7 +1515,7 @@ public final class Factory {
 
     /**
      * Returns a cardinality constraint.
-     * This relation is currently enforced by decomposing it into {@link Among} constraints; hence it is not domain consistent
+     * This relation is currently enforced by decomposing it into {@link TableCT} and {@link Sum} constraints; it is not domain consistent
      *
      * @param x    an array of variables
      * @param vals an array of values whose occurrences in x we count
@@ -1574,6 +1574,71 @@ public final class Factory {
 			oVar[i] = makeIntVar(cp, oMin[i], oMax[i]);
 
 		return new Cardinality(x, vals, oVar, makeIntVar(cp,1,maxDomainSize));
+	}
+
+    /**
+     * Returns a soft cardinality constraint.
+     * This relation is currently enforced by decomposing it into {@link TableCT} and {@link Sum} constraints; it is not domain consistent
+     *
+     * @param x    an array of variables
+     * @param vals an array of values whose occurrences in x we count
+     * @param o    an array of variables corresponding to the number of occurrences of vals in x
+     * @param nbViolations  the number of violations for the constraint
+     * @return a soft cardinality constraint
+     */
+    public static Constraint cardinalitySoft(IntVar[] x, int[] vals, IntVar[] o, IntVar nbViolations) {
+        assert (vals.length == o.length);
+        int maxDomainSize = 0;
+        for (int i = 0; i < x.length; i++) {
+            maxDomainSize = Math.max(maxDomainSize, x[i].size());
+        }
+        return new SoftCardinality(x, vals, o, nbViolations, makeIntVar(x[0].getSolver(), 1, maxDomainSize));
+    }
+
+    /**
+     * special case with fixed nb of occurrences
+     */
+    public static Constraint cardinalitySoft(IntVar[] x, int[] vals, int[] o, IntVar nbViolations) {
+        assert (vals.length == o.length);
+        int maxDomainSize = 0;
+        for (int i = 0; i < x.length; i++) {
+            maxDomainSize = Math.max(maxDomainSize, x[i].size());
+        }
+        IntVar[] oVar = new IntVar[o.length];
+        Solver cp = x[0].getSolver();
+        for (int i = 0; i < o.length; i++) {
+            oVar[i] = makeIntVar(cp, o[i], o[i]);
+        }
+        return new SoftCardinality(x, vals, oVar, nbViolations, makeIntVar(cp, 1, maxDomainSize));
+    }
+
+    /**
+ 	 * A special case of soft cardinality constraint when the bounds on number of
+ 	 * occurrences are given
+ 	 * 
+ 	 * @param x    an array of variables
+ 	 * @param vals an array of values whose occurrences in x we count
+ 	 * @param oMin an array of constants indicating the minimum number of
+ 	 *             occurrences of each entry of vals in x
+ 	 * @param oMax an array of constants indicating the maximum number of
+ 	 *             occurrences of each entry of vals in x
+	 * @param nbViolations  the number of violations for the constraint
+ 	 * @return
+ 	 */
+	  public static Constraint cardinalitySoft(IntVar[] x, int[] vals, int[] oMin, int[] oMax, IntVar nbViolations) {
+		int n = vals.length;
+		assert (oMin.length == n);
+		assert (oMax.length == n);
+		int maxDomainSize = 0;
+			for (int i = 0; i < x.length; i++) {
+			maxDomainSize = Math.max(maxDomainSize, x[i].size());
+		}
+		IntVar[] oVar = new IntVar[n];
+		Solver cp = x[0].getSolver();
+		for (int i = 0; i < n; i++)
+			oVar[i] = makeIntVar(cp, oMin[i], oMax[i]);
+
+		return new SoftCardinality(x, vals, oVar, nbViolations, makeIntVar(cp,1,maxDomainSize));
 	}
 
     /**
