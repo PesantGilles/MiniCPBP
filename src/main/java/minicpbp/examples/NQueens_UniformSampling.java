@@ -34,29 +34,31 @@ public class NQueens_UniformSampling {
     public static void main(String[] args) {
 
 	int n = Integer.parseInt(args[0]); // n x n chess board
-  	double fraction = Double.parseDouble(args[1]);
+	double fraction = Double.parseDouble(args[1]);
 
-        Solver cp = Factory.makeSolver();
-        IntVar[] q = Factory.makeIntVarArray(cp, n, n);
+	Solver cp = Factory.makeSolver();
+	IntVar[] q = Factory.makeIntVarArray(cp, n, n);
 	IntVar[] ql = Factory.makeIntVarArray(n,i -> Factory.plus(q[i],i));
 	IntVar[] qr = Factory.makeIntVarArray(n,i -> Factory.plus(q[i],-i));
-	    for(int i = 0; i<q.length; i++){
-		q[i].setName("q"+i);
- 		ql[i].setName("ql"+i);
- 		qr[i].setName("qr"+i);
-	    }
+	for(int i = 0; i<q.length; i++){
+	    q[i].setName("q"+i);
+	    ql[i].setName("ql"+i);
+	    qr[i].setName("qr"+i);
+	}
 
 	// n-ary alldifferent model
 	cp.post(Factory.allDifferent(q));
 	cp.post(Factory.allDifferent(ql));
 	cp.post(Factory.allDifferent(qr));
 
+
 	// sampling a "fraction" of the solutions
  	IntVar[] branchingVars = cp.sample(fraction,q);
 
+	cp.setMode(Solver.PropaMode.SP);
  	DFSearch search = Factory.makeDfs(cp, BranchingScheme.firstFail(branchingVars));
 
-        search.onSolution(() -> {
+	search.onSolution(() -> {
 		for(int i = 0; i<q.length; i++){
 		    System.out.print(q[i].min()+" ");
 		}
@@ -64,11 +66,8 @@ public class NQueens_UniformSampling {
 	    }
 	);
 
-
    	SearchStatistics stats = search.solve();
 
-//  	System.out.format("#Solutions: %s\n", stats.numberOfSolutions());
  	System.out.format("Statistics: %s\n", stats);
-
     }
 }
