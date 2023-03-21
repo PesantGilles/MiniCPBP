@@ -66,6 +66,9 @@ public interface Solver {
      */
     void post(Constraint c, boolean enforceFixpoint);
 
+    int trigger();
+    int potentialTrigger();
+
     /**
      * @return the propagation mode
      */

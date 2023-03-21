@@ -20,6 +20,7 @@ package minicpbp.engine.core;
 
 import minicpbp.cp.Factory;
 import minicpbp.search.Objective;
+import minicpbp.state.StateInt;
 import minicpbp.state.StateManager;
 import minicpbp.state.StateStack;
 import minicpbp.util.exception.InconsistencyException;
@@ -67,6 +68,8 @@ public class MiniCP implements Solver {
     private static final boolean actOnZeroOneBelief = false;
     // use dynamic stopping criterion for BP iterations
     private static boolean dynamicStopBP = false;
+    // relative decrease of metric to trigger BP; in interval [0,1] where 0 means always trigger
+    private static double beliefUpdateThreshold = 0.05;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
     private final Belief beliefRep = new StdBelief();
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
@@ -89,14 +92,20 @@ public class MiniCP implements Solver {
     private double oldEntropy;
     private static double variationThreshold = 0.1;
 
-    //for weighing
+    // for weighing constraints
     private double minArity;
+
+    // metric to decide whether or not to update beliefs at a search tree node
+    private StateInt sumDomainSizes;
+    private int trigger = 0;
+    private int potentialTrigger = 0;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
         rand = new Random();
+        sumDomainSizes = sm.makeStateInt(Integer.MAX_VALUE);
     }
 
     public MiniCP(StateManager sm, long seed) {
@@ -104,7 +113,11 @@ public class MiniCP implements Solver {
         variables = new StateStack<>(sm);
         constraints = new StateStack<>(sm);
         rand = new Random(seed);
+        sumDomainSizes = sm.makeStateInt(Integer.MAX_VALUE);
     }
+
+    public int trigger() {return trigger;}
+    public int potentialTrigger() {return potentialTrigger;}
 
     @Override
     public StateManager getStateManager() {
@@ -284,6 +297,23 @@ public class MiniCP implements Solver {
      */
     @Override
     public void beliefPropa() {
+        // only trigger BP if domains sufficiently changed
+        int sum = 0;
+        for (int i = 0; i < variables.size(); i++) {
+            sum += variables.get(i).size();
+        }
+        potentialTrigger++;
+        if (sum >= (1.0 - beliefUpdateThreshold) * sumDomainSizes.value()) { // trigger BP only if domains sufficiently changed
+            for (int i = 0; i < variables.size(); i++) {
+                variables.get(i).normalizeMarginals();
+            }
+            return;
+        }
+        else {
+            trigger++;
+            sumDomainSizes.setValue(sum);
+       }
+
         notifyBeliefPropa();
         try {
             if (resetMarginalsBeforeBP) {
@@ -305,7 +335,7 @@ public class MiniCP implements Solver {
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + " dsize="+variables.get(i).size()+" " + variables.get(i).toString());
+                        System.out.println(variables.get(i).getName() + " dsize="+variables.get(i).size()+" entropy=" + variables.get(i).entropy() + "  " + variables.get(i).toString());
                     }
                 }
                 if(dynamicStopBP){
