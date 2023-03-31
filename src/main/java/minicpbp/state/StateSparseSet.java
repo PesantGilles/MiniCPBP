@@ -227,12 +227,7 @@ public class StateSparseSet {
         assert (contains(v));
         v -= ofs;
         assert (checkVal(v));
-        int val = values[0];
-        int index = indexes[v];
-        indexes[v] = 0;
-        values[0] = v;
-        indexes[val] = index;
-        values[index] = val;
+        exchangePositions(v, values[0]);
         min.setValue(v);
         max.setValue(v);
         size.setValue(1);

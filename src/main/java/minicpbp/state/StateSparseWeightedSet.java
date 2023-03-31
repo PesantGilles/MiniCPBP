@@ -54,21 +54,6 @@ public class StateSparseWeightedSet extends StateSparseSet {
         weights[i2] = w1;
     }
 
-    /**
-     * Removes all the element from the set except the given value.
-     *
-     * @param v is an element in the set
-     */
-    public void removeAllBut(int v) {
-        assert (contains(v));
-        int index = indexes[v - ofs];
-        super.removeAllBut(v);
-        double w = weights[0].value();
-        weights[0].setValue(weights[index].value());
-        weights[index].setValue(w);
-    }
-
-
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
