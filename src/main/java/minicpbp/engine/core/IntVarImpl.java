@@ -303,8 +303,6 @@ public class IntVarImpl implements IntVar {
 
     @Override
     public double impact() {
-        //System.out.println("--------------------------------");
-        //System.out.println(name);
         return domain.impact();
     }
 

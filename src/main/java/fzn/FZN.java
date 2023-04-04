@@ -36,6 +36,7 @@ import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
 import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.BranchingScheme.domWdeg;
+import static minicpbp.cp.BranchingScheme.impactBasedSearch;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -236,6 +237,13 @@ public class FZN {
 			if(FZN.initImpact)
 				search.initializeImpact(m.getDecisionsVar());
 			break;
+		case IBS:
+			minicp.setMode(PropaMode.SP);
+			search = makeSearch(impactBasedSearch(m.getDecisionsVar()));
+			//optionnal initialisation of impacts
+			search.initializeImpactDomains(m.getDecisionsVar());
+			nbFailCutof = nbFailCutof*m.getDecisionsVar().length;
+			break;
 		case MIE:
 			search = makeDfs(minicp, minEntropyRegisterImpact(m.getDecisionsVar()),impactEntropy(m.getDecisionsVar()));
 			//optionnal initialisation of impacts
@@ -248,6 +256,7 @@ public class FZN {
 		case WDEG:
 			minicp.setMode(PropaMode.SP);
 			search = makeSearch(domWdeg(m.getDecisionsVar()));
+			nbFailCutof = nbFailCutof*m.getDecisionsVar().length;
 			break;
 		default:
 			System.out.println("unknown search strategy");

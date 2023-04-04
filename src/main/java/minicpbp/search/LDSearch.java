@@ -187,6 +187,10 @@ public class LDSearch extends Search{
         throw new NotImplementedException();
     }
 
+    public void initializeImpactDomains(IntVar... x) {
+        throw new NotImplementedException();
+    }
+
     /**
      * Effectively start a branch and bound
      * depth first search with a given objective.

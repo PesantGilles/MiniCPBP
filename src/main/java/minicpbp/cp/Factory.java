@@ -375,6 +375,71 @@ public final class Factory {
         x.registerImpact(v, (1.0 - (newEntropy/oldEntropy)));
     }
 
+    /**
+     * Branches on x=v,
+     * performs propagation according to the mode
+     * and compute impact on the product of domains sizes
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpactOnDomains(IntVar x, int v) {
+        double oldSearchSize = 1.0;
+        double newSearchSize = 1.0;
+        StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
+        for(int i = 0; i < listeVariables.size(); i++)
+            if(listeVariables.get(i).isForBranching())
+                oldSearchSize = oldSearchSize*listeVariables.get(i).size();
+
+        x.assign(v);
+        try {
+            x.getSolver().propagateSolver();
+        }
+        catch (InconsistencyException e) {
+            x.registerImpact(v, 1.0);
+            throw e;
+        }
+        for(int i = 0; i < listeVariables.size(); i++)
+            if(listeVariables.get(i).isForBranching())
+                newSearchSize = newSearchSize*listeVariables.get(i).size();
+
+        x.registerImpact(v, (1.0 - (newSearchSize/oldSearchSize)));
+    }
+
+    /**
+     * Branches on x=v,
+     * performs propagation according to the mode
+     * and compute impact on the product of domains sizes
+     *
+     * @param x the variable to be assigned to v
+     * @param v the value that must be assigned to x
+     */
+    public static void branchEqualRegisterImpactOnDomains(IntHolder a) {
+        IntVar x = a.getVar();
+        int v = a.getVal();
+        double oldSearchSize = 1.0;
+        double newSearchSize = 1.0;
+        StateStack<IntVar> listeVariables =  x.getSolver().getVariables();
+        for(int i = 0; i < listeVariables.size(); i++)
+            if(listeVariables.get(i).isForBranching())
+                oldSearchSize = oldSearchSize*listeVariables.get(i).size();
+
+        x.assign(v);
+        try {
+            x.getSolver().propagateSolver();
+        }
+        catch (InconsistencyException e) {
+            x.registerImpact(v, 1.0);
+            throw e;
+        }
+        for(int i = 0; i < listeVariables.size(); i++)
+            if(listeVariables.get(i).isForBranching())
+                newSearchSize = newSearchSize*listeVariables.get(i).size();
+
+        x.registerImpact(v, (1.0 - (newSearchSize/oldSearchSize)));
+    }
+
+
     public static class IntHolder {
         private int val;
         private IntVar var;

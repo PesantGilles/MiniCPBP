@@ -37,7 +37,7 @@ public interface Solver {
     public enum ConstraintWeighingScheme {
 	SAME   /* constraints all have the same weight; = 1.0 (default) */,
 	ARITY  /* a constraint's weight is related to its arity; = 1 + arity/total_nb_of_vars */
-    } 
+    }
 
     /**
      * Posts the constraint, that is call {@link Constraint#post()}, and
