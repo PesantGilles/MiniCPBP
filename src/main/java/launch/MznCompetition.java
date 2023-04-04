@@ -24,20 +24,23 @@ public class MznCompetition {
 
 		try {
 			FZN fzn = new FZN(args[0]);
-			fzn.searchType(TreeSearchType.LDS);
+			fzn.searchType(TreeSearchType.DFS);
 			fzn.checkSolution(false);
 			fzn.traceBP(false);
 			fzn.traceSearch(false);
-			fzn.maxIter(15);
-			fzn.damp(true);
-			fzn.dampingFactor(0.5);
+			fzn.printStats(false);
+			fzn.maxIter(10);
+//			fzn.damp(false);
+//			fzn.dampingFactor(0.75);
 			fzn.restart(false);
 			fzn.initImpact(false);
-			fzn.dynamicStopBP(false);
-			fzn.traceNbIter(false);
-			fzn.variationThreshold(0.01);
+//			fzn.dynamicStopBP(false);
+//			fzn.traceNbIter(true);
+//			fzn.variationThreshold(0.001);
             //fzn.competitionOutput(true);
 			fzn.solve(BranchingHeuristic.MNE, 1200, "", "");
+//			fzn.solve(BranchingHeuristic.MXM,3600, "", "");
+//			fzn.solve(BranchingHeuristic.WDEG,1200, "", "");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

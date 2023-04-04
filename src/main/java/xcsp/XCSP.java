@@ -1189,13 +1189,13 @@ public class XCSP implements XCallbacks2 {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
-		minicp.setTraceNbIterFlag(traceNbIter);
+//		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setTraceEntropyFlag(traceEntropy);
 		minicp.setMaxIter(maxIter);
-		minicp.setDynamicStopBP(dynamicStopBP);
-		minicp.setDamp(damp);
-		minicp.setDampingFactor(dampingFactor);
-		minicp.setVariationThreshold(variationThreshold);
+//		minicp.setDynamicStopBP(dynamicStopBP);
+//		minicp.setDamp(damp);
+//		minicp.setDampingFactor(dampingFactor);
+//		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");

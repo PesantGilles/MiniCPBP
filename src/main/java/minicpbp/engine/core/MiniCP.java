@@ -57,17 +57,19 @@ public class MiniCP implements Solver {
     // SBP /* first apply support propagation, then belief propagation */
     private static PropaMode mode = PropaMode.SBP;
     // nb of BP iterations performed
-    private static int beliefPropaMaxIter = 5;
+    private static int beliefPropaMaxIter = 10;
     // apply damping to variable-to-constraint messages
     private static boolean damping = true;
     // damping factor in interval [0,1] where 1 is equivalent to no damping
     private static double dampingFactor = 0.75;
+    // entropy threshold for a variable; below it we should consider that its value is almost certain
+    private final double MIN_VAR_ENTROPY = 1.0E-3;
+    // entropy tolerance beyond which it is considered different
+    private final double ENTROPY_TOLERANCE = 0.01;
     // reset marginals, local beliefs, and previous outside belief before applying BP at each search-tree node
     private static final boolean resetMarginalsBeforeBP = true;
     // take action upon zero/one beliefs: remove/assign the corresponding value
     private static final boolean actOnZeroOneBelief = false;
-    // use dynamic stopping criterion for BP iterations
-    private static boolean dynamicStopBP = false;
     // relative decrease of metric to trigger BP; in interval [0,1] where 0 means always trigger
     private static double beliefUpdateThreshold = 0.05;
     // representation of beliefs: either standard (StdBelief: [0..1]) or log (LogBelief: [-infinity..0])
@@ -80,25 +82,21 @@ public class MiniCP implements Solver {
     //***** TRACING SWITCHES *****
     private static boolean traceBP = false;
     private static boolean traceSearch = false;
-    private static boolean traceNbIter = false;
     private static boolean traceEntropy = false;
     //****************************
 
 
     // for message damping
     private boolean prevOutsideBeliefRecorded = false;
-
-    // for entropy-based branching heuristics
-    private double oldEntropy;
-    private static double variationThreshold = 0.1;
+    private boolean tuneDamping = true;
 
     // for weighing constraints
     private double minArity;
 
     // metric to decide whether or not to update beliefs at a search tree node
     private StateInt sumDomainSizes;
-    private int trigger = 0;
-    private int potentialTrigger = 0;
+    private long trigger = 0;
+    private long potentialTrigger = 0;
 
     public MiniCP(StateManager sm) {
         this.sm = sm;
@@ -116,8 +114,8 @@ public class MiniCP implements Solver {
         sumDomainSizes = sm.makeStateInt(Integer.MAX_VALUE);
     }
 
-    public int trigger() {return trigger;}
-    public int potentialTrigger() {return potentialTrigger;}
+    public long trigger() {return trigger;}
+    public long potentialTrigger() {return potentialTrigger;}
 
     @Override
     public StateManager getStateManager() {
@@ -162,20 +160,12 @@ public class MiniCP implements Solver {
         MiniCP.traceSearch = traceSearch;
     }
 
-    public void setTraceNbIterFlag(boolean traceNbIter) {
-        MiniCP.traceNbIter = traceNbIter;
-    }
-
     public void setTraceEntropyFlag(boolean traceEntropy) {
         MiniCP.traceEntropy = traceEntropy;
     }
 
     public void setMaxIter(int maxIter) {
         MiniCP.beliefPropaMaxIter = maxIter;
-    }
-
-    public void setDynamicStopBP(boolean dynamicStopBP) {
-        MiniCP.dynamicStopBP = dynamicStopBP;
     }
 
     public boolean dampingMessages() {
@@ -192,14 +182,6 @@ public class MiniCP implements Solver {
 
     public void setDampingFactor(double dampingFactor) {
         MiniCP.dampingFactor = dampingFactor;
-    }
-
-    public void setVariationThreshold(double variationThreshold) {
-        MiniCP.variationThreshold = variationThreshold;
-    }
-
-    public double variationThreshold() {
-        return MiniCP.variationThreshold;
     }
 
     public boolean prevOutsideBeliefRecorded() {
@@ -297,7 +279,7 @@ public class MiniCP implements Solver {
      */
     @Override
     public void beliefPropa() {
-        // only trigger BP if domains sufficiently changed
+        // First decide whether we trigger BP or simply reuse current marginals
         int sum = 0;
         for (int i = 0; i < variables.size(); i++) {
             sum += variables.get(i).size();
@@ -307,15 +289,18 @@ public class MiniCP implements Solver {
             for (int i = 0; i < variables.size(); i++) {
                 variables.get(i).normalizeMarginals();
             }
-            return;
+            return; // reuse current marginals
         }
         else {
             trigger++;
             sumDomainSizes.setValue(sum);
-       }
-
+        }
         notifyBeliefPropa();
         try {
+            if (tuneDamping) { // decide & tune message damping; default: once at the root node
+                BPtuneDamping();
+                tuneDamping = false;
+            }
             if (resetMarginalsBeforeBP) {
                 // start afresh at each search-tree node
                 for (int i = 0; i < variables.size(); i++) {
@@ -326,56 +311,56 @@ public class MiniCP implements Solver {
                 }
                 prevOutsideBeliefRecorded = false;
             }
-            int nbVar = nbBranchingVariables();
-            int nb_iter = beliefPropaMaxIter;
+            double previousEntropy, currentEntropy = 1.0;
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
+                previousEntropy = currentEntropy;
+                currentEntropy = problemEntropy();
+                double smallEntropy = smallestVariableEntropy();
                 if (dampingMessages())
                     prevOutsideBeliefRecorded = true;
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
+                    System.out.println("problem entropy = " + currentEntropy);
+                    System.out.println("smallest variable entropy = " + smallEntropy);
+                    /*
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + " dsize="+variables.get(i).size()+" entropy=" + variables.get(i).entropy() + "  " + variables.get(i).toString());
+                        System.out.println(variables.get(i).getName() + " dsize=" + variables.get(i).size() + " entropy=" + variables.get(i).entropy() + "  " + variables.get(i).toString());
                     }
+                     */
                 }
-                if(dynamicStopBP){
-                    double sumEntropy = 0.0;
-                    for(int i =0; i < variables.size(); i++) {
-                        if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
-                            sumEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
-                        }
-                    }
-                    sumEntropy = sumEntropy/nbVar;
-                    if(iter > 1 && (oldEntropy - sumEntropy) < variationThreshold && (oldEntropy - sumEntropy)>=0) {
-                        nb_iter = iter;
-                        break;
-                    }
-                    
-                    oldEntropy = sumEntropy;
-                }
-                if(traceEntropy) {
+                if (traceEntropy) {
                     double minEntropy = 1;
                     double maxEntropy = 0;
                     double modelEntropy = 0.0;
-                    for(int i =0; i < variables.size(); i++) {
-                        if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
-                            if(minEntropy > variables.get(i).entropy()/Math.log(variables.get(i).size()))
-                                minEntropy = variables.get(i).entropy()/Math.log(variables.get(i).size());
-                            if(maxEntropy < variables.get(i).entropy()/Math.log(variables.get(i).size()))
-                                maxEntropy = variables.get(i).entropy()/Math.log(variables.get(i).size());
-                            modelEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+                    for (int i = 0; i < variables.size(); i++) {
+                        if (!variables.get(i).isBound() && variables.get(i).isForBranching()) {
+                            if (minEntropy > variables.get(i).entropy() / Math.log(variables.get(i).size()))
+                                minEntropy = variables.get(i).entropy() / Math.log(variables.get(i).size());
+                            if (maxEntropy < variables.get(i).entropy() / Math.log(variables.get(i).size()))
+                                maxEntropy = variables.get(i).entropy() / Math.log(variables.get(i).size());
+                            modelEntropy += variables.get(i).entropy() / Math.log(variables.get(i).size());
                         }
                     }
-                    modelEntropy = modelEntropy/nbVar;
+                    modelEntropy = modelEntropy / nbBranchingVariables();
                     System.out.println("model entropy : " + modelEntropy);
                     System.out.println("min entropy : " + minEntropy);
                     System.out.println("max entropy : " + maxEntropy);
                 }
+                // stopping criteria
+                if (currentEntropy == 0) { // either all branching vars are bound or BP says there's no solution
+                    break;
+                }
+                if (smallEntropy <= MIN_VAR_ENTROPY) { // at least one variable with low uncertainty about the value it should take
+                    break;
+                }
+                if (currentEntropy == previousEntropy) { // marginals probably did not change either (and won't in the future)
+                    break;
+                }
+                if ((iter > 2) /* give it a chance to stabilize */ && (currentEntropy - previousEntropy > ENTROPY_TOLERANCE)) { // entropy actually increased
+                    break;
+                }
             }
-            if(traceNbIter)
-                System.out.println("nb iter : " +nb_iter);
-                
-
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
             while (!propagationQueue.isEmpty())
@@ -403,6 +388,64 @@ public class MiniCP implements Solver {
     }
 
     /**
+     * tunes message damping for Belief Propagation according to observed entropy
+     */
+    private void BPtuneDamping() {
+        final double MIN_DAMPING_FACTOR = 0.5;
+        final double DAMPING_FACTOR_DELTA = 0.15;
+        setDamp(true);
+        setDampingFactor(1.0);
+        boolean dampingFactorDetermined = false;
+        double previousEntropy, currentEntropy;
+        double previousDeltaEntropy, currentDeltaEntropy;
+        int valleyCount;
+        while (!dampingFactorDetermined) {
+ //           System.out.println("trying DAMPING FACTOR = " + dampingFactor());
+            // start afresh
+            for (int i = 0; i < variables.size(); i++) {
+                variables.get(i).resetMarginals();
+            }
+            for (int i = 0; i < constraints.size(); i++) {
+                constraints.get(i).resetLocalBelief();
+            }
+            prevOutsideBeliefRecorded = false;
+            currentEntropy = 1.0;
+            currentDeltaEntropy = 0;
+            valleyCount = 0;
+            dampingFactorDetermined = true;
+            // BP dive
+            for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
+                BPiteration();
+                previousEntropy = currentEntropy;
+                previousDeltaEntropy = currentDeltaEntropy;
+                currentEntropy = problemEntropy();
+                currentDeltaEntropy = currentEntropy - previousEntropy;
+                prevOutsideBeliefRecorded = true;
+ //               System.out.println("iteration " + iter + "; problem entropy = " + currentEntropy + "; previous entropy = " + previousEntropy);
+                if (currentEntropy == 0) { // either all branching vars are bound or BP says there's no solution
+                    break;
+                }
+                if (previousDeltaEntropy <= 0 && currentDeltaEntropy > ENTROPY_TOLERANCE) {
+ //                   System.out.println("valley");
+                    valleyCount++;
+                    if (valleyCount >= 2) {
+ //                       System.out.println("two valleys ==> oscillation");
+                        if (dampingFactor() - DAMPING_FACTOR_DELTA >= MIN_DAMPING_FACTOR) {
+                            setDampingFactor(dampingFactor() - DAMPING_FACTOR_DELTA); // increase damping
+                            dampingFactorDetermined = false;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+//        System.out.println("FINAL DAMPING FACTOR = " + dampingFactor());
+        if (dampingFactor() == 1.0) {
+            setDamp(false);
+        }
+    }
+
+    /**
      * a single iteration of Belief Propagation:
      * from variables to constraints, and then from constraints to variables
      */
@@ -412,7 +455,7 @@ public class MiniCP implements Solver {
             c = constraints.get(i);
             if (c.isActive())
                 c.receiveMessages();
-       }
+        }
         for (int i = 0; i < variables.size(); i++) {
             variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
         }
@@ -424,6 +467,37 @@ public class MiniCP implements Solver {
         for (int i = 0; i < variables.size(); i++) {
             variables.get(i).normalizeMarginals();
         }
+    }
+
+    /**
+     * computes and returns the current problem entropy (avg normalized entropy of the variables)
+     * note: only considers unbound branching variables
+     */
+    private double problemEntropy() {
+        double sumNormalizedEntropy = 0.0;
+        int nbUnboundBranchingVar = 0;
+        for(int i = 0; i < variables.size(); i++) {
+            if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                sumNormalizedEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+                nbUnboundBranchingVar ++;
+            }
+        }
+        return (nbUnboundBranchingVar == 0 ? 0.0 : sumNormalizedEntropy / nbUnboundBranchingVar);
+    }
+
+    /**
+     * computes and returns the smallest variable entropy
+     * note: only considers unbound branching variables
+     */
+    private double smallestVariableEntropy() {
+        double minEntropy = Double.MAX_VALUE;
+        for(int i = 0; i < variables.size(); i++) {
+            if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
+                if (variables.get(i).entropy() < minEntropy)
+                    minEntropy = variables.get(i).entropy();
+            }
+        }
+        return minEntropy;
     }
 
     private void propagate(Constraint c) {

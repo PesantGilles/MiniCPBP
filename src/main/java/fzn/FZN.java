@@ -191,12 +191,12 @@ public class FZN {
 
 		minicp.setTraceBPFlag(traceBP);
 		minicp.setTraceSearchFlag(traceSearch);
-		minicp.setDynamicStopBP(dynamicStopBP);
-		minicp.setTraceNbIterFlag(traceNbIter);
+//		minicp.setDynamicStopBP(dynamicStopBP);
+//		minicp.setTraceNbIterFlag(traceNbIter);
 		minicp.setMaxIter(maxIter);
 		minicp.setDamp(damp);
 		minicp.setDampingFactor(dampingFactor);
-		minicp.setVariationThreshold(variationThreshold);
+//		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
 			System.out.println("problem failed before initiating the search");
@@ -296,7 +296,7 @@ public class FZN {
 				break;
 		}
 
-
+//		System.out.println("BP triggered "+minicp.trigger()+" times out of "+minicp.potentialTrigger());
 		
 		if (!foundSolution) {
 			if (stats.isCompleted())

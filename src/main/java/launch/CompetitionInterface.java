@@ -68,18 +68,18 @@ public class CompetitionInterface {
 
 		try {
 			XCSP xcsp = new XCSP(inputStr);
-			xcsp.searchType(TreeSearchType.LDS);
+//			xcsp.searchType(TreeSearchType.LDS);
 			xcsp.checkSolution(false); //à décider
 			xcsp.traceBP(false);
 			xcsp.traceSearch(false);
-			xcsp.maxIter(5);
-			xcsp.damp(true);
-			xcsp.dampingFactor(0.5);
+			xcsp.maxIter(10);
+//			xcsp.damp(true);
+//			xcsp.dampingFactor(0.5);
 			xcsp.restart(false);
 			xcsp.initImpact(false);
-			xcsp.dynamicStopBP(true);
-			xcsp.traceNbIter(false);
-			xcsp.variationThreshold(0.1);
+//			xcsp.dynamicStopBP(true);
+//			xcsp.traceNbIter(false);
+//			xcsp.variationThreshold(0.1);
             xcsp.competitionOutput(true);
 			xcsp.solve(BranchingHeuristic.MNE, timeout, statsFileStr, solFileStr);
 		} catch (Exception e) {

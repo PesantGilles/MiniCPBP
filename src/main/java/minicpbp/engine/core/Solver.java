@@ -66,8 +66,8 @@ public interface Solver {
      */
     void post(Constraint c, boolean enforceFixpoint);
 
-    int trigger();
-    int potentialTrigger();
+    long trigger();
+    long potentialTrigger();
 
     /**
      * @return the propagation mode
@@ -96,19 +96,9 @@ public interface Solver {
     void setTraceSearchFlag(boolean traceSearch);
 
     /**
-     * Activate trace of number of BP iteration if @param traceNbIter is true
-     */
-    void setTraceNbIterFlag(boolean traceNbIter);
-
-    /**
      * Activate trace of model's entropy if @param traceEntropy is true
      */
     void setTraceEntropyFlag(boolean traceEntropy);
-
-    /**
-     * Activate dynamic stop criterion for BP if @param dynamicStopBP is true
-     */
-    void setDynamicStopBP(boolean dynamicStopBP);
 
     /**
      * Set the maximal number of BP iterations before each branching
@@ -136,17 +126,6 @@ public interface Solver {
      * @param dampingFactor the damping factor
      */
     void setDampingFactor(double dampingFactor);
-
-    /**
-     * @return variation threshold
-     */
-    double variationThreshold();
-
-    /**
-     * Set variation threshold
-     * @param variationThreshold the threshold
-     */
-    void setVariationThreshold(double variationThreshold);
 
     /**
      * @return whether previous outside belief has been recorded
