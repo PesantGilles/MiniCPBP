@@ -1,0 +1,28 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[30]"> 0 1 </array>
+  </variables>
+  <constraints>
+    <sum>
+      <list> x[] </list>
+      <coeffs> 81 4 86 10 12 21 3 25 45 21 81 85 42 78 41 59 41 65 45 40 17 39 97 21 53 47 39 73 53 27 </coeffs>
+      <condition> (eq,675) </condition>
+    </sum>
+    <sum>
+      <list> x[] </list>
+      <coeffs> 55 86 83 94 49 96 15 52 73 12 73 54 97 67 33 90 78 26 55 75 66 24 67 16 46 20 63 85 45 16 </coeffs>
+      <condition> (eq,855) </condition>
+    </sum>
+    <sum>
+      <list> x[] </list>
+      <coeffs> 12 52 55 48 46 4 44 14 8 17 78 34 23 76 53 56 66 32 34 74 7 1 98 26 17 44 46 80 82 91 </coeffs>
+      <condition> (eq,659) </condition>
+    </sum>
+    <sum>
+      <list> x[] </list>
+      <coeffs> 49 46 44 56 94 42 12 90 56 20 59 35 6 83 63 60 91 81 44 26 7 3 79 6 30 48 2 76 28 36 </coeffs>
+      <condition> (eq,686) </condition>
+    </sum>
+  </constraints>
+</instance>
+

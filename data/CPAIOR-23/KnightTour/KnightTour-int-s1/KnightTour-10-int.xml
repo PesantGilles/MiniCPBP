@@ -1,0 +1,16 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" note="x[i] is the cell number where is put the ith knight" size="[100]"> 0..99 </array>
+  </variables>
+  <constraints>
+    <allDifferent> x[] </allDifferent>
+    <slide circular="true">
+      <list collect="2"> x[] </list>
+      <intension> or(and(eq(dist(div(%0,10),div(%1,10)),1),eq(dist(mod(%0,10),mod(%1,10)),2)),and(eq(dist(div(%0,10),div(%1,10)),2),eq(dist(mod(%0,10),mod(%1,10)),1))) </intension>
+    </slide>
+    <instantiation class="symmetryBreaking">
+      <list> x[0] x[1] </list>
+      <values> 0 12 </values>
+    </instantiation>
+  </constraints>
+</instance>

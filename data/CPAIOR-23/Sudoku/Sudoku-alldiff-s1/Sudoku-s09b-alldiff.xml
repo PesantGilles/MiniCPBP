@@ -1,0 +1,48 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[9][9]"> 1..9 </array>
+  </variables>
+  <constraints>
+    <group class="rows">
+      <allDifferent> %... </allDifferent>
+      <args> x[0][] </args>
+      <args> x[1][] </args>
+      <args> x[2][] </args>
+      <args> x[3][] </args>
+      <args> x[4][] </args>
+      <args> x[5][] </args>
+      <args> x[6][] </args>
+      <args> x[7][] </args>
+      <args> x[8][] </args>
+    </group>
+    <group class="columns">
+      <allDifferent> %... </allDifferent>
+      <args> x[][0] </args>
+      <args> x[][1] </args>
+      <args> x[][2] </args>
+      <args> x[][3] </args>
+      <args> x[][4] </args>
+      <args> x[][5] </args>
+      <args> x[][6] </args>
+      <args> x[][7] </args>
+      <args> x[][8] </args>
+    </group>
+    <group class="blocks">
+      <allDifferent> %... </allDifferent>
+      <args> x[0..2][0..2] </args>
+      <args> x[0..2][3..5] </args>
+      <args> x[0..2][6..8] </args>
+      <args> x[3..5][0..2] </args>
+      <args> x[3..5][3..5] </args>
+      <args> x[3..5][6..8] </args>
+      <args> x[6..8][0..2] </args>
+      <args> x[6..8][3..5] </args>
+      <args> x[6..8][6..8] </args>
+    </group>
+    <instantiation class="clues">
+      <list> x[0][1] x[1][0] x[1][2] x[1][8] x[2][0] x[2][6] x[3][2..4] x[3][7] x[4][2] x[4][4] x[5][3] x[5][7..8] x[6][5..8] x[7][1] x[8][5] x[8][7] </list>
+      <values> 4 8 6 7 5 1 5 1 9 6 4 5 3 9 1 2 4 3 6 9 8 2 </values>
+    </instantiation>
+  </constraints>
+</instance>
+

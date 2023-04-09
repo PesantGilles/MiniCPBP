@@ -1,0 +1,345 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[33][32]"> 0 1 </array>
+  </variables>
+  <constraints>
+    <block class="rows">
+      <regular>
+        <list> x[0][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,0,q3) </transitions>
+        <start> q0 </start>
+        <final> q3 </final>
+      </regular>
+      <regular>
+        <list> x[1][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,0,q3)(q3,0,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,0,q7) </transitions>
+        <start> q0 </start>
+        <final> q7 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,0,q5)(q5,0,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q10) </transitions>
+          <start> q0 </start>
+          <final> q10 </final>
+        </regular>
+        <args> x[2][] </args>
+        <args> x[3][] </args>
+        <args> x[4][] </args>
+      </group>
+      <regular>
+        <list> x[5][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+        <start> q0 </start>
+        <final> q12 </final>
+      </regular>
+      <regular>
+        <list> x[6][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+        <start> q0 </start>
+        <final> q13 </final>
+      </regular>
+      <regular>
+        <list> x[7][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,0,q10)(q10,0,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+        <start> q0 </start>
+        <final> q13 </final>
+      </regular>
+      <regular>
+        <list> x[8][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q10) </transitions>
+        <start> q0 </start>
+        <final> q10 </final>
+      </regular>
+      <regular>
+        <list> x[9][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,0,q11) </transitions>
+        <start> q0 </start>
+        <final> q11 </final>
+      </regular>
+      <regular>
+        <list> x[10][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+        <start> q0 </start>
+        <final> q12 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+          <start> q0 </start>
+          <final> q13 </final>
+        </regular>
+        <args> x[11][] </args>
+        <args> x[12][] </args>
+        <args> x[13][] </args>
+        <args> x[24][] </args>
+      </group>
+      <regular>
+        <list> x[14][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+        <start> q0 </start>
+        <final> q13 </final>
+      </regular>
+      <regular>
+        <list> x[15][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+        <start> q0 </start>
+        <final> q12 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,0,q9) </transitions>
+          <start> q0 </start>
+          <final> q9 </final>
+        </regular>
+        <args> x[16][] </args>
+        <args> x[17][] </args>
+      </group>
+      <regular>
+        <list> x[18][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,0,q2)(q2,0,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q10) </transitions>
+        <start> q0 </start>
+        <final> q10 </final>
+      </regular>
+      <regular>
+        <list> x[19][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,0,q4)(q4,0,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+        <start> q0 </start>
+        <final> q13 </final>
+      </regular>
+      <regular>
+        <list> x[20][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,0,q2)(q2,0,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,0,q15) </transitions>
+        <start> q0 </start>
+        <final> q15 </final>
+      </regular>
+      <regular>
+        <list> x[21][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,0,q2)(q2,0,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,0,q8)(q8,0,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,0,q15) </transitions>
+        <start> q0 </start>
+        <final> q15 </final>
+      </regular>
+      <regular>
+        <list> x[22][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,0,q2)(q2,0,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,0,q14) </transitions>
+        <start> q0 </start>
+        <final> q14 </final>
+      </regular>
+      <regular>
+        <list> x[23][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,0,q8)(q8,0,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,0,q14) </transitions>
+        <start> q0 </start>
+        <final> q14 </final>
+      </regular>
+      <regular>
+        <list> x[25][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,0,q5)(q5,0,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,0,q11) </transitions>
+        <start> q0 </start>
+        <final> q11 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q6) </transitions>
+          <start> q0 </start>
+          <final> q6 </final>
+        </regular>
+        <args> x[26][] </args>
+        <args> x[27][] </args>
+        <args> x[28][] </args>
+      </group>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q5) </transitions>
+          <start> q0 </start>
+          <final> q5 </final>
+        </regular>
+        <args> x[29][] </args>
+        <args> x[30][] </args>
+      </group>
+      <regular>
+        <list> x[31][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,0,q4) </transitions>
+        <start> q0 </start>
+        <final> q4 </final>
+      </regular>
+      <regular>
+        <list> x[32][] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,0,q2) </transitions>
+        <start> q0 </start>
+        <final> q2 </final>
+      </regular>
+    </block>
+    <block class="columns">
+      <regular>
+        <list> x[][0] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,0,q1) </transitions>
+        <start> q0 </start>
+        <final> q1 </final>
+      </regular>
+      <regular>
+        <list> x[][1] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,0,q3) </transitions>
+        <start> q0 </start>
+        <final> q3 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q5) </transitions>
+          <start> q0 </start>
+          <final> q5 </final>
+        </regular>
+        <args> x[][2] </args>
+        <args> x[][3] </args>
+        <args> x[][4] </args>
+      </group>
+      <regular>
+        <list> x[][5] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,0,q9) </transitions>
+        <start> q0 </start>
+        <final> q9 </final>
+      </regular>
+      <regular>
+        <list> x[][6] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+        <start> q0 </start>
+        <final> q12 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,0,q9)(q9,0,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+          <start> q0 </start>
+          <final> q12 </final>
+        </regular>
+        <args> x[][7] </args>
+        <args> x[][8] </args>
+      </group>
+      <regular>
+        <list> x[][9] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,0,q7)(q7,0,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q11)(q11,0,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,0,q14) </transitions>
+        <start> q0 </start>
+        <final> q14 </final>
+      </regular>
+      <regular>
+        <list> x[][10] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,0,q8)(q8,0,q8)(q8,1,q9)(q9,0,q10)(q10,0,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,1,q16)(q16,0,q16) </transitions>
+        <start> q0 </start>
+        <final> q16 </final>
+      </regular>
+      <regular>
+        <list> x[][11] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,0,q9)(q9,0,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,0,q13) </transitions>
+        <start> q0 </start>
+        <final> q13 </final>
+      </regular>
+      <regular>
+        <list> x[][12] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+        <start> q0 </start>
+        <final> q12 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q10) </transitions>
+          <start> q0 </start>
+          <final> q10 </final>
+        </regular>
+        <args> x[][13] </args>
+        <args> x[][18] </args>
+      </group>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,0,q9) </transitions>
+          <start> q0 </start>
+          <final> q9 </final>
+        </regular>
+        <args> x[][14] </args>
+        <args> x[][17] </args>
+      </group>
+      <regular>
+        <list> x[][15] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,0,q7) </transitions>
+        <start> q0 </start>
+        <final> q7 </final>
+      </regular>
+      <regular>
+        <list> x[][16] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,0,q8) </transitions>
+        <start> q0 </start>
+        <final> q8 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,0,q6)(q6,0,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q12) </transitions>
+          <start> q0 </start>
+          <final> q12 </final>
+        </regular>
+        <args> x[][19] </args>
+        <args> x[][20] </args>
+        <args> x[][21] </args>
+        <args> x[][22] </args>
+      </group>
+      <regular>
+        <list> x[][23] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,0,q4)(q4,0,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,0,q10)(q10,0,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,1,q16)(q16,0,q16) </transitions>
+        <start> q0 </start>
+        <final> q16 </final>
+      </regular>
+      <regular>
+        <list> x[][24] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,0,q5)(q5,0,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q11)(q11,0,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,1,q16)(q16,1,q17)(q17,0,q17) </transitions>
+        <start> q0 </start>
+        <final> q17 </final>
+      </regular>
+      <regular>
+        <list> x[][25] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,0,q13)(q13,0,q13)(q13,1,q14)(q14,1,q15)(q15,1,q16)(q16,1,q17)(q17,1,q18)(q18,0,q18) </transitions>
+        <start> q0 </start>
+        <final> q18 </final>
+      </regular>
+      <regular>
+        <list> x[][26] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q11)(q11,0,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,1,q15)(q15,1,q16)(q16,0,q16) </transitions>
+        <start> q0 </start>
+        <final> q16 </final>
+      </regular>
+      <regular>
+        <list> x[][27] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,0,q9)(q9,0,q9)(q9,1,q10)(q10,1,q11)(q11,1,q12)(q12,1,q13)(q13,1,q14)(q14,0,q14) </transitions>
+        <start> q0 </start>
+        <final> q14 </final>
+      </regular>
+      <group>
+        <regular>
+          <list> %... </list>
+          <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,1,q4)(q4,0,q5)(q5,0,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,1,q9)(q9,1,q10)(q10,0,q10) </transitions>
+          <start> q0 </start>
+          <final> q10 </final>
+        </regular>
+        <args> x[][28] </args>
+        <args> x[][29] </args>
+      </group>
+      <regular>
+        <list> x[][30] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,1,q3)(q3,0,q4)(q4,0,q4)(q4,1,q5)(q5,1,q6)(q6,1,q7)(q7,1,q8)(q8,0,q8) </transitions>
+        <start> q0 </start>
+        <final> q8 </final>
+      </regular>
+      <regular>
+        <list> x[][31] </list>
+        <transitions> (q0,0,q0)(q0,1,q1)(q1,1,q2)(q2,0,q3)(q3,0,q3)(q3,1,q4)(q4,1,q5)(q5,0,q5) </transitions>
+        <start> q0 </start>
+        <final> q5 </final>
+      </regular>
+    </block>
+  </constraints>
+</instance>
+

@@ -1,0 +1,51 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[9][9]"> 1..81 </array>
+  </variables>
+  <constraints>
+    <allDifferent> x[][] </allDifferent>
+    <group class="rows">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,369) </condition>
+      </sum>
+      <args> x[0][] </args>
+      <args> x[1][] </args>
+      <args> x[2][] </args>
+      <args> x[3][] </args>
+      <args> x[4][] </args>
+      <args> x[5][] </args>
+      <args> x[6][] </args>
+      <args> x[7][] </args>
+      <args> x[8][] </args>
+    </group>
+    <group class="columns">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,369) </condition>
+      </sum>
+      <args> x[][0] </args>
+      <args> x[][1] </args>
+      <args> x[][2] </args>
+      <args> x[][3] </args>
+      <args> x[][4] </args>
+      <args> x[][5] </args>
+      <args> x[][6] </args>
+      <args> x[][7] </args>
+      <args> x[][8] </args>
+    </group>
+    <group class="diagonals">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,369) </condition>
+      </sum>
+      <args> x[0][0] x[1][1] x[2][2] x[3][3] x[4][4] x[5][5] x[6][6] x[7][7] x[8][8] </args>
+      <args> x[0][8] x[1][7] x[2][6] x[3][5] x[4][4] x[5][3] x[6][2] x[7][1] x[8][0] </args>
+    </group>
+    <instantiation class="clues">
+      <list> x[0][0..1] x[0][3] x[0][5..6] x[0][8] x[1][2] x[1][4] x[1][7] x[2][1..2] x[2][4] x[3][0..1] x[3][6..7] x[4][0] x[4][2..4] x[4][6] x[5][1] x[5][3] x[5][6] x[6][0] x[6][2..4] x[6][7] x[7][1] x[7][4] x[7][6] x[7][8] x[8][0..1] x[8][3..4] x[8][6] </list>
+      <values> 32 23 2 4 79 81 9 76 67 50 38 80 47 62 20 34 54 75 74 78 16 65 5 25 29 15 73 1 37 19 10 33 22 8 49 35 26 52 </values>
+    </instantiation>
+  </constraints>
+</instance>
+

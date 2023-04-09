@@ -1,0 +1,59 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[15][15]"> 1..225 </array>
+  </variables>
+  <constraints>
+    <allDifferent> x[][] </allDifferent>
+    <group class="rows">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,1695) </condition>
+      </sum>
+      <args> x[0][] </args>
+      <args> x[1][] </args>
+      <args> x[2][] </args>
+      <args> x[3][] </args>
+      <args> x[4][] </args>
+      <args> x[5][] </args>
+      <args> x[6][] </args>
+      <args> x[7][] </args>
+      <args> x[8][] </args>
+      <args> x[9][] </args>
+      <args> x[10][] </args>
+      <args> x[11][] </args>
+      <args> x[12][] </args>
+      <args> x[13][] </args>
+      <args> x[14][] </args>
+    </group>
+    <group class="columns">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,1695) </condition>
+      </sum>
+      <args> x[][0] </args>
+      <args> x[][1] </args>
+      <args> x[][2] </args>
+      <args> x[][3] </args>
+      <args> x[][4] </args>
+      <args> x[][5] </args>
+      <args> x[][6] </args>
+      <args> x[][7] </args>
+      <args> x[][8] </args>
+      <args> x[][9] </args>
+      <args> x[][10] </args>
+      <args> x[][11] </args>
+      <args> x[][12] </args>
+      <args> x[][13] </args>
+      <args> x[][14] </args>
+    </group>
+    <group class="diagonals">
+      <sum>
+        <list> %... </list>
+        <condition> (eq,1695) </condition>
+      </sum>
+      <args> x[0][0] x[1][1] x[2][2] x[3][3] x[4][4] x[5][5] x[6][6] x[7][7] x[8][8] x[9][9] x[10][10] x[11][11] x[12][12] x[13][13] x[14][14] </args>
+      <args> x[0][14] x[1][13] x[2][12] x[3][11] x[4][10] x[5][9] x[6][8] x[7][7] x[8][6] x[9][5] x[10][4] x[11][3] x[12][2] x[13][1] x[14][0] </args>
+    </group>
+  </constraints>
+</instance>
+

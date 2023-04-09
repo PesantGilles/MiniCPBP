@@ -1,0 +1,78 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[6][6]"> 1..9 </array>
+  </variables>
+  <constraints>
+    <block class="rows">
+      <sum>
+        <list> x[1][2..4] </list>
+        <condition> (eq,23) </condition>
+      </sum>
+      <sum>
+        <list> x[2][1..4] </list>
+        <condition> (eq,18) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,17) </condition>
+        </sum>
+        <args> x[3][1..2] </args>
+        <args> x[5][2..4] </args>
+      </group>
+      <sum>
+        <list> x[3][4..5] </list>
+        <condition> (eq,5) </condition>
+      </sum>
+      <sum>
+        <list> x[4][2..5] </list>
+        <condition> (eq,13) </condition>
+      </sum>
+      <group>
+        <allDifferent> %... </allDifferent>
+        <args> x[1][2..4] </args>
+        <args> x[2][1..4] </args>
+        <args> x[3][1..2] </args>
+        <args> x[3][4..5] </args>
+        <args> x[4][2..5] </args>
+        <args> x[5][2..4] </args>
+      </group>
+    </block>
+    <block class="columns">
+      <sum>
+        <list> x[1..5][2] </list>
+        <condition> (eq,34) </condition>
+      </sum>
+      <sum>
+        <list> x[1..2][3] </list>
+        <condition> (eq,17) </condition>
+      </sum>
+      <sum>
+        <list> x[1..5][4] </list>
+        <condition> (eq,22) </condition>
+      </sum>
+      <sum>
+        <list> x[2..3][1] </list>
+        <condition> (eq,14) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,3) </condition>
+        </sum>
+        <args> x[3..4][5] </args>
+        <args> x[4..5][3] </args>
+      </group>
+      <group>
+        <allDifferent> %... </allDifferent>
+        <args> x[1..5][2] </args>
+        <args> x[1..2][3] </args>
+        <args> x[1..5][4] </args>
+        <args> x[2..3][1] </args>
+        <args> x[3..4][5] </args>
+        <args> x[4..5][3] </args>
+      </group>
+    </block>
+  </constraints>
+</instance>
+

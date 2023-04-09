@@ -1,0 +1,108 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[100]"> 2..47 </array>
+  </variables>
+  <constraints>
+    <sum>
+      <list> x[86] x[89] x[40] x[17] x[81] x[27] x[97] </list>
+      <coeffs> -3 -11 -29 -41 -13 41 7 </coeffs>
+      <condition> (eq,111) </condition>
+    </sum>
+    <sum>
+      <list> x[51] x[79] x[28] x[93] x[64] x[87] x[91] </list>
+      <coeffs> -3 43 3 31 29 -37 -5 </coeffs>
+      <condition> (eq,518) </condition>
+    </sum>
+    <sum>
+      <list> x[21] x[29] x[93] x[43] x[76] </list>
+      <coeffs> -23 -19 23 17 -11 </coeffs>
+      <condition> (eq,-675) </condition>
+    </sum>
+    <sum>
+      <list> x[88] x[17] x[43] </list>
+      <coeffs> -29 17 -2 </coeffs>
+      <condition> (eq,-1168) </condition>
+    </sum>
+    <sum>
+      <list> x[5] x[86] x[42] x[7] </list>
+      <coeffs> 47 29 -47 2 </coeffs>
+      <condition> (eq,943) </condition>
+    </sum>
+    <sum>
+      <list> x[1] x[78] x[36] x[22] </list>
+      <coeffs> 3 13 11 13 </coeffs>
+      <condition> (eq,1106) </condition>
+    </sum>
+    <sum>
+      <list> x[94] x[99] x[96] x[13] x[95] x[84] </list>
+      <coeffs> -31 -37 -29 7 37 2 </coeffs>
+      <condition> (eq,-1341) </condition>
+    </sum>
+    <sum>
+      <list> x[56] x[87] x[72] x[36] </list>
+      <coeffs> 11 5 -29 13 </coeffs>
+      <condition> (eq,-390) </condition>
+    </sum>
+    <sum>
+      <list> x[50] x[20] x[69] x[30] x[72] x[25] x[99] </list>
+      <coeffs> 29 11 -37 47 5 2 31 </coeffs>
+      <condition> (eq,4786) </condition>
+    </sum>
+    <sum>
+      <list> x[36] x[94] x[69] x[50] </list>
+      <coeffs> -41 -11 7 31 </coeffs>
+      <condition> (eq,-1136) </condition>
+    </sum>
+    <sum>
+      <list> x[44] x[6] x[42] x[89] x[58] x[8] </list>
+      <coeffs> 19 -47 7 19 7 43 </coeffs>
+      <condition> (eq,2348) </condition>
+    </sum>
+    <sum>
+      <list> x[68] x[46] x[49] x[33] x[53] </list>
+      <coeffs> 29 -7 -31 -7 19 </coeffs>
+      <condition> (eq,1222) </condition>
+    </sum>
+    <sum>
+      <list> x[36] x[21] x[28] x[48] x[94] </list>
+      <coeffs> 2 2 19 3 -41 </coeffs>
+      <condition> (eq,81) </condition>
+    </sum>
+    <sum>
+      <list> x[51] x[39] x[27] </list>
+      <coeffs> 13 -5 -29 </coeffs>
+      <condition> (eq,-1303) </condition>
+    </sum>
+    <sum>
+      <list> x[43] x[0] x[49] </list>
+      <coeffs> -31 -43 -29 </coeffs>
+      <condition> (eq,-3364) </condition>
+    </sum>
+    <sum>
+      <list> x[46] x[70] x[31] x[27] x[14] x[90] </list>
+      <coeffs> -31 17 -43 5 31 -41 </coeffs>
+      <condition> (eq,-2736) </condition>
+    </sum>
+    <sum>
+      <list> x[33] x[38] x[84] x[6] </list>
+      <coeffs> 41 3 -37 -31 </coeffs>
+      <condition> (eq,-648) </condition>
+    </sum>
+    <sum>
+      <list> x[7] x[14] x[0] x[38] x[74] x[81] x[70] </list>
+      <coeffs> -7 -17 11 13 -23 7 -11 </coeffs>
+      <condition> (eq,-1517) </condition>
+    </sum>
+    <sum>
+      <list> x[62] x[92] x[15] </list>
+      <coeffs> 41 -3 -37 </coeffs>
+      <condition> (eq,1705) </condition>
+    </sum>
+    <sum>
+      <list> x[16] x[39] x[38] x[21] x[12] x[85] </list>
+      <coeffs> -19 37 31 2 -29 37 </coeffs>
+      <condition> (eq,1500) </condition>
+    </sum>
+  </constraints>
+</instance>
+

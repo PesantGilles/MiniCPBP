@@ -1,0 +1,44 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[5]"> 0..4 </array>
+  </variables>
+  <constraints>
+    <count>
+      <list> x[] </list>
+      <values> 0 </values>
+      <condition> (eq,x[0]) </condition>
+    </count>
+    <count>
+      <list> x[] </list>
+      <values> 1 </values>
+      <condition> (eq,x[1]) </condition>
+    </count>
+    <count>
+      <list> x[] </list>
+      <values> 2 </values>
+      <condition> (eq,x[2]) </condition>
+    </count>
+    <count>
+      <list> x[] </list>
+      <values> 3 </values>
+      <condition> (eq,x[3]) </condition>
+    </count>
+    <count>
+      <list> x[] </list>
+      <values> 4 </values>
+      <condition> (eq,x[4]) </condition>
+    </count>
+    <block class="redundantConstraints">
+      <sum>
+        <list> x[] </list>
+        <condition> (eq,5) </condition>
+      </sum>
+      <sum>
+        <list> x[] </list>
+        <coeffs> -1 0 1 2 3 </coeffs>
+        <condition> (eq,0) </condition>
+      </sum>
+    </block>
+  </constraints>
+</instance>
+
