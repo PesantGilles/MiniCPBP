@@ -210,8 +210,11 @@ public class constraintBuilder {
         minicp.post(Factory.cardinality(x, cover, lbound, ubound));
     }
 
-    public void makeCircuit(IntVar[] x) {
-        minicp.post(Factory.circuit(x));
+    public void makeCircuit(IntVar[] x, int offset) {
+	if (offset == 0)
+	    minicp.post(Factory.circuit(x));
+	else
+	    minicp.post(Factory.circuit(x,offset));
     }
 
     public void makeAmong(IntVar[] x, int[] V, IntVar o) {
@@ -259,8 +262,11 @@ public class constraintBuilder {
         minicp.post(Factory.table(x, t2D));
     }
 
-    public void makeInverse(IntVar[] f, IntVar[] invf) {
-        minicp.post(Factory.inverse(f,invf));
+    public void makeInverse(IntVar[] f, IntVar[] invf, int offset) {
+	if (offset == 0)
+	    minicp.post(Factory.inverse(f,invf));
+	else
+	    minicp.post(Factory.inverse(f,invf,offset));
     }
 
     public void makeLexLess(IntVar[] x, IntVar[] y) {

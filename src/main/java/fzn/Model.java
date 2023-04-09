@@ -590,8 +590,8 @@ public class Model {
             case "minimum_int":  
                 builder.makeMinimumInt(getIntVar(args.get(0)), getIntVarArray(args.get(1)));
                 break;
-            case "fzn_circuit_indexedFrom0":
-                builder.makeCircuit(getIntVarArray(args.get(0)));
+            case "fzn_circuit_with_offset":
+                builder.makeCircuit(getIntVarArray(args.get(0)), getInt(args.get(1)));
                 break;
             case "fzn_global_cardinality":  
                 builder.makeGlobalCardinality(getIntVarArray(args.get(0)), getIntArray(args.get(1)), getIntVarArray(args.get(2)));
@@ -605,8 +605,8 @@ public class Model {
             case "fzn_table_int":
                 builder.makeTable(getIntVarArray(args.get(0)), getIntArray(args.get(1)));
                 break;
-            case "fzn_inverse_indexedFrom0":
-                builder.makeInverse(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)));
+            case "fzn_inverse_with_offset":
+                builder.makeInverse(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "fzn_lex_less_int":
                 builder.makeLexLess(getIntVarArray(args.get(0)), getIntVarArray(args.get(1)));

@@ -1708,8 +1708,19 @@ public final class Factory {
 
     /**
      * Returns a Circuit Constraint
-     * @param x an array of variables
+     * @param x       an array of variables
+     * @param offset  the smallest value in the domains of x
      * @return
+     */
+    public static Constraint circuit(IntVar[] x, int offset) {
+	IntVar[] x_offset = new IntVar[x.length];
+	for (int i = 0; i < x.length; i++) {
+	    x_offset[i] = new IntVarViewOffset(x[i], -offset);
+	}
+        return new Circuit(x_offset);
+    }
+    /**
+     * special case without offset
      */
     public static Constraint circuit(IntVar[] x) {
         return new Circuit(x);
@@ -1775,9 +1786,22 @@ public final class Factory {
 
     /**
      * Returns an inverse constraint between two arrays of variables of same length.
-     * @param f    an array of variables
-     * @param invf an array of variables
+     * @param f       an array of variables
+     * @param invf    an array of variables
+     * @param offset  the smallest value in the domain
      * @return a constraint so that {@code invf is the inverse function of f}
+     */
+    public static Constraint inverse(IntVar[] f, IntVar[] invf, int offset) {
+	IntVar[] f_offset = new IntVar[f.length];
+	IntVar[] invf_offset = new IntVar[f.length];
+	for (int i = 0; i < f.length; i++) {
+	    f_offset[i] = new IntVarViewOffset(f[i], -offset);
+	    invf_offset[i] = new IntVarViewOffset(invf[i], -offset);
+	}
+        return new Inverse(f_offset,invf_offset);
+    }
+    /**
+     * special case without offset
      */
     public static Constraint inverse(IntVar[] f, IntVar[] invf) {
         return new Inverse(f,invf);
