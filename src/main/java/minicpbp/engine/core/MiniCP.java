@@ -77,6 +77,7 @@ public class MiniCP implements Solver {
     // SAME   /* constraints all have the same weight; = 1.0 (default) */
     // ARITY  /* a constraint's weight is related to its arity; = 1 + (arity - min_arity)/total_nb_of_vars */
     private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
+
     //****************************
 
     //***** TRACING SWITCHES *****
@@ -323,11 +324,6 @@ public class MiniCP implements Solver {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     System.out.println("problem entropy = " + currentEntropy);
                     System.out.println("smallest variable entropy = " + smallEntropy);
-                    /*
-                    for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + " dsize=" + variables.get(i).size() + " entropy=" + variables.get(i).entropy() + "  " + variables.get(i).toString());
-                    }
-                     */
                 }
                 if (traceEntropy) {
                     double minEntropy = 1;

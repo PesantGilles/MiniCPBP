@@ -28,6 +28,7 @@ public class SolveXCSPFZN {
 		MIE, //min-entropy followed by impact entropy after first restart,
 		MNEBW, //min-entropy with biased wheel value selection
 		WDEG, //dom-wdeg
+		IBS, //impact-based search
 	}
 
 	private static Map<String, BranchingHeuristic> branchingMap = new HashMap<String, BranchingHeuristic>() {
@@ -43,6 +44,7 @@ public class SolveXCSPFZN {
 			put("impact-min-entropy", BranchingHeuristic.MIE);
 			put("min-entropy-biased", BranchingHeuristic.MNEBW);
 			put("dom-wdeg", BranchingHeuristic.WDEG);
+			put("impact-based-search", BranchingHeuristic.IBS);
 		}
 	};
 

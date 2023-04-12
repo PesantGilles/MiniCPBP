@@ -1,0 +1,385 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[16][16]"> 1..9 </array>
+  </variables>
+  <constraints>
+    <block class="rows">
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,3) </condition>
+        </sum>
+        <args> x[1][3..4] </args>
+        <args> x[13][1..2] </args>
+      </group>
+      <sum>
+        <list> x[1][6..7] </list>
+        <condition> (eq,14) </condition>
+      </sum>
+      <sum>
+        <list> x[1][11..13] </list>
+        <condition> (eq,24) </condition>
+      </sum>
+      <sum>
+        <list> x[2][2..4] </list>
+        <condition> (eq,7) </condition>
+      </sum>
+      <sum>
+        <list> x[2][6..8] </list>
+        <condition> (eq,20) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,35) </condition>
+        </sum>
+        <args> x[2][10..14] </args>
+        <args> x[3][4..8] </args>
+        <args> x[13][8..12] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,16) </condition>
+        </sum>
+        <args> x[3][1..2] </args>
+        <args> x[9][11..12] </args>
+        <args> x[11][6..10] </args>
+        <args> x[11][12..15] </args>
+        <args> x[14][2..6] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,11) </condition>
+        </sum>
+        <args> x[3][10..12] </args>
+        <args> x[15][3..5] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,17) </condition>
+        </sum>
+        <args> x[3][14..15] </args>
+        <args> x[5][12..13] </args>
+        <args> x[7][13..15] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,38) </condition>
+        </sum>
+        <args> x[4][1..6] </args>
+        <args> x[6][10..15] </args>
+        <args> x[12][1..8] </args>
+      </group>
+      <sum>
+        <list> x[4][8..15] </list>
+        <condition> (eq,44) </condition>
+      </sum>
+      <sum>
+        <list> x[5][1..4] </list>
+        <condition> (eq,15) </condition>
+      </sum>
+      <sum>
+        <list> x[5][6..10] </list>
+        <condition> (eq,23) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,30) </condition>
+        </sum>
+        <args> x[6][2..7] </args>
+        <args> x[8][2..5] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,4) </condition>
+        </sum>
+        <args> x[7][4..5] </args>
+        <args> x[15][9..10] </args>
+        <args> x[15][12..13] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,34) </condition>
+        </sum>
+        <args> x[7][7..11] </args>
+        <args> x[9][5..9] </args>
+      </group>
+      <sum>
+        <list> x[8][7..9] </list>
+        <condition> (eq,12) </condition>
+      </sum>
+      <sum>
+        <list> x[8][11..14] </list>
+        <condition> (eq,29) </condition>
+      </sum>
+      <sum>
+        <list> x[9][1..3] </list>
+        <condition> (eq,18) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,22) </condition>
+        </sum>
+        <args> x[10][1..6] </args>
+        <args> x[10][9..14] </args>
+      </group>
+      <sum>
+        <list> x[11][3..4] </list>
+        <condition> (eq,9) </condition>
+      </sum>
+      <sum>
+        <list> x[12][10..15] </list>
+        <condition> (eq,32) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,6) </condition>
+        </sum>
+        <args> x[13][4..6] </args>
+        <args> x[13][14..15] </args>
+        <args> x[14][8..10] </args>
+        <args> x[14][12..14] </args>
+      </group>
+      <group>
+        <allDifferent> %... </allDifferent>
+        <args> x[1][3..4] </args>
+        <args> x[1][6..7] </args>
+        <args> x[1][11..13] </args>
+        <args> x[2][2..4] </args>
+        <args> x[2][6..8] </args>
+        <args> x[2][10..14] </args>
+        <args> x[3][1..2] </args>
+        <args> x[3][4..8] </args>
+        <args> x[3][10..12] </args>
+        <args> x[3][14..15] </args>
+        <args> x[4][1..6] </args>
+        <args> x[4][8..15] </args>
+        <args> x[5][1..4] </args>
+        <args> x[5][6..10] </args>
+        <args> x[5][12..13] </args>
+        <args> x[6][2..7] </args>
+        <args> x[6][10..15] </args>
+        <args> x[7][4..5] </args>
+        <args> x[7][7..11] </args>
+        <args> x[7][13..15] </args>
+        <args> x[8][2..5] </args>
+        <args> x[8][7..9] </args>
+        <args> x[8][11..14] </args>
+        <args> x[9][1..3] </args>
+        <args> x[9][5..9] </args>
+        <args> x[9][11..12] </args>
+        <args> x[10][1..6] </args>
+        <args> x[10][9..14] </args>
+        <args> x[11][3..4] </args>
+        <args> x[11][6..10] </args>
+        <args> x[11][12..15] </args>
+        <args> x[12][1..8] </args>
+        <args> x[12][10..15] </args>
+        <args> x[13][1..2] </args>
+        <args> x[13][4..6] </args>
+        <args> x[13][8..12] </args>
+        <args> x[13][14..15] </args>
+        <args> x[14][2..6] </args>
+        <args> x[14][8..10] </args>
+        <args> x[14][12..14] </args>
+        <args> x[15][3..5] </args>
+        <args> x[15][9..10] </args>
+        <args> x[15][12..13] </args>
+      </group>
+    </block>
+    <block class="columns">
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,3) </condition>
+        </sum>
+        <args> x[1..2][3] </args>
+        <args> x[11..12][7] </args>
+      </group>
+      <sum>
+        <list> x[1..8][4] </list>
+        <condition> (eq,43) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,21) </condition>
+        </sum>
+        <args> x[1..6][6] </args>
+        <args> x[9..14][6] </args>
+      </group>
+      <sum>
+        <list> x[1..3][7] </list>
+        <condition> (eq,23) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,16) </condition>
+        </sum>
+        <args> x[1..4][11] </args>
+        <args> x[1..2][13] </args>
+        <args> x[3..4][5] </args>
+        <args> x[4..5][9] </args>
+        <args> x[6..10][5] </args>
+        <args> x[12..13][11] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,38) </condition>
+        </sum>
+        <args> x[1..6][12] </args>
+        <args> x[10..15][4] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,24) </condition>
+        </sum>
+        <args> x[2..6][2] </args>
+        <args> x[2..4][14] </args>
+        <args> x[3..5][1] </args>
+        <args> x[6..8][14] </args>
+        <args> x[8..10][2] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,29) </condition>
+        </sum>
+        <args> x[2..5][8] </args>
+        <args> x[10..14][14] </args>
+      </group>
+      <sum>
+        <list> x[2..7][10] </list>
+        <condition> (eq,39) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,10) </condition>
+        </sum>
+        <args> x[3..4][15] </args>
+        <args> x[4..6][3] </args>
+        <args> x[12..15][5] </args>
+        <args> x[13..15][9] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,35) </condition>
+        </sum>
+        <args> x[4..8][13] </args>
+        <args> x[6..10][11] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,34) </condition>
+        </sum>
+        <args> x[5..9][7] </args>
+        <args> x[7..11][9] </args>
+      </group>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,4) </condition>
+        </sum>
+        <args> x[6..7][15] </args>
+        <args> x[9..10][1] </args>
+        <args> x[12..13][1] </args>
+        <args> x[14..15][3] </args>
+        <args> x[14..15][13] </args>
+      </group>
+      <sum>
+        <list> x[7..9][8] </list>
+        <condition> (eq,12) </condition>
+      </sum>
+      <sum>
+        <list> x[8..12][3] </list>
+        <condition> (eq,26) </condition>
+      </sum>
+      <sum>
+        <list> x[8..15][12] </list>
+        <condition> (eq,40) </condition>
+      </sum>
+      <sum>
+        <list> x[10..15][10] </list>
+        <condition> (eq,22) </condition>
+      </sum>
+      <group>
+        <sum>
+          <list> %... </list>
+          <condition> (eq,6) </condition>
+        </sum>
+        <args> x[10..12][13] </args>
+        <args> x[11..13][15] </args>
+      </group>
+      <sum>
+        <list> x[11..14][8] </list>
+        <condition> (eq,11) </condition>
+      </sum>
+      <sum>
+        <list> x[12..14][2] </list>
+        <condition> (eq,9) </condition>
+      </sum>
+      <group>
+        <allDifferent> %... </allDifferent>
+        <args> x[1..2][3] </args>
+        <args> x[1..8][4] </args>
+        <args> x[1..6][6] </args>
+        <args> x[1..3][7] </args>
+        <args> x[1..4][11] </args>
+        <args> x[1..6][12] </args>
+        <args> x[1..2][13] </args>
+        <args> x[2..6][2] </args>
+        <args> x[2..5][8] </args>
+        <args> x[2..7][10] </args>
+        <args> x[2..4][14] </args>
+        <args> x[3..5][1] </args>
+        <args> x[3..4][5] </args>
+        <args> x[3..4][15] </args>
+        <args> x[4..6][3] </args>
+        <args> x[4..5][9] </args>
+        <args> x[4..8][13] </args>
+        <args> x[5..9][7] </args>
+        <args> x[6..10][5] </args>
+        <args> x[6..10][11] </args>
+        <args> x[6..8][14] </args>
+        <args> x[6..7][15] </args>
+        <args> x[7..9][8] </args>
+        <args> x[7..11][9] </args>
+        <args> x[8..10][2] </args>
+        <args> x[8..12][3] </args>
+        <args> x[8..15][12] </args>
+        <args> x[9..10][1] </args>
+        <args> x[9..14][6] </args>
+        <args> x[10..15][4] </args>
+        <args> x[10..15][10] </args>
+        <args> x[10..12][13] </args>
+        <args> x[10..14][14] </args>
+        <args> x[11..12][7] </args>
+        <args> x[11..14][8] </args>
+        <args> x[11..13][15] </args>
+        <args> x[12..13][1] </args>
+        <args> x[12..14][2] </args>
+        <args> x[12..15][5] </args>
+        <args> x[12..13][11] </args>
+        <args> x[13..15][9] </args>
+        <args> x[14..15][3] </args>
+        <args> x[14..15][13] </args>
+      </group>
+    </block>
+  </constraints>
+</instance>
+

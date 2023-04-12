@@ -68,6 +68,7 @@ import static minicpbp.cp.BranchingScheme.impactEntropy;
 import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
 import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
 import static minicpbp.cp.BranchingScheme.domWdeg;
+import static minicpbp.cp.BranchingScheme.impactBasedSearch;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
@@ -1230,9 +1231,14 @@ public class XCSP implements XCallbacks2 {
 			break;
 		case IE:
 			search = makeSearch(impactEntropy(vars));
-			//search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
 			if(XCSP.initImpact)
 				search.initializeImpact(vars);
+			break;
+		case IBS:
+			minicp.setMode(PropaMode.SP);
+			search = makeSearch(impactBasedSearch(vars));
+			search.initializeImpactDomains(vars);
+			nbFailCutof = nbFailCutof*vars.length;
 			break;
 		case MIE:
 			search = makeDfs(minicp, minEntropyRegisterImpact(vars),impactEntropy(vars));
@@ -1245,6 +1251,7 @@ public class XCSP implements XCallbacks2 {
 		case WDEG:
 			minicp.setMode(PropaMode.SP);
 			search = makeSearch(domWdeg(vars));
+			nbFailCutof = nbFailCutof*vars.length;
 			break;
 		default:
 			System.out.println("unknown search strategy");

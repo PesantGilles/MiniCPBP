@@ -199,6 +199,28 @@ public class DFSearch extends Search{
                 try {
                     sm.withNewState(() -> {
                         Factory.branchEqualRegisterImpact(value);
+                    });
+                }
+                catch (InconsistencyException ignored) {
+                    sm.restoreState();
+                }
+            }
+
+        }
+    }
+
+    public void initializeImpactDomains(IntVar... x) {
+        int[] arrayVal;
+        IntHolder value = new IntHolder();
+        for(IntVar a: x) {
+            arrayVal = new int[a.size()];
+            a.fillArray(arrayVal);
+            value.setVar(a);
+            for(int i = 0; i < arrayVal.length; i++) {
+                value.setVal(arrayVal[i]);
+                try {
+                    sm.withNewState(() -> {
+                        Factory.branchEqualRegisterImpactOnDomains(value);
                         });
                 }
                 catch (InconsistencyException ignored) {

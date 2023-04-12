@@ -16,4 +16,6 @@ public abstract class Search {
 	public abstract SearchStatistics solveRestarts(Predicate<SearchStatistics> limit, int nbFailCutof, double restartFactor);
 
 	public abstract void initializeImpact(IntVar... x);
+
+	public abstract void initializeImpactDomains(IntVar... x);
 }

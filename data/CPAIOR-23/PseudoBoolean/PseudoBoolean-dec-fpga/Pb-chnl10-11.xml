@@ -1,0 +1,63 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[220]"> 0 1 </array>
+  </variables>
+  <constraints>
+    <group>
+      <sum>
+        <list> %... </list>
+        <condition> (ge,1) </condition>
+      </sum>
+      <args> x[170..179] </args>
+      <args> x[110..119] </args>
+      <args> x[100..109] </args>
+      <args> x[210..219] </args>
+      <args> x[90..99] </args>
+      <args> x[190..199] </args>
+      <args> x[70..79] </args>
+      <args> x[80..89] </args>
+      <args> x[50..59] </args>
+      <args> x[150..159] </args>
+      <args> x[0..9] </args>
+      <args> x[140..149] </args>
+      <args> x[60..69] </args>
+      <args> x[40..49] </args>
+      <args> x[130..139] </args>
+      <args> x[30..39] </args>
+      <args> x[200..209] </args>
+      <args> x[120..129] </args>
+      <args> x[10..19] </args>
+      <args> x[160..169] </args>
+      <args> x[20..29] </args>
+      <args> x[180..189] </args>
+    </group>
+    <group>
+      <sum>
+        <list> %... </list>
+        <coeffs> -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 </coeffs>
+        <condition> (ge,-1) </condition>
+      </sum>
+      <args> x[0] x[10] x[20] x[30] x[40] x[50] x[60] x[70] x[80] x[90] x[100] </args>
+      <args> x[1] x[11] x[21] x[31] x[41] x[51] x[61] x[71] x[81] x[91] x[101] </args>
+      <args> x[2] x[12] x[22] x[32] x[42] x[52] x[62] x[72] x[82] x[92] x[102] </args>
+      <args> x[3] x[13] x[23] x[33] x[43] x[53] x[63] x[73] x[83] x[93] x[103] </args>
+      <args> x[4] x[14] x[24] x[34] x[44] x[54] x[64] x[74] x[84] x[94] x[104] </args>
+      <args> x[5] x[15] x[25] x[35] x[45] x[55] x[65] x[75] x[85] x[95] x[105] </args>
+      <args> x[6] x[16] x[26] x[36] x[46] x[56] x[66] x[76] x[86] x[96] x[106] </args>
+      <args> x[7] x[17] x[27] x[37] x[47] x[57] x[67] x[77] x[87] x[97] x[107] </args>
+      <args> x[8] x[18] x[28] x[38] x[48] x[58] x[68] x[78] x[88] x[98] x[108] </args>
+      <args> x[9] x[19] x[29] x[39] x[49] x[59] x[69] x[79] x[89] x[99] x[109] </args>
+      <args> x[110] x[120] x[130] x[140] x[150] x[160] x[170] x[180] x[190] x[200] x[210] </args>
+      <args> x[111] x[121] x[131] x[141] x[151] x[161] x[171] x[181] x[191] x[201] x[211] </args>
+      <args> x[112] x[122] x[132] x[142] x[152] x[162] x[172] x[182] x[192] x[202] x[212] </args>
+      <args> x[113] x[123] x[133] x[143] x[153] x[163] x[173] x[183] x[193] x[203] x[213] </args>
+      <args> x[114] x[124] x[134] x[144] x[154] x[164] x[174] x[184] x[194] x[204] x[214] </args>
+      <args> x[115] x[125] x[135] x[145] x[155] x[165] x[175] x[185] x[195] x[205] x[215] </args>
+      <args> x[116] x[126] x[136] x[146] x[156] x[166] x[176] x[186] x[196] x[206] x[216] </args>
+      <args> x[117] x[127] x[137] x[147] x[157] x[167] x[177] x[187] x[197] x[207] x[217] </args>
+      <args> x[118] x[128] x[138] x[148] x[158] x[168] x[178] x[188] x[198] x[208] x[218] </args>
+      <args> x[119] x[129] x[139] x[149] x[159] x[169] x[179] x[189] x[199] x[209] x[219] </args>
+    </group>
+  </constraints>
+</instance>
+

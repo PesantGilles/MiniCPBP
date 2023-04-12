@@ -1,0 +1,160 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="x" size="[135]"> 0 1 </array>
+  </variables>
+  <constraints>
+    <group>
+      <sum>
+        <list> %... </list>
+        <coeffs> -1 1 1 1 1 </coeffs>
+        <condition> (ge,0) </condition>
+      </sum>
+      <args> x[72] x[98..101] </args>
+      <args> x[70] x[90..93] </args>
+      <args> x[80] x[90..93] </args>
+      <args> x[1] x[94..97] </args>
+      <args> x[14] x[106..109] </args>
+      <args> x[13] x[102..105] </args>
+      <args> x[34] x[106..109] </args>
+      <args> x[31] x[94..97] </args>
+      <args> x[0] x[90..93] </args>
+      <args> x[52] x[98..101] </args>
+      <args> x[74] x[106..109] </args>
+      <args> x[33] x[102..105] </args>
+      <args> x[82] x[98..101] </args>
+      <args> x[60] x[90..93] </args>
+      <args> x[73] x[102..105] </args>
+      <args> x[63] x[102..105] </args>
+      <args> x[43] x[102..105] </args>
+      <args> x[23] x[102..105] </args>
+      <args> x[12] x[98..101] </args>
+      <args> x[61] x[94..97] </args>
+      <args> x[24] x[106..109] </args>
+      <args> x[41] x[94..97] </args>
+      <args> x[83] x[102..105] </args>
+      <args> x[42] x[98..101] </args>
+      <args> x[40] x[90..93] </args>
+      <args> x[54] x[106..109] </args>
+      <args> x[21] x[94..97] </args>
+      <args> x[4] x[106..109] </args>
+      <args> x[51] x[94..97] </args>
+      <args> x[50] x[90..93] </args>
+      <args> x[71] x[94..97] </args>
+      <args> x[53] x[102..105] </args>
+      <args> x[22] x[98..101] </args>
+      <args> x[20] x[90..93] </args>
+      <args> x[11] x[94..97] </args>
+      <args> x[2] x[98..101] </args>
+      <args> x[81] x[94..97] </args>
+      <args> x[3] x[102..105] </args>
+      <args> x[62] x[98..101] </args>
+      <args> x[10] x[90..93] </args>
+      <args> x[64] x[106..109] </args>
+      <args> x[84] x[106..109] </args>
+      <args> x[32] x[98..101] </args>
+      <args> x[44] x[106..109] </args>
+      <args> x[30] x[90..93] </args>
+    </group>
+    <group>
+      <sum>
+        <list> %... </list>
+        <coeffs> -1 1 1 1 1 1 </coeffs>
+        <condition> (ge,0) </condition>
+      </sum>
+      <args> x[85] x[110..114] </args>
+      <args> x[27] x[120..124] </args>
+      <args> x[57] x[120..124] </args>
+      <args> x[7] x[120..124] </args>
+      <args> x[86] x[115..119] </args>
+      <args> x[28] x[125..129] </args>
+      <args> x[15] x[110..114] </args>
+      <args> x[56] x[115..119] </args>
+      <args> x[87] x[120..124] </args>
+      <args> x[77] x[120..124] </args>
+      <args> x[55] x[110..114] </args>
+      <args> x[47] x[120..124] </args>
+      <args> x[36] x[115..119] </args>
+      <args> x[18] x[125..129] </args>
+      <args> x[16] x[115..119] </args>
+      <args> x[69] x[130..134] </args>
+      <args> x[59] x[130..134] </args>
+      <args> x[26] x[115..119] </args>
+      <args> x[5] x[110..114] </args>
+      <args> x[58] x[125..129] </args>
+      <args> x[45] x[110..114] </args>
+      <args> x[6] x[115..119] </args>
+      <args> x[68] x[125..129] </args>
+      <args> x[29] x[130..134] </args>
+      <args> x[35] x[110..114] </args>
+      <args> x[25] x[110..114] </args>
+      <args> x[89] x[130..134] </args>
+      <args> x[39] x[130..134] </args>
+      <args> x[67] x[120..124] </args>
+      <args> x[78] x[125..129] </args>
+      <args> x[38] x[125..129] </args>
+      <args> x[19] x[130..134] </args>
+      <args> x[48] x[125..129] </args>
+      <args> x[79] x[130..134] </args>
+      <args> x[37] x[120..124] </args>
+      <args> x[76] x[115..119] </args>
+      <args> x[66] x[115..119] </args>
+      <args> x[88] x[125..129] </args>
+      <args> x[49] x[130..134] </args>
+      <args> x[17] x[120..124] </args>
+      <args> x[75] x[110..114] </args>
+      <args> x[8] x[125..129] </args>
+      <args> x[46] x[115..119] </args>
+      <args> x[9] x[130..134] </args>
+      <args> x[65] x[110..114] </args>
+    </group>
+    <group>
+      <sum>
+        <list> %... </list>
+        <condition> (ge,1) </condition>
+      </sum>
+      <args> x[10..19] </args>
+      <args> x[60..69] </args>
+      <args> x[70..79] </args>
+      <args> x[20..29] </args>
+      <args> x[30..39] </args>
+      <args> x[50..59] </args>
+      <args> x[40..49] </args>
+      <args> x[0..9] </args>
+      <args> x[80..89] </args>
+    </group>
+    <group>
+      <sum>
+        <list> %... </list>
+        <coeffs> -1 -1 -1 -1 -1 -1 -1 -1 -1 </coeffs>
+        <condition> (ge,-1) </condition>
+      </sum>
+      <args> x[0] x[10] x[20] x[30] x[40] x[50] x[60] x[70] x[80] </args>
+      <args> x[1] x[11] x[21] x[31] x[41] x[51] x[61] x[71] x[81] </args>
+      <args> x[2] x[12] x[22] x[32] x[42] x[52] x[62] x[72] x[82] </args>
+      <args> x[3] x[13] x[23] x[33] x[43] x[53] x[63] x[73] x[83] </args>
+      <args> x[4] x[14] x[24] x[34] x[44] x[54] x[64] x[74] x[84] </args>
+      <args> x[5] x[15] x[25] x[35] x[45] x[55] x[65] x[75] x[85] </args>
+      <args> x[6] x[16] x[26] x[36] x[46] x[56] x[66] x[76] x[86] </args>
+      <args> x[7] x[17] x[27] x[37] x[47] x[57] x[67] x[77] x[87] </args>
+      <args> x[8] x[18] x[28] x[38] x[48] x[58] x[68] x[78] x[88] </args>
+      <args> x[9] x[19] x[29] x[39] x[49] x[59] x[69] x[79] x[89] </args>
+    </group>
+    <group>
+      <sum>
+        <list> %... </list>
+        <coeffs> -1 -1 -1 -1 -1 </coeffs>
+        <condition> (ge,-1) </condition>
+      </sum>
+      <args> x[90] x[94] x[98] x[102] x[106] </args>
+      <args> x[91] x[95] x[99] x[103] x[107] </args>
+      <args> x[92] x[96] x[100] x[104] x[108] </args>
+      <args> x[93] x[97] x[101] x[105] x[109] </args>
+      <args> x[110] x[115] x[120] x[125] x[130] </args>
+      <args> x[111] x[116] x[121] x[126] x[131] </args>
+      <args> x[112] x[117] x[122] x[127] x[132] </args>
+      <args> x[113] x[118] x[123] x[128] x[133] </args>
+      <args> x[114] x[119] x[124] x[129] x[134] </args>
+    </group>
+  </constraints>
+</instance>
+

@@ -1,0 +1,146 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <var id="x0"> 7 11 13 </var>
+    <var id="x1"> 0 4 11 13 </var>
+    <var id="x2"> 0 11 13 14 </var>
+    <var id="x3"> 0 4 6 7 11 </var>
+    <var id="x4"> 4 7 13 </var>
+    <var id="x5"> 4 7 </var>
+    <var id="x6"> 0 11 13 </var>
+    <var id="x7"> 1 5 </var>
+    <var id="x8"> 1 2 8 11 </var>
+    <var id="x9"> 1 4 7 8 </var>
+    <var id="x10"> 4 7 8 </var>
+    <var id="x11"> 2 4 5 7 11 </var>
+    <var id="x12"> 1 4 11 </var>
+    <var id="x13"> 1 2 4 7 11 </var>
+    <var id="x14"> 1 9 11..13 </var>
+    <var id="x15"> 0 1 9 12 13 </var>
+    <var id="x16"> 9 11 13 </var>
+    <var id="x17"> 4 9 13 </var>
+    <var id="x18"> 0 4 11 </var>
+    <var id="x19"> 1 4 11 13 </var>
+    <var id="x20"> 1 4 12 </var>
+    <var id="x21"> 0 1 9 13 </var>
+    <var id="x22"> 0 1 8 10 13 </var>
+    <var id="x23"> 0 1 8 13 </var>
+    <var id="x24"> 1 7 8 13 </var>
+    <var id="x25"> 7..10 13 </var>
+    <var id="x26"> 0 8 10 </var>
+    <var id="x27"> 7 8 10 13 </var>
+    <var id="x28"> 3 7 11..13 </var>
+    <var id="x29"> 4 11 13 </var>
+    <var id="x30"> 3 4 7 12 13 </var>
+    <var id="x31"> 3 4 7 13 </var>
+    <var id="x32"> 6 11 </var>
+    <var id="x33"> 4 6 11 12 </var>
+    <var id="x34"> 3 11 13 </var>
+    <var id="x35"> 4 7 8 13 </var>
+    <var id="x36"> 7 13 </var>
+    <var id="x37"> 0 6 13 </var>
+    <var id="x38"> 4 7 8 13 </var>
+    <var id="x39"> 4 7 8 10 13 </var>
+    <var id="x40"> 4 6 10 </var>
+    <var id="x41"> 4 7 10 </var>
+    <var id="x42"> 0 1 8 10 11 13 </var>
+    <var id="x43"> 8 9 11 13 </var>
+    <var id="x44"> 1 8 12 13 </var>
+    <var id="x45"> 8..10 13 </var>
+    <var id="x46"> 0 11 </var>
+    <var id="x47"> 0 8 10 11 </var>
+    <var id="x48"> 8 10 12 13 </var>
+    <var id="x49"> 1 9..12 </var>
+    <var id="x50"> 9 11 12 </var>
+    <var id="x51"> 4 8 10 11 </var>
+    <var id="x52"> 2 8 11 </var>
+    <var id="x53"> 4 8 12 </var>
+    <var id="x54"> 2 4 8 10 12 </var>
+    <var id="x55"> 4 9..12 </var>
+    <var id="x56"> 2 4 11 </var>
+    <var id="x57"> 4 7 11 13 </var>
+    <var id="x58"> 1 12 13 </var>
+    <var id="x59"> 7 11 13 </var>
+    <var id="x60"> 1 3 4 7 12 13 </var>
+    <var id="x61"> 11 </var>
+    <var id="x62"> 1 3 4 7 11 13 </var>
+    <var id="x63"> 1 3 11 13 </var>
+    <var id="x64"> 4 11 14 </var>
+    <var id="x65"> 2 11 14 </var>
+    <var id="x66"> 3 4 </var>
+    <var id="x67"> 2 4 5 11 </var>
+    <var id="x68"> 1..4 11 </var>
+    <var id="x69"> 1 2 4 5 </var>
+    <var id="x70"> 1 3 5 11 </var>
+    <var id="x71"> 8 9 11 13 </var>
+    <var id="x72"> 1 5 9 11 13 </var>
+    <var id="x73"> 2 5 11 </var>
+    <var id="x74"> 2 8 11 </var>
+    <var id="x75"> 2 8 13 </var>
+    <var id="x76"> 1 2 5 </var>
+    <var as="x72" id="x77"/>
+    <var id="x78"> 8 14 </var>
+    <var id="x79"> 1 5 6 </var>
+    <var id="x80"> 1 8 10 </var>
+    <var id="x81"> 8 14 </var>
+    <var id="x82"> 1 8 14 </var>
+    <var id="x83"> 1 3 </var>
+    <var id="x84"> 1 5 10 </var>
+    <var id="x85"> 3 7 9 13 </var>
+    <var id="x86"> 2 7 9 13 </var>
+    <var id="x87"> 0 2 </var>
+    <var id="x88"> 2 4 7 13 </var>
+    <var id="x89"> 4 9 </var>
+    <var id="x90"> 2 4 7 </var>
+    <var id="x91"> 0 3 9 13 </var>
+    <var id="x92"> 7 8 13 14 </var>
+    <var id="x93"> 1 5 7 13 </var>
+    <var id="x94"> 1 5 13 </var>
+    <var id="x95"> 1 8 13 </var>
+    <var id="x96"> 1 2 8 13 14 </var>
+    <var id="x97"> 2 8 14 </var>
+    <var id="x98"> 1 2 7 13 </var>
+    <var id="x99"> 7 9 11 13 </var>
+    <var id="x100"> 2 7 9 11 13 </var>
+    <var id="x101"> 2 11 13 </var>
+    <var id="x102"> 7 9 10 13 </var>
+    <var id="x103"> 2 7 11 </var>
+    <var id="x104"> 9..12 </var>
+    <var id="x105"> 9 11 13 </var>
+  </variables>
+  <constraints>
+    <group>
+      <allDifferent> %... </allDifferent>
+      <args> x0 x1 x2 x3 x4 x5 x6 </args>
+      <args> x7 x8 x9 x10 x11 x12 x13 </args>
+      <args> x14 x15 x16 x17 x18 x19 x20 </args>
+      <args> x21 x22 x23 x24 x25 x26 x27 </args>
+      <args> x28 x29 x30 x31 x32 x33 x34 </args>
+      <args> x35 x36 x37 x38 x39 x40 x41 </args>
+      <args> x42 x43 x44 x45 x46 x47 x48 x49 </args>
+      <args> x50 x51 x52 x53 x54 x55 x56 </args>
+      <args> x57 x58 x59 x60 x61 x62 x63 </args>
+      <args> x64 x65 x66 x67 x68 x69 x70 </args>
+      <args> x71 x72 x73 x74 x75 x76 x77 </args>
+      <args> x78 x79 x80 x81 x82 x83 x84 </args>
+      <args> x85 x86 x87 x88 x89 x90 x91 </args>
+      <args> x92 x93 x94 x95 x96 x97 x98 </args>
+      <args> x99 x100 x101 x102 x103 x104 x105 </args>
+      <args> x35 x57 x64 x71 x78 x92 x99 </args>
+      <args> x0 x14 x28 x36 x50 x72 x85 x93 </args>
+      <args> x7 x15 x21 x37 x58 x79 x94 </args>
+      <args> x1 x22 x29 x42 x51 x80 x95 </args>
+      <args> x16 x43 x59 x65 x81 x86 x100 </args>
+      <args> x2 x8 x23 x52 x82 x96 x101 </args>
+      <args> x9 x24 x30 x38 x44 x53 x60 </args>
+      <args> x10 x17 x25 x31 x45 x66 x102 </args>
+      <args> x3 x11 x18 x46 x67 x73 x103 </args>
+      <args> x26 x32 x47 x61 x74 x87 x97 </args>
+      <args> x4 x27 x39 x48 x54 x75 x88 </args>
+      <args> x12 x33 x40 x49 x55 x89 x104 </args>
+      <args> x13 x19 x56 x62 x68 x83 x98 </args>
+      <args> x5 x20 x41 x69 x76 x84 x90 </args>
+      <args> x6 x34 x63 x70 x77 x91 x105 </args>
+    </group>
+  </constraints>
+</instance>
+

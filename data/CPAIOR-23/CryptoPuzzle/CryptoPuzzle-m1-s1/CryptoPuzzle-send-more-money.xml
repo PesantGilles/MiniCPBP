@@ -1,0 +1,34 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="l" size="[26]"> 0..9 </array>
+    <array id="C" size="[5]"> 0 1 </array>
+  </variables>
+  <constraints>
+    <group>
+      <intension> ne(%0,%1) </intension>
+      <args> l[18] 0 </args>
+      <args> l[12] 0 </args>
+      <args> l[12] 0 </args>
+    </group>
+    <group>
+      <intension> eq(%0,%1) </intension>
+      <args> C[0] 0 </args>
+      <args> C[4] l[12] </args>
+    </group>
+    <allDifferent> l[3..4] l[12..14] l[17..18] l[24] </allDifferent>
+    <group>
+      <intension> eq(mod(add(%0,%1,%2),%3),%4) </intension>
+      <args> C[0] l[3] l[4] 10 l[24] </args>
+      <args> C[1] l[13] l[17] 10 l[4] </args>
+      <args> C[2] l[4] l[14] 10 l[13] </args>
+      <args> C[3] l[18] l[12] 10 l[14] </args>
+    </group>
+    <group>
+      <intension> eq(div(add(%0,%1,%2),%3),%4) </intension>
+      <args> C[0] l[3] l[4] 10 C[1] </args>
+      <args> C[1] l[13] l[17] 10 C[2] </args>
+      <args> C[2] l[4] l[14] 10 C[3] </args>
+      <args> C[3] l[18] l[12] 10 C[4] </args>
+    </group>
+  </constraints>
+</instance>
