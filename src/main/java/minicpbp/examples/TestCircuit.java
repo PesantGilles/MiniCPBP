@@ -88,7 +88,6 @@ public class TestCircuit {
 
 //        cp.setTraceBPFlag(true);
         cp.setTraceSearchFlag(true);
-        cp.setDynamicStopBP(true);
 
         DFSearch dfs = makeDfs(cp, minEntropy(succ));
 //        LDSearch dfs = makeLds(cp, minEntropy(succ));
