@@ -54,7 +54,7 @@ public class ShortTableCT extends AbstractConstraint {
         this.xLength = x.length;
         this.table = table;
         this.tableLength = table.length;
-	this.star = star;
+	    this.star = star;
         ofs = new int[xLength];
         supportedTuples = new BitSet(tableLength);
         supporti = new BitSet(tableLength);
@@ -74,7 +74,7 @@ public class ShortTableCT extends AbstractConstraint {
             for (int i = 0; i < x.length; i++) { //i is the index of the current variable (in x)
                 if (table[t][i] == star) {
                     for (int v = 0; v < supports[i].length; v++) {
-                        supports[i][v - ofs[i]].set(t);
+                        supports[i][v].set(t);
                     }
                 } else if (x[i].contains(table[t][i])) {
                     supports[i][table[t][i] - ofs[i]].set(t);

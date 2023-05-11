@@ -178,11 +178,11 @@ public class XCSP implements XCallbacks2 {
 		try {
 
 			if (!positive) {
-				minicp.post(new NegTableCT(trVars(list), tuples));
+				minicp.post(negTable(trVars(list), tuples));
 			} else {
 				if (flags.contains(Types.TypeFlag.STARRED_TUPLES)) {
 					minicp.fixPoint();
-					minicp.post(new ShortTableCT(trVars(list), tuples, Constants.STAR_INT));
+					minicp.post(shortTable(trVars(list), tuples, Constants.STAR_INT));
 				} else {
 					minicp.fixPoint();
 					minicp.post(table(trVars(list), tuples));
