@@ -81,6 +81,8 @@ public class AllDifferentDC extends AbstractConstraint {
     private int[] permutation;
     private int[] varIndices;
     private int[] vals;
+    private double[] rowMax;
+    private double[] rowMaxSecondBest;
 
     public AllDifferentDC(IntVar... x) {
         super(x[0].getSolver(), x);
@@ -132,6 +134,8 @@ public class AllDifferentDC extends AbstractConstraint {
         permutation = new int[freeVals.size() - 1];
         varIndices = new int[freeVars.size()];
         vals = new int[freeVals.size()];
+        rowMax = new double[freeVals.size()];
+        rowMaxSecondBest = new double[freeVals.size()];
         if (freeVals.size() - 1 <= exactPermanentThreshold) {
             setExactWCounting(true);
         } else {
@@ -255,22 +259,40 @@ public class AllDifferentDC extends AbstractConstraint {
                 }
             }
         }
-        // initialize outside beliefs matrix (MUST BE IN STANDARD [0,1] REPRESENTATION)
         nbVar = freeVars.fillArray(varIndices);
         nbVal = freeVals.fillArray(vals);
+        /*  upon experimentation, does not appear to speed up the computation
+        if (nbVal - 1 > exactPermanentThreshold // && "domain size much smaller than nbVal"
+            ) {
+            // set local beliefs by computing the approximate permanent of beliefs directly from the domains (no matrix representation)
+            setExactWCounting(false);
+            costBasedPermanent_UB3_precomputeRowMax_sparseMatrix(nbVar);
+            for (int j = 0; j < nbVar; j++) {
+                int i = varIndices[j];
+                int s = x[i].fillArray(domainValues);
+                for (int k = 0; k < s; k++) {
+                    int val = domainValues[k];
+                    // note: will be normalized later in AbstractConstraint.sendMessages()
+                    // put beliefs back to their original representation
+                    setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3_faster_sparseMatrix(j, val, nbVar)));
+                }
+            }
+            return;
+        }
+        */
+        // initialize outside beliefs matrix (MUST BE IN STANDARD [0,1] REPRESENTATION)
         for (int j = 0; j < nbVar; j++) {
             int i = varIndices[j];
             for (int k = 0; k < nbVal; k++) {
                 int val = vals[k];
-                beliefs[j][k] = (x[i].contains(val) ?
-                        beliefRep.rep2std(outsideBelief(i, val)) :
-                        0);
+                beliefs[j][k] = (x[i].contains(val) ? beliefRep.rep2std(outsideBelief(i, val)) : 0);
             }
         }
         // may need to add dummy rows in order to make the beliefs matrix square
         for (int j = 0; j < nbVal - nbVar; j++) {
             for (int k = 0; k < nbVal; k++) {
-                beliefs[nbVar + j][k] = 1; // (STANDARD REPRESENTATION)
+                // make row sum to 1 because we use this property in costBasedPermanent_UB3_faster()
+                beliefs[nbVar + j][k] = 1.0 / nbVal; // (STANDARD REPRESENTATION)
             }
         }
         // set local beliefs by computing the permanent of beliefs sub-matrices
@@ -284,13 +306,14 @@ public class AllDifferentDC extends AbstractConstraint {
                     if (x[i].contains(val)) {
                         // note: will be normalized later in AbstractConstraint.sendMessages()
                         // put beliefs back to their original representation
-                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_exact(j, k, beliefs, nbVal)));
+                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_exact(j, k, nbVal)));
                     }
                 }
             }
         } else {
             // approximate permanent
             setExactWCounting(false);
+            costBasedPermanent_UB3_precomputeRowMax(nbVal);
             for (int j = 0; j < nbVar; j++) {
                 int i = varIndices[j];
                 for (int k = 0; k < nbVal; k++) {
@@ -298,7 +321,8 @@ public class AllDifferentDC extends AbstractConstraint {
                     if (x[i].contains(val)) {
                         // note: will be normalized later in AbstractConstraint.sendMessages()
                         // put beliefs back to their original representation
-                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3(j, k, beliefs, nbVal, nbVal - nbVar)));
+                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3_faster(j, k, nbVal, nbVal - nbVar)));
+  //                      setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3(j, k, beliefs, nbVal, nbVal - nbVar)));
                     }
                 }
             }
@@ -355,8 +379,102 @@ public class AllDifferentDC extends AbstractConstraint {
         }
         return U3;
     }
+    private void costBasedPermanent_UB3_precomputeRowMax(int dim) {
+        double tmp;
+        for (int i = 0; i < dim; i++) {
+            rowMax[i] = rowMaxSecondBest[i] = 0;
+            for (int j = 0; j < dim; j++) {
+                tmp = beliefs[i][j];
+                if (tmp > rowMax[i]) {
+                    rowMaxSecondBest[i] = rowMax[i];
+                    rowMax[i] = tmp;
+                }
+                else if (tmp > rowMaxSecondBest[i]) {
+                    rowMaxSecondBest[i] = tmp;
+                }
+            }
+        }
+    }
+    private void costBasedPermanent_UB3_precomputeRowMax_sparseMatrix(int dim) {
+        double tmp;
+        for (int i = 0; i < dim; i++) {
+            rowMax[i] = rowMaxSecondBest[i] = 0;
+            int var = varIndices[i];
+            int s = x[var].fillArray(domainValues);
+            for (int k = 0; k < s; k++) {
+                tmp = beliefRep.rep2std(outsideBelief(var, domainValues[k]));
+                if (tmp > rowMax[i]) {
+                    rowMaxSecondBest[i] = rowMax[i];
+                    rowMax[i] = tmp;
+                }
+                else if (tmp > rowMaxSecondBest[i]) {
+                    rowMaxSecondBest[i] = tmp;
+                }
+            }
+        }
+    }
+    private double costBasedPermanent_UB3_faster(int var, int val, int dim, int nbDummyRows) {
+        // permanent upper bound U^3 for nonnegative matrices (from Soules 2003)
+        // for matrix m without row of var and column of val
+        // assumes that each row of m sums to one
+        double U3 = 1.0;
+        double rSum, rMax, tmp;
+        int tmpFloor, tmpCeil;
+        int dummyRowCount = nbDummyRows;
 
-    private double costBasedPermanent_exact(int var, int val, double[][] m, int dim) {
+        for (int i = 0; i < dim; i++) {
+            if (i != var) { // exclude row of var whose belief we are computing
+                rSum = 1.0 - beliefs[i][val]; // each row of m (beliefs) sums to one
+                rMax = (rowMax[i]==beliefs[i][val]? rowMaxSecondBest[i] : rowMax[i]);
+                if (rMax == 0)
+                    return 0;
+                tmp = rSum / rMax;
+                tmpFloor = (int) Math.floor(tmp);
+                tmpCeil = (int) Math.ceil(tmp);
+                U3 *= rMax * (gamma[tmpFloor] + (tmp - tmpFloor) * (gamma[tmpCeil] - gamma[tmpFloor]));
+                if (dummyRowCount > 1) {
+                    // that upper bound should be divided by (# dummy rows)!
+                    U3 /= dummyRowCount;
+                    dummyRowCount--;
+                }
+            }
+        }
+        return U3;
+    }
+
+    private double costBasedPermanent_UB3_faster_sparseMatrix(int var, int val, int dim) {
+        // permanent upper bound U^3 for nonnegative matrices (from Soules 2003)
+        // for matrix m without row of var and column of val
+        // assumes that each row of m sums to one
+        double U3 = 1.0;
+        double rSum, rMax, tmp;
+        int tmpFloor, tmpCeil;
+
+        for (int i = 0; i < dim; i++) {
+            if (i != var) { // exclude row of var whose belief we are computing
+                int j = varIndices[i];
+                if (x[j].contains(val)) {
+                    tmp = beliefRep.rep2std(outsideBelief(j, val));
+                    rSum = 1.0 - tmp; // each row of m (beliefs) sums to one
+                    rMax = (rowMax[i] == tmp ? rowMaxSecondBest[i] : rowMax[i]);
+                }
+                else {
+                    rSum = 1.0;
+                    rMax = rowMax[i];
+                }
+//                System.out.println(var+" "+val+"; "+rSum+" " + rMax);
+                if (rMax == 0)
+                    return 0;
+                tmp = rSum / rMax;
+                tmpFloor = (int) Math.floor(tmp);
+                tmpCeil = (int) Math.ceil(tmp);
+                U3 *= rMax * (gamma[tmpFloor] + (tmp - tmpFloor) * (gamma[tmpCeil] - gamma[tmpFloor]));
+            }
+        }
+        return U3;
+    }
+
+    private double costBasedPermanent_exact(int var, int val, int dim) {
         // exact permanent for matrix m without row of var and column of val
         // to be used when m is not too large
 
@@ -364,29 +482,29 @@ public class AllDifferentDC extends AbstractConstraint {
 
         // swap row "var" and column "val" with last row & column
         for (int j = 0; j < dim; j++) { // swap rows
-            tmp = m[var][j];
-            m[var][j] = m[dim - 1][j];
-            m[dim - 1][j] = tmp;
+            tmp = beliefs[var][j];
+            beliefs[var][j] = beliefs[dim - 1][j];
+            beliefs[dim - 1][j] = tmp;
         }
         for (int i = 0; i < dim; i++) { // swap columns
-            tmp = m[i][val];
-            m[i][val] = m[i][dim - 1];
-            m[i][dim - 1] = tmp;
+            tmp = beliefs[i][val];
+            beliefs[i][val] = beliefs[i][dim - 1];
+            beliefs[i][dim - 1] = tmp;
         }
 
         // compute permanent of m without last row & column
-        double p = permanent(m, dim - 1);
+        double p = permanent(beliefs, dim - 1);
 
         // swap back
         for (int j = 0; j < dim; j++) { // swap rows
-            tmp = m[var][j];
-            m[var][j] = m[dim - 1][j];
-            m[dim - 1][j] = tmp;
+            tmp = beliefs[var][j];
+            beliefs[var][j] = beliefs[dim - 1][j];
+            beliefs[dim - 1][j] = tmp;
         }
         for (int i = 0; i < dim; i++) { // swap columns
-            tmp = m[i][val];
-            m[i][val] = m[i][dim - 1];
-            m[i][dim - 1] = tmp;
+            tmp = beliefs[i][val];
+            beliefs[i][val] = beliefs[i][dim - 1];
+            beliefs[i][dim - 1] = tmp;
         }
 
         return p; // that value should actually be divided by (# dummy rows)!
