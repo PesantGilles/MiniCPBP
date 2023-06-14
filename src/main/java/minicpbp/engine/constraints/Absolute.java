@@ -89,4 +89,23 @@ public class Absolute extends AbstractConstraint {
         }
     }
 
+    @Override
+    public void updateBelief() {
+        // Proceed from y
+        int nVal = y.fillArray(domainValues);
+        for (int k = 0; k < nVal; k++) {
+            int vy = domainValues[k];
+            double b = beliefRep.zero();
+            if (x.contains(vy)) {
+                b = beliefRep.add(b, outsideBelief(0, vy));
+                setLocalBelief(0, vy, outsideBelief(1, vy));
+            }
+            if (x.contains(-vy) && vy != 0 /* avoid double counting */) {
+                b = beliefRep.add(b, outsideBelief(0, -vy));
+                setLocalBelief(0, -vy, outsideBelief(1, vy));
+            }
+            setLocalBelief(1, vy, b);
+        }
+    }
+
 }
