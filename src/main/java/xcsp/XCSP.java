@@ -31,11 +31,14 @@ import minicpbp.util.exception.NotImplementedException;
 import launch.SolveXCSPFZN.BranchingHeuristic;
 import launch.SolveXCSPFZN.TreeSearchType;
 
+import org.xcsp.common.IVar;
+import org.xcsp.common.predicates.XNodeLeaf;
 import org.xcsp.common.structures.Transition;
 import org.xcsp.parser.callbacks.SolutionChecker;
 import org.xcsp.common.Condition;
 import org.xcsp.common.Constants;
 import org.xcsp.common.Types;
+import org.xcsp.common.predicates.XNode;
 import org.xcsp.common.predicates.XNodeParent;
 import org.xcsp.parser.callbacks.XCallbacks2;
 import org.xcsp.parser.entries.XVariables.XVarInteger;
@@ -196,7 +199,6 @@ public class XCSP implements XCallbacks2 {
 	private void relConstraintVal(IntVar x, Types.TypeConditionOperatorRel operator, int k) {
 		if (hasFailed)
 			return;
-
 		try {
 			switch (operator) {
 			case EQ:
@@ -230,7 +232,6 @@ public class XCSP implements XCallbacks2 {
 	private void relConstraintVar(IntVar x, Types.TypeConditionOperatorRel operator, IntVar y) {
 		if (hasFailed)
 			return;
-
 		try {
 			switch (operator) {
 			case EQ:
@@ -373,13 +374,11 @@ public class XCSP implements XCallbacks2 {
 	private IntVar unaryArithmeticOperatorConstraint(IntVar x, Types.TypeUnaryArithmeticOperator aop) {
 		switch (aop) {
 		case NEG:
-			return Factory.minus(x);
+			return minus(x);
 		case ABS:
-			return Factory.abs(x);
-		case NOT:
-			// TODO student: you may want to implement it with a new type of view.
-			throw new IllegalArgumentException("not implemented");
+			return abs(x);
 		case SQR:
+			return product(x,x);
 		default:
 			// Not needed
 			throw new IllegalArgumentException("not implemented");
@@ -389,27 +388,27 @@ public class XCSP implements XCallbacks2 {
 	private IntVar arithmeticOperatorConstraintVal(IntVar x, Types.TypeArithmeticOperator aop, int p) {
 		switch (aop) {
 		case ADD:
-			return Factory.plus(x, p);
+			return plus(x, p);
 		case DIST:
-			return Factory.abs(Factory.minus(x, p));
+			return abs(minus(x, p));
 		case SUB:
-			return Factory.minus(x, p);
+			return minus(x, p);
 		case MUL:
-			return Factory.mul(x, p);
+			return mul(x, p);
 		case DIV:
 			IntVar y = makeIntVar(minicp, (p>=0? (int) Math.floor(x.min()/p): (int) Math.floor(x.max()/p)), (p>=0? (int) Math.ceil(x.max()/p): (int) Math.ceil(x.min()/p)));
-			minicp.post(equal(x, Factory.mul(y, p)));
+			minicp.post(equal(x, mul(y, p)));
 			return y;
 		case MOD:
 			IntVar[] xs = new IntVar[2];
 			xs[0] = x;
 			IntVar yy = makeIntVar(minicp, 0, p-1);
-			xs[1] = Factory.minus(yy);
+			xs[1] = minus(yy);
 			minicp.post(sumModP(xs, 0, p));
 			return yy;
 		case POW:
 			// Not needed
-			throw new IllegalArgumentException("Pow between vars is not implemented");
+			throw new IllegalArgumentException("Pow is not implemented");
 		default:
 			throw new IllegalArgumentException("Unknown TypeArithmeticOperator");
 		}
@@ -420,21 +419,69 @@ public class XCSP implements XCallbacks2 {
 		case ADD:
 			return sum(x, y);
 		case DIST:
-			return Factory.abs(sum(x, minus(y)));
+			return abs(sum(x, minus(y)));
 		case SUB:
 			return sum(x, minus(y));
-		case DIV:
-			throw new IllegalArgumentException("Division between vars is not implemented");
 		case MUL:
 			return product(x, y);
+		case DIV:
+			return quotient(x, y);
 		case MOD:
-			// Not needed
-			throw new IllegalArgumentException("Modulo between vars is not implemented");
+			return modulo(x, y);
 		case POW:
-			// Not needed
-			throw new IllegalArgumentException("Pow between vars is not implemented");
+			return pow(x, y);
 		default:
 			throw new IllegalArgumentException("Unknown TypeArithmeticOperator");
+		}
+	}
+
+	private IntVar parseExpr(XNode<XVarInteger> tree) {
+//		System.out.println(tree.toString() + " op: " + tree.type + " arity: " + tree.arity());
+		Types.TypeExpr type = tree.type;
+		switch (tree.arity()) {
+			case 0:
+				if (type == Types.TypeExpr.VAR) {
+//					System.out.println("in var");
+					return mapVar.get(tree.var(0));
+				} else if (type == Types.TypeExpr.LONG) {
+//					System.out.println("in val");
+					int val = tree.val(0);
+//					System.out.println("had to turn val into var in expression tree (shouldn't happen?)");
+					return makeIntVar(minicp, val, val);
+				} else
+					throw new IllegalArgumentException("expression tree leaf that isn't a var nor a value?");
+			case 1:
+				return unaryArithmeticOperatorConstraint(parseExpr(tree.sons[0]), type.toUnalop());
+			case 2:
+//				System.out.println("in binary op");
+				if (type == Types.TypeExpr.EQ) {
+					// special case of an assignment
+					IntVar x = parseExpr(tree.sons[0]);
+					x.assign(tree.sons[1].val(0));
+					return x;
+				}
+				if (tree.sons[1].type == Types.TypeExpr.LONG) {
+//					System.out.println("in arith with val; type is " + type);
+					return arithmeticOperatorConstraintVal(parseExpr(tree.sons[0]), type.toAriop(), tree.sons[1].val(0));
+				} else {
+					return arithmeticOperatorConstraintVar(parseExpr(tree.sons[0]), type.toAriop(), parseExpr(tree.sons[1]));
+				}
+			default:
+				if (type == Types.TypeExpr.MUL) {
+					IntVar cumul = parseExpr(tree.sons[0]);
+					for (int i = 1; i < tree.arity(); i++) {
+						cumul = product(cumul, parseExpr(tree.sons[i]));
+					}
+					return cumul;
+				}
+				if (type == Types.TypeExpr.ADD) {
+					IntVar[] children = new IntVar[tree.arity()];
+					for (int i = 0; i < tree.arity(); i++) {
+						children[i] = parseExpr(tree.sons[i]);
+					}
+					return sum(children);
+				}
+				throw new IllegalArgumentException("not implemented");
 		}
 	}
 
@@ -442,10 +489,38 @@ public class XCSP implements XCallbacks2 {
 	public void buildCtrSum(String id, XVarInteger[] list, Condition condition) {
 		if (hasFailed)
 			return;
+		try {
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new),mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new));
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrSum(String id, XNode<XVarInteger>[] trees, Condition condition) {
+		if (hasFailed)
+			return;
 
 		try {
-			IntVar s = sum(Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new));
-			buildCrtWithCondition(id, s, condition);
+			IntVar[] wx = new IntVar[trees.length];
+			for (int i = 0; i < trees.length; i++) {
+				wx[i] = parseExpr(trees[i]);
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(wx,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(wx);
+				buildCrtWithCondition(id, s, condition);
+			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -455,14 +530,85 @@ public class XCSP implements XCallbacks2 {
 	public void buildCtrSum(String id, XVarInteger[] list, int[] coeffs, Condition condition) {
 		if (hasFailed)
 			return;
-
 		try {
 			IntVar[] wx = new IntVar[list.length];
 			for (int i = 0; i < list.length; i++) {
 				wx[i] = mul(mapVar.get(list[i]), coeffs[i]);
 			}
-			IntVar s = sum(wx);
-			buildCrtWithCondition(id, s, condition);
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(wx,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(wx);
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrSum(String id, XNode<XVarInteger>[] trees, int[] coeffs, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] wx = new IntVar[trees.length];
+			for (int i = 0; i < trees.length; i++) {
+				wx[i] = mul(parseExpr(trees[i]), coeffs[i]);
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(wx,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(wx);
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrSum(String id, XVarInteger[] list, XVarInteger[] coeffs, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] wx = new IntVar[list.length];
+			for (int i = 0; i < list.length; i++) {
+				wx[i] = product(mapVar.get(list[i]), mapVar.get(coeffs[i]));
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(wx,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(wx);
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrSum(String id, XNode<XVarInteger>[] trees, XVarInteger[] coeffs, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] wx = new IntVar[trees.length];
+			for (int i = 0; i < trees.length; i++) {
+				wx[i] = product(parseExpr(trees[i]), mapVar.get(coeffs[i]));
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(sum(wx,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = sum(wx);
+				buildCrtWithCondition(id, s, condition);
+			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -476,13 +622,26 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(allDifferent(xs));
-			for (IntVar x : xs) {
-				decisionVars.add(x);
-			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
 	}
+
+	@Override
+	public void buildCtrAllDifferent(String id, XNode<XVarInteger>[] trees) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = new IntVar[trees.length];
+			for (int i=0; i<trees.length; i++) {
+				xs[i] = parseExpr(trees[i]);
+			}
+			minicp.post(allDifferent(xs));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
 	@Override
 	public void buildCtrAllEqual(String id, XVarInteger[] list) {
 		if (hasFailed)
@@ -496,6 +655,21 @@ public class XCSP implements XCallbacks2 {
 			hasFailed = true;
 		}
 	}
+
+	@Override
+	public void buildCtrAllEqual(String id, XNode<XVarInteger>[] trees) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(trees).map(this::parseExpr).toArray(IntVar[]::new);
+			for (int i = 1; i < trees.length; i++) {
+				minicp.post(equal(xs[0],xs[i]));
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
 
 	@Override
 	public void buildCtrOrdered(String id, XVarInteger[] list, Types.TypeOperatorRel operator) {
@@ -643,6 +817,57 @@ public class XCSP implements XCallbacks2 {
 		}
 	}
 
+	@Override
+	public void buildCtrPrecedence(String id, XVarInteger[] list) {
+		if (hasFailed)
+			return;
+		IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+		SortedSet<Integer> values = new TreeSet<Integer>();
+		for (int i = 0; i < xs.length; i++)
+			for (int j = xs[i].min(); j <= xs[i].max(); j++)
+				if (xs[i].contains(j)) {
+					values.add(j);
+				}
+		buildCtrPrecedence(id,list,values.stream().mapToInt(i->i).toArray(),false);
+	}
+
+	@Override
+	public void buildCtrPrecedence(String id, XVarInteger[] list, int[] values, boolean covered) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			int minVal = xs[0].min();
+			int maxVal = xs[0].max();
+			for (IntVar x : xs) {
+				if (x.min() < minVal)
+					minVal = x.min();
+				if (x.max() > maxVal)
+					maxVal = x.max();
+			}
+			int[][] A = new int[values.length+1][maxVal-minVal+1];
+			// TODO: potentially wasteful in terms of space; define A over union of domains only
+			for (int i = 0; i <= values.length; i++) {
+				for (int j = 0; j <= maxVal-minVal; j++) {
+					A[i][j] = i; // loop by default
+				}
+				if (i < values.length) A[i][values[i]] = i+1; // first occurrence of values[i]
+				for (int j = i+1; j < values.length; j++) {
+					A[i][values[j]] = -1; // cannot be used yet
+				}
+			}
+			if (covered) {
+				List<Integer> f = new ArrayList<Integer>();
+				f.add(values.length);
+				minicp.post(regular(xs,A,f));
+			}else {
+				minicp.post(regular(xs,A));
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
 	// the code of transpose method is from choco solver:
 	// https://tinyurl.com/tlgz7mt
 	/**
@@ -702,10 +927,12 @@ public class XCSP implements XCallbacks2 {
 				case ANY:
 					if (cond instanceof Condition.ConditionVal) {
 						int val = (int) ((Condition.ConditionVal) cond).k;
-						minicp.post(element(xs, y, val));
+						Types.TypeConditionOperatorRel op = ((Condition.ConditionVal) cond).operator;
+						relConstraintVal(element(xs, y), op, val);
 					} else if (cond instanceof Condition.ConditionVar) {
 						IntVar z = mapVar.get(((Condition.ConditionVar) cond).x);
-						minicp.post(element(xs, y, z));
+						Types.TypeConditionOperatorRel op = ((Condition.ConditionVar) cond).operator;
+						relConstraintVar(element(xs, y), op, z);
 					}
 					else {
 						System.out.println("c Element constraint with an unsupported condition");
@@ -736,10 +963,12 @@ public class XCSP implements XCallbacks2 {
 				case ANY:
 					if (cond instanceof Condition.ConditionVal) {
 						int val = (int) ((Condition.ConditionVal) cond).k;
-						minicp.post(element(list, y, val));
+						Types.TypeConditionOperatorRel op = ((Condition.ConditionVal) cond).operator;
+						relConstraintVal(element(list, y), op, val);
 					} else if (cond instanceof Condition.ConditionVar) {
 						IntVar z = mapVar.get(((Condition.ConditionVar) cond).x);
-						minicp.post(element(list, y, z));
+						Types.TypeConditionOperatorRel op = ((Condition.ConditionVar) cond).operator;
+						relConstraintVar(element(list, y), op, z);
 					}
 					else {
 						System.out.println("c Element constraint with an unsupported condition");
@@ -768,17 +997,19 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar x = minus(mapVar.get(rowIndex),startRowIndex);
 			IntVar y = minus(mapVar.get(colIndex),startColIndex);
-					if (cond instanceof Condition.ConditionVal) {
-						int val = (int) ((Condition.ConditionVal) cond).k;
-						minicp.post(element(matrix, x, y, val));
-					} else if (cond instanceof Condition.ConditionVar) {
-						IntVar z = mapVar.get(((Condition.ConditionVar) cond).x);
-						minicp.post(element(matrix, x, y, z));
-					}
-					else {
-						System.out.println("c Element constraint with an unsupported condition");
-						System.exit(1);
-					}
+			if (cond instanceof Condition.ConditionVal) {
+				int val = (int) ((Condition.ConditionVal) cond).k;
+				Types.TypeConditionOperatorRel op = ((Condition.ConditionVal) cond).operator;
+				relConstraintVal(element(matrix, x, y), op, val);
+			} else if (cond instanceof Condition.ConditionVar) {
+				IntVar z = mapVar.get(((Condition.ConditionVar) cond).x);
+				Types.TypeConditionOperatorRel op = ((Condition.ConditionVar) cond).operator;
+				relConstraintVar(element(matrix, x, y), op, z);
+			}
+			else {
+				System.out.println("c Element constraint with an unsupported condition");
+				System.exit(1);
+			}
 		} catch(InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -801,8 +1032,6 @@ public class XCSP implements XCallbacks2 {
 			for (XVarInteger[] list : matrix) {
 				IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 				minicp.post(allDifferent(xs));
-				for (IntVar x : xs)
-					decisionVars.add(x);
 			}
 			XVarInteger[][] tmatrix = transpose(matrix);
 			for (XVarInteger[] list : tmatrix) {
@@ -935,11 +1164,38 @@ public class XCSP implements XCallbacks2 {
 	public void buildCtrMaximum(String id, XVarInteger[] list, Condition condition) {
 		if (hasFailed)
 			return;
-		// Constraints
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
-			IntVar s = Factory.maximum(xs);
-			buildCrtWithCondition(id, s, condition);
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(maximum(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = maximum(xs);
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrMaximum(String id, XNode<XVarInteger>[] trees, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = new IntVar[trees.length];
+			for (int i=0; i<trees.length; i++) {
+				xs[i] = parseExpr(trees[i]);
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(maximum(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = maximum(xs);
+				buildCrtWithCondition(id, s, condition);
+			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -949,16 +1205,151 @@ public class XCSP implements XCallbacks2 {
 	public void buildCtrMinimum(String id, XVarInteger[] list, Condition condition) {
 		if (hasFailed)
 			return;
-		// Constraints
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
-			IntVar s = Factory.minimum(xs);
-			buildCrtWithCondition(id, s, condition);
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(minimum(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = Factory.minimum(xs);
+				buildCrtWithCondition(id, s, condition);
+			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
 	}
 
+	@Override
+	public void buildCtrMinimum(String id, XNode<XVarInteger>[] trees, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = new IntVar[trees.length];
+			for (int i=0; i<trees.length; i++) {
+				xs[i] = parseExpr(trees[i]);
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(minimum(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar s = minimum(xs);
+				buildCrtWithCondition(id, s, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrCount(String id, XVarInteger[] list, int[] values, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			Types.TypeConditionOperatorRel operator = null;
+			if (condition instanceof Condition.ConditionVar) {
+				IntVar countVar = mapVar.get(((Condition.ConditionVar) condition).x);
+				operator = ((Condition.ConditionVar) condition).operator;
+				IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+				IntVar occ = makeIntVar(minicp,0,xs.length);
+				minicp.post(among(xs,values,occ));
+				relConstraintVar(occ,operator,countVar);
+			} else if (condition instanceof Condition.ConditionVal) {
+				int countVal = (int) ((Condition.ConditionVal) condition).k;
+				operator = ((Condition.ConditionVal) condition).operator;
+				IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+				switch (operator) {
+					case EQ:
+						minicp.post(exactly(xs,values,countVal));
+						break;
+					case GE:
+						minicp.post(atleast(xs,values,countVal));
+						break;
+					case GT:
+						minicp.post(atleast(xs,values,countVal+1));
+						break;
+					case LE:
+						minicp.post(atmost(xs,values,countVal));
+						break;
+					case LT:
+						minicp.post(atmost(xs,values,countVal-1));
+						break;
+					case NE:
+						IntVar occ = makeIntVar(minicp,0,xs.length);
+						occ.remove(countVal);
+						minicp.post(among(xs,values,occ));
+						break;
+					default:
+						throw new InvalidParameterException("unknown condition");
+				}
+			} else {
+				throw new InvalidParameterException("unknown condition");
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrCount(String id, XNode<XVarInteger>[] trees, int[] values, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			Types.TypeConditionOperatorRel operator = null;
+			if (condition instanceof Condition.ConditionVar) {
+				IntVar countVar = mapVar.get(((Condition.ConditionVar) condition).x);
+				operator = ((Condition.ConditionVar) condition).operator;
+				IntVar[] xs = new IntVar[trees.length];
+				for (int i = 0; i < trees.length; i++) {
+					xs[i] = parseExpr(trees[i]);
+				}
+				IntVar occ = makeIntVar(minicp,0,xs.length);
+				minicp.post(among(xs,values,occ));
+				relConstraintVar(occ,operator,countVar);
+			} else if (condition instanceof Condition.ConditionVal) {
+				int countVal = (int) ((Condition.ConditionVal) condition).k;
+				operator = ((Condition.ConditionVal) condition).operator;
+				IntVar[] xs = new IntVar[trees.length];
+				for (int i = 0; i < trees.length; i++) {
+					xs[i] = parseExpr(trees[i]);
+				}
+				switch (operator) {
+					case EQ:
+						minicp.post(exactly(xs,values,countVal));
+						break;
+					case GE:
+						minicp.post(atleast(xs,values,countVal));
+						break;
+					case GT:
+						minicp.post(atleast(xs,values,countVal+1));
+						break;
+					case LE:
+						minicp.post(atmost(xs,values,countVal));
+						break;
+					case LT:
+						minicp.post(atmost(xs,values,countVal-1));
+						break;
+					case NE:
+						IntVar occ = makeIntVar(minicp,0,xs.length);
+						occ.remove(countVal);
+						minicp.post(among(xs,values,occ));
+						break;
+					default:
+						throw new InvalidParameterException("unknown condition");
+				}
+			} else {
+				throw new InvalidParameterException("unknown condition");
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+/*
+	@Override
+	public void buildCtrCount(String id, XVarInteger[] list, XVarInteger[] values, Condition condition) {
+	}
+*/
 	@Override
 	public void buildCtrAtLeast(String id, XVarInteger[] list, int value, int k) {
 		if (hasFailed)
@@ -966,7 +1357,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(atleast(xs, value, k));
-			// FIXME Should we add xs to decisionVars?
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -979,7 +1369,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(atmost(xs, value, k));
-			// FIXME Should we add xs to decisionVars?
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -992,7 +1381,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(exactly(xs, value, k));
-			// FIXME Should we add xs to decisionVars?
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1005,7 +1393,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(among(xs, value, mapVar.get(k)));
-			// FIXME Should we add xs to decisionVars?
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1018,7 +1405,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(exactly(xs, values, k));
-			// FIXME Should we add xs to decisionVars?
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1031,10 +1417,6 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(among(xs, values, mapVar.get(k)));
-			// FIXME Should these be added?
-			for (IntVar x : xs) {
-				decisionVars.add(x);
-			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1050,10 +1432,6 @@ public class XCSP implements XCallbacks2 {
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			IntVar[] os = Arrays.stream(occurs).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(cardinality(xs, values, os));
-			// FIXME Should these be added?
-			for (IntVar x : xs) {
-				decisionVars.add(x);
-			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1068,10 +1446,6 @@ public class XCSP implements XCallbacks2 {
 				throw new NotImplementedException();
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(cardinality(xs, values, occurs));
-			// FIXME Should these be added?
-			for (IntVar x : xs) {
-				decisionVars.add(x);
-			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1087,9 +1461,54 @@ public class XCSP implements XCallbacks2 {
 				throw new NotImplementedException();
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
 			minicp.post(cardinality(xs, values, occursMin, occursMax));
-			// FIXME Should these be added?
-			for (IntVar x : xs) {
-				decisionVars.add(x);
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrNValues(String id, XVarInteger[] list, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(nValues(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar nDistinct = makeIntVar(minicp, 0, xs.length);
+				minicp.post(nValues(xs, nDistinct));
+				buildCrtWithCondition(id, nDistinct, condition);
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	/*
+	@Override
+	public void buildCtrNValuesExcept(String id, XVarInteger[] list, int[] except, Condition condition) {
+	}
+*/
+
+	@Override
+	public void buildCtrNValues(String id, XNode<XVarInteger>[] trees, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = new IntVar[trees.length];
+			for (int i=0; i<trees.length; i++) {
+				xs[i] = parseExpr(trees[i]);
+			}
+			if ((condition instanceof Condition.ConditionVar) &&
+					(((Condition.ConditionVar) condition).operator == Types.TypeConditionOperatorRel.EQ)) {
+				// special case of equality with a variable: avoid creating an intermediate variable
+				minicp.post(nValues(xs,mapVar.get(((Condition.ConditionVar) condition).x)));
+			} else {
+				IntVar nDistinct = makeIntVar(minicp, 0, xs.length);
+				minicp.post(nValues(xs, nDistinct));
+				buildCrtWithCondition(id, nDistinct, condition);
 			}
 		} catch (InconsistencyException e) {
 			hasFailed = true;
@@ -1101,13 +1520,75 @@ public class XCSP implements XCallbacks2 {
 		if (hasFailed)
 			return;
 		try {
-
 			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
-
 			assert (xs.length == values.length);
 			for (int i = 0; i < xs.length; i++)
 				xs[i].assign(values[i]);
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
 
+	@Override
+	public void buildCtrClause(String id, XVarInteger[] pos, XVarInteger[] neg) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xpos = Arrays.stream(pos).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar[] xneg = Arrays.stream(neg).map(mapVar::get).toArray(IntVar[]::new);
+			BoolVar[] literals = new BoolVar[xpos.length + xneg.length];
+			for (int i = 0; i < xpos.length; i++) {
+				literals[i] = makeBoolVar(minicp);
+				minicp.post(equal(literals[i],xpos[i]));
+			}
+			for (int i = 0; i < xneg.length; i++) {
+				literals[xpos.length + i] = makeBoolVar(minicp);
+				minicp.post(equal(not(literals[xpos.length + i]),xneg[i]));
+			}
+			minicp.post(or(literals));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrChannel(String id, XVarInteger[] list, int startIndex) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] x = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			minicp.post(inverse(x,x,startIndex));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrChannel(String id, XVarInteger[] list1, int startIndex1, XVarInteger[] list2, int startIndex2) {
+		if (hasFailed)
+			return;
+		if (startIndex1 != startIndex2) {
+			System.out.println("c Channel constraint with two different start indices?!?");
+			System.exit(1);
+		}
+		try {
+			IntVar[] x1 = Arrays.stream(list1).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar[] x2 = Arrays.stream(list2).map(mapVar::get).toArray(IntVar[]::new);
+			minicp.post(inverse(x1,x2,startIndex1));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrChannel(String id, XVarInteger[] list, int startIndex, XVarInteger value) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] x = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new); // assumes this is an array of 0-1 vara
+			IntVar v = (startIndex == 0 ? mapVar.get(value) : new IntVarViewOffset(mapVar.get(value), -startIndex));
+			minicp.post(element(x,v,1));
+			minicp.post(sum(x,1));
 		} catch (InconsistencyException e) {
 			hasFailed = true;
 		}
@@ -1133,7 +1614,7 @@ public class XCSP implements XCallbacks2 {
 			// create var view of x with domain starting at zero (regular constraint currently requires this)
 			IntVar[] x_withDomStartingAtZero = new IntVar[x.length];
 			for (int i = 0; i < x.length; i++) {
-				x_withDomStartingAtZero[i] = new IntVarViewOffset(x[i], -minVal);
+				x_withDomStartingAtZero[i] = minus(x[i], minVal);
 			}
 
 			Map<String, Integer> stateMap = new HashMap<String, Integer>();
@@ -1187,8 +1668,216 @@ public class XCSP implements XCallbacks2 {
 	@Override
 	public void buildCtrCircuit(String id, XVarInteger[] list, int startIndex) {
 		// TODO this signature (without size parameter) should allow self-loops but it currently won't...
-		IntVar[] x = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
-		minicp.post(circuit(x, startIndex));
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] x = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			minicp.post(circuit(x, startIndex));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrBinPacking(String id, XVarInteger[] list, int[] sizes, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] b = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			if (!(condition instanceof Condition.ConditionVal)) {
+				throw new InvalidParameterException("bin packing constraint with inappropriate condition");
+			}
+			int	capacity = (int) ((Condition.ConditionVal) condition).k;
+			Types.TypeConditionOperatorRel operator = ((Condition.ConditionVal) condition).operator;
+			int lastBin = 0;
+			for (int i=0; i < b.length; i++) {
+				if (b[i].max() > lastBin)
+					lastBin = b[i].max();
+			}
+			IntVar[] l = new IntVar[lastBin+1];
+			// restrict the capacity of bins
+			switch (operator) {
+				case LE:
+					for (int j = 0; j <= lastBin; j++) {
+						l[j] = makeIntVar(minicp,0, capacity);
+					}
+					break;
+				case LT:
+					for (int j = 0; j <= lastBin; j++) {
+						l[j] = makeIntVar(minicp,0, capacity-1);
+					}
+					break;
+				case EQ:
+					for (int j = 0; j <= lastBin; j++) {
+						l[j] = makeIntVar(minicp, capacity, capacity);
+					}
+					break;
+				default:
+					throw new InvalidParameterException("bin packing constraint with inappropriate condition");
+			}
+			minicp.post(binPacking(b, sizes, l));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrBinPacking(String id, XVarInteger[] list, int[] sizes, int[] capacities, boolean loads) {
+		// Hypothesis: if loads is true than these capacities correspond to the exact load? Difference between <limits> and <loads>
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] b = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar[] l = new IntVar[capacities.length];
+			// restrict the capacity of bins
+			if (loads) {
+				for (int j = 0; j < l.length; j++) {
+					l[j] = makeIntVar(minicp, capacities[j], capacities[j]);
+				}
+			} else {
+				for (int j = 0; j < l.length; j++) {
+					l[j] = makeIntVar(minicp, 0, capacities[j]);
+				}
+			}
+			minicp.post(binPacking(b, sizes, l));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrBinPacking(String id, XVarInteger[] list, int[] sizes, XVarInteger[] capacities, boolean loads) {
+		// Hypothesis: if loads is true than these capacities correspond to the exact load? Difference between <limits> and <loads>
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] b = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			IntVar[] caps = Arrays.stream(capacities).map(mapVar::get).toArray(IntVar[]::new);
+			// restrict the capacity of bins
+			if (loads) {
+				minicp.post(binPacking(b, sizes, caps));
+			} else {
+				IntVar[] l = new IntVar[capacities.length];
+				for (int j = 0; j < l.length; j++) {
+					l[j] = makeIntVar(minicp, 0, caps[j].max());
+					minicp.post(lessOrEqual(l[j], caps[j]));
+				}
+				minicp.post(binPacking(b, sizes, l));
+			}
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrBinPacking(String id, XVarInteger[] list, int[] sizes, Condition[] conditions, int startIndex) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] b;
+			if (startIndex == 0) {
+				b = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			} else {
+				b = new IntVar[list.length];
+				for (int i=0; i<list.length; i++) {
+					b[i] = new IntVarViewOffset(mapVar.get(list[i]), -startIndex);
+				}
+			}
+			IntVar[] l = new IntVar[conditions.length];
+			for (int j = 0; j < l.length; j++) {
+				if (!(conditions[j] instanceof Condition.ConditionVal)) {
+					throw new InvalidParameterException("bin packing constraint with inappropriate condition");
+				}
+				int capacity = (int) ((Condition.ConditionVal) conditions[j]).k;
+				Types.TypeConditionOperatorRel operator = ((Condition.ConditionVal) conditions[j]).operator;
+				// restrict the capacity of bins
+				switch (operator) {
+					case LE:
+						l[j] = makeIntVar(minicp, 0, capacity);
+						break;
+					case LT:
+						l[j] = makeIntVar(minicp, 0, capacity - 1);
+						break;
+					case EQ:
+						l[j] = makeIntVar(minicp, capacity, capacity);
+						break;
+					default:
+						throw new InvalidParameterException("bin packing constraint with inappropriate condition");
+				}
+			}
+			minicp.post(binPacking(b, sizes, l));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrKnapsack(String id, XVarInteger[] list, int[] weights, Condition wcondition, int[] profits, Condition pcondition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] xs = Arrays.stream(list).map(mapVar::get).toArray(IntVar[]::new);
+			int maxWeight=0, minProfit=0;
+			Types.TypeConditionOperatorRel woperator=null, poperator=null;
+			if (wcondition instanceof Condition.ConditionVal) {
+				maxWeight = (int) ((Condition.ConditionVal) wcondition).k;
+					woperator = ((Condition.ConditionVal) wcondition).operator;
+			} else {
+				System.out.println("c Knapsack constraint with an unsupported wcondition");
+				System.exit(1);
+			}
+			if ((woperator != Types.TypeConditionOperatorRel.EQ) && (woperator != Types.TypeConditionOperatorRel.LE) && (woperator != Types.TypeConditionOperatorRel.LT)) {
+				System.out.println("c Knapsack constraint with an unsupported wcondition");
+				System.exit(1);
+			}
+			if (pcondition instanceof Condition.ConditionVal) {
+				minProfit = (int) ((Condition.ConditionVal) pcondition).k;
+				poperator = ((Condition.ConditionVal) pcondition).operator;
+			} else {
+				System.out.println("c Knapsack constraint with an unsupported pcondition");
+				System.exit(1);
+			}
+			if ((poperator != Types.TypeConditionOperatorRel.EQ) && (poperator != Types.TypeConditionOperatorRel.GE) && (poperator != Types.TypeConditionOperatorRel.GT)) {
+				System.out.println("c Knapsack constraint with an unsupported pcondition");
+				System.exit(1);
+			}
+			relConstraintVal(sum(weights,xs), woperator, maxWeight);
+			relConstraintVal(sum(profits,xs), poperator, minProfit);
+			} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrNoOverlap(String id, XVarInteger[] origins, int[] lengths, boolean zeroIgnored) {
+		if (hasFailed)
+			return;
+		if (!zeroIgnored) {
+			System.out.println("c NoOverlap constraint with unsupported zeroIgnored=false");
+			System.exit(1);
+		}
+		try {
+			IntVar[] starts = Arrays.stream(origins).map(mapVar::get).toArray(IntVar[]::new);
+			minicp.post(disjunctive(starts,lengths));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
+	}
+
+	@Override
+	public void buildCtrCumulative(String id, XVarInteger[] origins, int[] lengths, int[] heights, Condition condition) {
+		if (hasFailed)
+			return;
+		try {
+			IntVar[] starts = Arrays.stream(origins).map(mapVar::get).toArray(IntVar[]::new);
+			if (!(condition instanceof Condition.ConditionVal) || (((Condition.ConditionVal) condition).operator != Types.TypeConditionOperatorRel.LE)) {
+				System.out.println("c Cumulative constraint with an unsupported condition");
+				System.exit(1);
+			}
+			minicp.post(cumulative(starts,lengths,heights,(int) ((Condition.ConditionVal) condition).k));
+		} catch (InconsistencyException e) {
+			hasFailed = true;
+		}
 	}
 
 	static class EntryComparator implements Comparator<Map.Entry<XVarInteger, IntVar>> {
@@ -1381,6 +2070,7 @@ public class XCSP implements XCallbacks2 {
 
 	public void solve(BranchingHeuristic heuristic, int timeout, String statsFileStr, String solFileStr) {
 
+		// GP: this is the solve we use
 		Long t0 = System.currentTimeMillis();
 
 		minicp.setTraceBPFlag(traceBP);
@@ -1398,10 +2088,25 @@ public class XCSP implements XCallbacks2 {
 			throw InconsistencyException.INCONSISTENCY;
 		}
 
+		/*
 		Stream<IntVar> nonDecisionVars = mapVar.entrySet().stream().sorted(new EntryComparator())
 				.map(Map.Entry::getValue).filter(v -> !decisionVars.contains(v));
 		IntVar[] vars = Stream.concat(decisionVars.stream(),
 		 nonDecisionVars).toArray(IntVar[]::new);
+		*/
+
+		/* */
+		// possibly too complicated for nothing...
+		IntVar[] vars = mapVar.entrySet().stream().map(Map.Entry::getValue).toArray(IntVar[]::new);
+		/* */
+
+		/*
+		// GP for branching, use all vars registered in solver, not only those appearing in the model
+		IntVar[] vars = new IntVar[minicp.getVariables().size()];
+		for (int i = 0; i < minicp.getVariables().size(); i++) {
+			vars[i] = minicp.getVariables().get(i);
+		}
+		*/
 
 		Search search = null;
 		switch (heuristic) {
@@ -1480,11 +2185,16 @@ public class XCSP implements XCallbacks2 {
 				sol.append("</values>\nv </instantiation>");
 				solutionStr = sol.toString();
 			}
+			// GP: printing each solution
+//			System.out.println("SOLN:"+solutionStr);
 		});
+
 		SearchStatistics stats;
 		if(!restart) {
 			stats = search.solve(ss -> {
 				return (System.currentTimeMillis() - t0 >= timeout * 1000 || foundSolution);
+				// GP; print all solns
+//				return (System.currentTimeMillis() - t0 >= timeout * 1000);
 			});
 		}
 		else {
@@ -1510,9 +2220,11 @@ public class XCSP implements XCallbacks2 {
 			if(foundSolution) {
 				System.out.println("s SATISFIABLE");
 				System.out.println(solutionStr);
+				System.out.println("c "+stats.numberOfFailures()+" backtracks");
 			}
 			else if(stats.isCompleted()) {
 				System.out.println("s UNSATISFIABLE");
+				System.out.println("c "+stats.numberOfFailures()+" backtracks");
 			}
 			else {
 				System.out.println("s UNKNOWN");

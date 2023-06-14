@@ -602,6 +602,19 @@ public final class Factory {
     }
 
     /**
+     * Returns a minimum constraint.
+     *
+     * @param x an array of variables
+     * @param y a variable
+     * @return a constraint so that {@code y = min{x[0],x[1],...,x[n-1]}}
+     */
+    public static Constraint minimum(IntVar[] x, IntVar y) {
+        IntVar[] minusX = Arrays.stream(x).map(Factory::minus).toArray(IntVar[]::new);
+        IntVar minusY = minus(y);
+        return new Maximum(minusX, minusY);
+    }
+
+    /**
      * Returns a constraint imposing that the
      * the first variable differs from the second
      * one minus a constant value.
@@ -909,7 +922,7 @@ public final class Factory {
      */
     public static IntVar product(IntVar x, IntVar y) {
         Solver cp = x.getSolver();
-	IntVar z = makeIntVar(cp, Math.min(Math.min(Math.min(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()), Math.max(Math.max(Math.max(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()));
+	    IntVar z = makeIntVar(cp, Math.min(Math.min(Math.min(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()), Math.max(Math.max(Math.max(x.min()*y.min(),x.min()*y.max()),x.max()*y.min()),x.max()*y.max()));
         cp.post(new Product(x, y, z));
 	return z;
     }
@@ -929,6 +942,21 @@ public final class Factory {
     }
 
     /**
+     * Returns a variable representing the quotient of two variables
+     *
+     * @param x a variable
+     * @param y a variable
+     * @return a variable equal to {@code x / y}
+     */
+    public static IntVar quotient(IntVar x, IntVar y) {
+        Solver cp = x.getSolver();
+        y.remove(0);
+        IntVar z = makeIntVar(cp, Math.min(Math.min(Math.min(x.min()/y.min(),x.min()/y.max()),x.max()/y.min()),x.max()/y.max()), Math.max(Math.max(Math.max(x.min()/y.min(),x.min()/y.max()),x.max()/y.min()),x.max()/y.max()));
+        cp.post(new Product(y, z, x));
+        return z;
+    }
+
+    /**
      * Returns a constraint imposing that the first variable elevated to the power of the second variable
      * is equal to the third one.
      *
@@ -939,6 +967,20 @@ public final class Factory {
      */
     public static Constraint pow(IntVar x, IntVar y, IntVar z) {
         return new Pow(x, y, z);
+    }
+
+    /**
+     * Returns a variable representing the first variable elevated to the power of the second variable.
+     *
+     * @param x base variable
+     * @param y exponent variable
+     * @return a variable equal to {@code x ^ y}
+     */
+    public static IntVar pow(IntVar x, IntVar y) {
+        Solver cp = x.getSolver();
+        IntVar z = makeIntVar(cp, (int) Math.floor(Math.min(Math.min(Math.min(Math.pow((double) x.min(),(double) y.min()),Math.pow((double) x.min(),(double) y.max())),Math.pow((double) x.max(),(double) y.min())),Math.pow((double) x.max(),(double) y.max()))), (int) Math.ceil(Math.max(Math.max(Math.max(Math.pow((double) x.min(),(double) y.min()),Math.pow((double) x.min(),(double) y.max())),Math.pow((double) x.max(),(double) y.min())),Math.pow((double) x.max(),(double) y.max()))));
+        cp.post(new Pow(x, y, z));
+        return z;
     }
 
     /**
@@ -971,6 +1013,20 @@ public final class Factory {
         }
         IntVar k = makeIntVar(x.getSolver(), min, max); // min( 0, floor(min(x) / min(p)) ) <= k <= max( 0, floor(max(x) / min(p)) )
         return new Equal(x,sum(product(k,p),z));
+    }
+
+    /**
+     * Returns a variable representing the remainder of the modulo operation on two variables
+     *
+     * @param x a variable
+     * @param p a variable (the modulus)
+     * @return a variable equal to {@code x % p}
+     */
+    public static IntVar modulo(IntVar x, IntVar p) {
+        Solver cp = x.getSolver();
+        IntVar z = makeIntVar(cp, 0, p.max() - 1);
+        cp.post(modulo(x, p, z));
+        return z;
     }
 
     /**
@@ -1032,6 +1088,35 @@ public final class Factory {
         Solver cp = y.getSolver();
         IntVar z = makeIntVar(cp, IntStream.of(array).min().getAsInt(), IntStream.of(array).max().getAsInt());
         cp.post(new Element1DDomainConsistent(array, y, z));
+        return z;
+    }
+
+    /**
+     * Returns a variable representing
+     * the value in an array at the position
+     * specified by the given index variable
+     * This relation is enforced by the {@link Element1DVar} constraint
+     * posted by calling this method.
+     *
+     * @param array the array of variables
+     * @param y     the variable
+     * @return a variable equal to {@code array[y]}
+     */
+    public static IntVar element(IntVar[] array, IntVar y) {
+        Solver cp = y.getSolver();
+        int min = array[0].min();
+        int max = array[0].max();
+        for (int i = 1;  i < array.length; i++) {
+            if (array[i].min() < min)
+                min = array[i].min();
+            if (array[i].max() > max)
+                max = array[i].max();
+        }
+        IntVar z = makeIntVar(cp, min, max);
+        IntVar[] vars = Arrays.copyOf(array, array.length + 2);
+        vars[array.length] = y;
+        vars[array.length + 1] = z;
+        cp.post(new Element1DVar(array, y, z, vars));
         return z;
     }
 
@@ -1721,6 +1806,22 @@ public final class Factory {
 	}
 
     /**
+     * Returns a NValues constraint.
+     * This relation is currently enforced by decomposing it into {@link TableCT}, {@link IsOr} and {@link Sum} constraints; it is not domain consistent
+     *
+     * @param x    an array of variables
+     * @param nDistinct    a variable corresponding to the number of distinct values occurring in x
+     * @return a NValues constraint
+     */
+    public static Constraint nValues(IntVar[] x, IntVar nDistinct) {
+        int maxDomainSize = 0;
+        for (int i = 0; i < x.length; i++) {
+            maxDomainSize = Math.max(maxDomainSize, x[i].size());
+        }
+        return new NValues(x, nDistinct, makeIntVar(x[0].getSolver(), 1, maxDomainSize));
+    }
+
+    /**
      * Returns a Circuit Constraint
      * @param x       an array of variables
      * @param offset  the smallest value in the domains of x
@@ -1738,6 +1839,38 @@ public final class Factory {
      */
     public static Constraint circuit(IntVar[] x) {
         return new Circuit(x);
+    }
+
+    /**
+     * Returns a bin packing constraint.
+     * @param b    the bin into which each item is put
+     * @param size the size of each item
+     * @param l    the load of each bin
+     * @return
+     */
+    public static Constraint binPacking(IntVar[] b, int[] size, IntVar[] l) {
+        IntVar[] vars = Arrays.copyOf(b, b.length + l.length);
+        for (int i = 0; i < l.length; i++) {
+            vars[b.length + i] = l[i];
+        }
+        return new BinPacking(b,size,l,vars);
+    }
+    /**
+     * special case with same capacity on every bin and no handle on bin load
+     */
+    public static Constraint binPacking(IntVar[] b, int[] size, int capacity) {
+        // find out the range of available bins (assumes bins are indexed starting at 0)
+        int lastBin = 0;
+        for (int i=0; i < b.length; i++) {
+            if (b[i].max() > lastBin)
+                lastBin = b[i].max();
+        }
+        IntVar[] l = new IntVar[lastBin+1];
+        // restrict the capacity of bins
+        for (int j = 0; j <= lastBin; j++) {
+            l[j] = makeIntVar(b[0].getSolver(), 0, capacity);
+        }
+        return binPacking(b,size,l);
     }
 
     /**

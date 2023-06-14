@@ -308,7 +308,7 @@ public class Circuit extends AbstractConstraint {
             if (success == target_nb_samples)
                 break;
         }
- 	    System.out.println(success+" successfully sampled circuits (target="+target_nb_samples+") out of at most "+max_nb_samples+" attempts");
+// 	    System.out.println(success+" successfully sampled circuits (target="+target_nb_samples+") out of at most "+max_nb_samples+" attempts");
 
         //Set beliefs
         if (success >= 1) {

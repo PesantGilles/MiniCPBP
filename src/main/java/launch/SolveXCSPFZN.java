@@ -186,7 +186,7 @@ public class SolveXCSPFZN {
 			checkCreateFile(solFileStr);
 		}
 
-		int maxIter = 5;
+		int maxIter = 10;
 		if (cmd.hasOption("max-iter"))
 			maxIter = Integer.parseInt(cmd.getOptionValue("max-iter"));
 

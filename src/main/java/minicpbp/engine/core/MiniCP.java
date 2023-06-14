@@ -350,7 +350,7 @@ public class MiniCP implements Solver {
                 if (smallEntropy <= MIN_VAR_ENTROPY) { // at least one variable with low uncertainty about the value it should take
                     break;
                 }
-                if (currentEntropy == previousEntropy) { // marginals probably did not change either (and won't in the future)
+                if ((iter > 1) /* give it a chance to kick in */ && (currentEntropy == previousEntropy)) { // marginals probably did not change either (and won't in the future)
                     break;
                 }
                 if ((iter > 2) /* give it a chance to stabilize */ && (currentEntropy - previousEntropy > ENTROPY_TOLERANCE)) { // entropy actually increased
@@ -396,7 +396,7 @@ public class MiniCP implements Solver {
         double previousDeltaEntropy, currentDeltaEntropy;
         int valleyCount;
         while (!dampingFactorDetermined) {
- //           System.out.println("trying DAMPING FACTOR = " + dampingFactor());
+//            System.out.println("trying DAMPING FACTOR = " + dampingFactor());
             // start afresh
             for (int i = 0; i < variables.size(); i++) {
                 variables.get(i).resetMarginals();
@@ -422,7 +422,7 @@ public class MiniCP implements Solver {
                     break;
                 }
                 if (previousDeltaEntropy <= 0 && currentDeltaEntropy > ENTROPY_TOLERANCE) {
- //                   System.out.println("valley");
+//                    System.out.println("valley");
                     valleyCount++;
                     if (valleyCount >= 2) {
  //                       System.out.println("two valleys ==> oscillation");
