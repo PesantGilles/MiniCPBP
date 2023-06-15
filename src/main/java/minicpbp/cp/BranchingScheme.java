@@ -900,9 +900,19 @@ public final class BranchingScheme {
         };
     }
 
+    /**
+     * dom/wdeg strategy.
+     * It selects the first unbound variable with a smallest ratio of domain size to weighted degree.
+     * Then it creates two branches:
+     * the left branch assigning the variable to its minimum value;
+     * the right branch removing this minimum value from the domain.
+     *
+     * @param x the variable on which the dom/wdeg strategy is applied.
+     * @return a dom/wdeg branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
     public static Supplier<Procedure[]> domWdeg(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
-        Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
             return () -> {
@@ -912,21 +922,21 @@ public final class BranchingScheme {
                 if (xs == null)
                     return EMPTY;
                 else {
-                    int v = xs.valueWithMinMarginal();
+                    int v = xs.min();
                     return branch(
-                            () -> {
-                                if (tracing)
-                                    System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
-                                branchNotEqual(xs, v);
-                            },
                             () -> {
                                 if (tracing)
                                     System.out.println("### branching on " + xs.getName() + "=" + v);
                                 branchEqual(xs, v);
+                            },
+                            () -> {
+                                if (tracing)
+                                    System.out.println("### branching on " + xs.getName() + "!=" + v);
+                                branchNotEqual(xs, v);
                             });
                 }
             };
-    }
+    };
 
     /**
      * Maximum Marginal strategy.
