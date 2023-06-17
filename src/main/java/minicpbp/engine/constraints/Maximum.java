@@ -20,6 +20,8 @@ import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.util.ArrayUtil;
 
+import java.util.Arrays;
+
 /**
  * Maximum Constraint
  */
@@ -27,9 +29,15 @@ public class Maximum extends AbstractConstraint {
 
     private final IntVar[] x;
     private final IntVar y;
+    private int n;
+    private double[][] beliefLessOrEqual;
+    private double[] bProductLessOrEqual;
+    private int offset;
+    private double yBeliefDifference[];
+    private int yOffset;
 
     /**
-     * Creates the maximum constraint y = maximum(x[0],x[1],...,x[n])?
+     * Creates the maximum constraint y = maximum(x[0],x[1],...,x[n])
      *
      * @param x the variable on which the maximum is to be found
      * @param y the variable that is equal to the maximum on x
@@ -37,11 +45,11 @@ public class Maximum extends AbstractConstraint {
     public Maximum(IntVar[] x, IntVar y) {
         super(x[0].getSolver(), ArrayUtil.append(x, y));
         setName("Maximum");
-        assert (x.length > 0);
+        n = x.length;
+        assert (n > 0);
         this.x = x;
         this.y = y;
     }
-
 
     @Override
     public void post() {
@@ -50,6 +58,23 @@ public class Maximum extends AbstractConstraint {
         }
         y.propagateOnBoundChange(this);
         propagate();
+        // determine range of domain values; sufficient to look at x[i]'s because y was narrowed to [max(min),..,max(max)] in propagate()
+        // TODO: give up on updateBellief() if range is too large?
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+        for (int i = 0; i < n; i++) {
+            if (x[i].max() > max) {
+                max = x[i].max();
+            }
+            if (x[i].min() < min) {
+                min = x[i].min();
+            }
+        }
+        beliefLessOrEqual = new double[n][max-min+1];
+        bProductLessOrEqual = new double[max-min+1];
+        offset = min;
+        yBeliefDifference = new double[y.max()-y.min()+1];
+        yOffset = y.min();
     }
 
 
@@ -59,7 +84,7 @@ public class Maximum extends AbstractConstraint {
         int min = Integer.MIN_VALUE;
         int nSupport = 0;
         int supportIdx = -1;
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < n; i++) {
             x[i].removeAbove(y.max());
 
             if (x[i].max() > max) {
@@ -79,6 +104,63 @@ public class Maximum extends AbstractConstraint {
         }
         y.removeAbove(max);
         y.removeBelow(min);
+    }
+
+    public void updateBelief() {
+        // accumulate belief for each x[i] wrt values and compute their product for each value
+        for (int j = 0; j < bProductLessOrEqual.length; j++) {
+            bProductLessOrEqual[j] = beliefRep.one();
+            int v = j+offset;
+            for (int i = 0; i < n; i++) {
+                beliefLessOrEqual[i][j] = (j==0? beliefRep.zero() : beliefLessOrEqual[i][j-1]);
+                if (x[i].contains(v)) {
+                    beliefLessOrEqual[i][j] = beliefRep.add( beliefLessOrEqual[i][j], outsideBelief(i, v));
+                }
+ //               System.out.println("beliefLE "+ i + " " + v + ": "+beliefLessOrEqual[i][j]);
+                bProductLessOrEqual[j] = beliefRep.multiply( bProductLessOrEqual[j], beliefLessOrEqual[i][j]);
+            }
+//            System.out.println("bProductLE "+ v + ": "+bProductLessOrEqual[j]);
+        }
+        // precompute belief difference between consecutive values in the range of the domain of y
+        for (int v = y.min(); v <= y.max(); v++) {
+            yBeliefDifference[v-yOffset] = beliefRep.subtract(
+                    (y.contains(v)? outsideBelief( n, v) : beliefRep.zero()),
+                    (y.contains(v+1)? outsideBelief( n, v+1) : beliefRep.zero()));
+        }
+        // Compute beliefs for y
+        int s = y.fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+            int v = domainValues[j];
+            // belief for y=v is that of all x[i]'s being at most v minus that of all x[i]"s being less than v
+            setLocalBelief(n, v, (v>offset? beliefRep.subtract(bProductLessOrEqual[v-offset], bProductLessOrEqual[v-1-offset]) : bProductLessOrEqual[v-offset]));
+        }
+        // Compute beliefs for x[i]s
+        for (int i = 0; i < n; i++) {
+//            System.out.println("i="+i);
+            double runningSum = beliefRep.zero();
+            // process values in the range of the domain of y in decreasing order...
+            for (int v = y.max(); v >= y.min(); v--) {
+//                System.out.println("at y value " + v);
+                runningSum = beliefRep.add( runningSum, beliefRep.multiply( yBeliefDifference[v-yOffset], beliefRep.divide(bProductLessOrEqual[v-offset], beliefLessOrEqual[i][v-offset])));
+                if (x[i].contains(v)) {
+                    // belief for x[i]=v is (y=v and all other x[j]<=v) + (y=v'>v and all other x[j]<=v' and some x[k]=v')
+                    setLocalBelief(i, v, runningSum);
+//                    System.out.println(runningSum);
+                }
+            }
+            //...and continue until x[i].min()
+            if (x[i].min()<y.min()) { // a last adjustment
+                runningSum = beliefRep.subtract( runningSum, beliefRep.multiply( outsideBelief( n, y.min()), beliefRep.divide(bProductLessOrEqual[y.min()-1-offset], beliefLessOrEqual[i][y.min()-1-offset])));
+            }
+            for (int v = y.min()-1; v >= x[i].min(); v--) {
+//                System.out.println("at value " + v);
+                if (x[i].contains(v)) {
+                    // belief for x[i]=v<y.min() is (y=v'>v and all other x[j]<=v' and some x[k]=v')
+                    setLocalBelief(i, v, runningSum);
+//                    System.out.println(runningSum);
+                }
+            }
+        }
     }
 
 }
