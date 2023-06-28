@@ -224,7 +224,6 @@ public class XCSP implements XCallbacks2 {
 			}
 			x.getSolver().fixPoint();
 		} catch (InconsistencyException e) {
-			System.out.println("failed rel");
 			hasFailed = true;
 		}
 	}
@@ -1014,15 +1013,6 @@ public class XCSP implements XCallbacks2 {
 			hasFailed = true;
 		}
 	}
-
-	@Override
-	public void buildCtrElement(String id, XVarInteger[][] matrix, int startRowIndex, XVarInteger rowIndex, int startColIndex, XVarInteger colIndex,
-								 Condition cond) {
-		if (hasFailed)
-			return;
-		throw new NotImplementedException();
-	}
-
 	@Override
 	public void buildCtrAllDifferentMatrix(String id, XVarInteger[][] matrix) {
 		if (hasFailed)
@@ -2084,8 +2074,14 @@ public class XCSP implements XCallbacks2 {
 //		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
-			System.out.println("problem failed before initiating the search");
-			throw InconsistencyException.INCONSISTENCY;
+			if (!competitionOutput) {
+				System.out.println("problem failed before initiating the search");
+				throw InconsistencyException.INCONSISTENCY;
+			} else {
+				System.out.println("s UNSATISFIABLE");
+				System.out.println("c problem failed before initiating the search");
+				return;
+			}
 		}
 
 		/*
@@ -2175,10 +2171,10 @@ public class XCSP implements XCallbacks2 {
 				solutionStr = sol.toString();
 			}
 			if(competitionOutput) {
-				StringBuilder sol = new StringBuilder("v <instantiation>\nv\t<list> ");
+				StringBuilder sol = new StringBuilder("v <instantiation>\nv <list> ");
 				for (XVarInteger x : xVars)
 					sol.append(x.id()).append(" ");
-				sol.append("</list>\nv\t<values> ");
+				sol.append("</list>\nv <values> ");
 				for (IntVar x : minicpVars) {
 					sol.append(x.min()).append(" ");
 				}
