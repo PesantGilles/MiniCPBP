@@ -153,6 +153,11 @@ public interface Solver {
     void beliefPropa();
 
     /**
+     * Performs no-bells-and-whistles belief propagation: runs for a specified number of iterations, without damping
+     */
+    void vanillaBP(int nbIterations);
+
+    /**
      * Propagate following the right mode (fixpoint and/or belief)
      */
     void propagateSolver();

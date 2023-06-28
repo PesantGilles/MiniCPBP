@@ -315,13 +315,18 @@ public class MiniCP implements Solver {
             double previousEntropy, currentEntropy = 1.0;
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
+                if (traceBP) {
+                    System.out.println("##### after BP iteration " + iter + " #####");
+                    for (int i = 0; i < variables.size(); i++) {
+                        System.out.println(variables.get(i).getName() + variables.get(i).toString());
+                    }
+                }
                 previousEntropy = currentEntropy;
                 currentEntropy = problemEntropy();
                 double smallEntropy = smallestVariableEntropy();
                 if (dampingMessages())
                     prevOutsideBeliefRecorded = true;
                 if (traceBP) {
-                    System.out.println("##### after BP iteration " + iter + " #####");
                     System.out.println("problem entropy = " + currentEntropy);
                     System.out.println("smallest variable entropy = " + smallEntropy);
                 }
@@ -355,6 +360,40 @@ public class MiniCP implements Solver {
                 }
                 if ((iter > 2) /* give it a chance to stabilize */ && (currentEntropy - previousEntropy > ENTROPY_TOLERANCE)) { // entropy actually increased
                     break;
+                }
+            }
+        } catch (InconsistencyException e) {
+            // empty the queue and unset the scheduled status
+            while (!propagationQueue.isEmpty())
+                propagationQueue.remove().setScheduled(false);
+            throw e;
+        }
+    }
+
+    /**
+     * No-bells-and-whistles Belief Propagation
+     * runs for a specified number of iterations, without message damping
+     */
+    public void vanillaBP(int nbIterations) {
+        notifyBeliefPropa();
+        setDamp(false);
+        try {
+            if (resetMarginalsBeforeBP) {
+                // start afresh at each search-tree node
+                for (int i = 0; i < variables.size(); i++) {
+                    variables.get(i).resetMarginals();
+                }
+                for (int i = 0; i < constraints.size(); i++) {
+                    constraints.get(i).resetLocalBelief();
+                }
+            }
+            for (int iter = 1; iter <= nbIterations; iter++) {
+                BPiteration();
+                if (traceBP) {
+                    System.out.println("##### after BP iteration " + iter + " #####");
+                    for (int i = 0; i < variables.size(); i++) {
+                        System.out.println(variables.get(i).getName()+variables.get(i).toString());
+                    }
                 }
             }
         } catch (InconsistencyException e) {
@@ -435,7 +474,9 @@ public class MiniCP implements Solver {
                 }
             }
         }
-//        System.out.println("FINAL DAMPING FACTOR = " + dampingFactor());
+        if (traceBP) {
+            System.out.println("FINAL DAMPING FACTOR = " + dampingFactor());
+        }
         if (dampingFactor() == 1.0) {
             setDamp(false);
         }
