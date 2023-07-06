@@ -1,0 +1,36 @@
+2 6 9
+
+2 2 6 4
+3 2 6 4
+4 2 3 5
+4 2 7 3
+4 1 1
+5 2 7 3
+5 1 1
+6 1 0
+7 1 1
+
+//////////////////// balanced parentheses //////////////////
+S :- (S)S
+S :- epsilon
+
+in Chomsky Normal Form:
+S0 :- L Z1
+S :- L Z1
+Z1 :- S Z2
+Z1 :- R S
+Z1 :- )
+Z2 :- R S
+Z2 :- )
+L :- (
+R :- )
+
+with the integer encoding:
+( = 0
+) = 1
+S0 = 2
+S = 3
+Z1 = 4
+Z2 = 5
+L = 6
+R = 7

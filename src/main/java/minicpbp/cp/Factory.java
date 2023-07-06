@@ -28,6 +28,7 @@ import minicpbp.state.StateStack;
 import minicpbp.state.Trailer;
 import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Procedure;
+import minicpbp.util.CFG;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -1619,6 +1620,21 @@ public final class Factory {
             f.add(i);
         }
         return new CostRegular(x, A, 0, f, c, tc);
+    }
+
+    /**
+     * Returns a grammar constraint.
+     * This relation is enforced by the {@link Grammar} constraint
+     * posted by calling this method.
+     *
+     * @param x an array of variables
+     * @param g a context-free grammar
+     * @return a constraint so that {@code x is a word recognized by context-free grammar g}
+     *
+     * NOTE: The grammar must be in its Chomsky form
+     */
+    public static Constraint grammar(IntVar[] x, CFG g) {
+        return new Grammar(x, g);
     }
 
     /**
