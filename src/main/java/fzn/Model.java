@@ -471,7 +471,7 @@ public class Model {
                 builder.makeIntLinEqReif(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)), getBoolVar(args.get(3)));
                 break;
             case "int_lin_le":
-                builder.makeIntLinNe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
+                builder.makeIntLinLe(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)));
                 break;
             case "int_lin_le_reif":
                 builder.makeIntLinLeReif(getIntArray(args.get(0)), getIntVarArray(args.get(1)), getInt(args.get(2)), getBoolVar(args.get(3)));
