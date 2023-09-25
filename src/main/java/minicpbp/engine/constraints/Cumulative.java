@@ -64,6 +64,7 @@ public class Cumulative extends AbstractConstraint {
         this.demand = demand;
         this.capa = capa;
         this.postMirror = postMirror;
+        setExactWCounting(false);
     }
 
 

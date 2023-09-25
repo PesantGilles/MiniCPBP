@@ -37,6 +37,7 @@ public class Absolute extends AbstractConstraint {
         setName("Absolute");
         this.x = x;
         this.y = y;
+        setExactWCounting(true);
     }
 
     public void post() {

@@ -89,6 +89,7 @@ public class Disjunctive extends AbstractConstraint {
 
         startMin = new int[start.length];
         endMax = new int[start.length];
+        setExactWCounting(false);
     }
 
 

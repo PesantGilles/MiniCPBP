@@ -49,6 +49,7 @@ public class IsLessOrEqual extends AbstractConstraint { // b <=> x <= c
         this.b = b;
         this.x = x;
         this.c = c;
+        setExactWCounting(true);
     }
 
     @Override

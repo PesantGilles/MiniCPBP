@@ -83,6 +83,7 @@ public class Element2D extends AbstractConstraint {
         up = sm.makeStateInt(xyz.size() - 1);
         nColsSup = IntStream.range(0, n).mapToObj(i -> sm.makeStateInt(this.m)).toArray(StateInt[]::new);
         nRowsSup = IntStream.range(0, this.m).mapToObj(i -> sm.makeStateInt(n)).toArray(StateInt[]::new);
+        setExactWCounting(false);
     }
 
     @Override

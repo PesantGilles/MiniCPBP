@@ -49,6 +49,7 @@ public class Maximum extends AbstractConstraint {
         assert (n > 0);
         this.x = x;
         this.y = y;
+        setExactWCounting(true);
     }
 
     @Override
