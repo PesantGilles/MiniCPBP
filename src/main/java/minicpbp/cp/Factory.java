@@ -994,7 +994,7 @@ public final class Factory {
      * @return a constraint so that {@code x % p = z}
      */
     public static Constraint modulo(IntVar x, IntVar p, IntVar z) {
-	    p.removeBelow(2); // a modulus is > 1
+	    p.removeBelow(1); // a modulus is >= 1
 	    z.removeBelow(0);
         x.getSolver().post(less(z,p)); // the remainder lies between 0 and p-1
 	    // decomposed into x = k*p + z for some integer k
