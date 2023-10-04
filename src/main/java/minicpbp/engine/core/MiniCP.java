@@ -30,13 +30,7 @@ import minicpbp.util.StdBelief;
 import minicpbp.util.LogBelief;
 import minicpbp.engine.constraints.LinEqSystemModP;
 
-import java.util.Arrays;
-import java.util.ArrayDeque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 
 public class MiniCP implements Solver {
 
@@ -216,15 +210,20 @@ public class MiniCP implements Solver {
     @Override
     public void computeMinArity() {
         this.minArity = Double.MAX_VALUE;
-        for(int i = 0; i < constraints.size(); i++){
-            if(this.minArity > constraints.get(i).arity())
-                this.minArity = constraints.get(i).arity();
+        Iterator<Constraint> iterator = constraints.iterator();
+        Constraint c;
+        while (iterator.hasNext()) {
+            c = iterator.next();
+            if (this.minArity > c.arity())
+                this.minArity = c.arity();
         }
-        for(int i = 0; i < constraints.size(); i++){
-            double w = 1.0 + (constraints.get(i).arity() - this.minArity)/ ((double) constraints.size());
-            constraints.get(i).setWeight(w);
+       iterator = constraints.iterator();
+        while (iterator.hasNext()) {
+            c = iterator.next();
+            double w = 1.0 + (c.arity() - this.minArity)/ ((double) constraints.size());
+            c.setWeight(w);
         }
-        
+
     }
 
     @Override
@@ -266,8 +265,9 @@ public class MiniCP implements Solver {
     @Override
     public int nbBranchingVariables() {
         int count = 0;
-        for(int i =0; i < variables.size(); i++) {
-            if(variables.get(i).isForBranching())
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            if(iterator.next().isForBranching())
                 count += 1;
         }
         return count;
@@ -282,13 +282,15 @@ public class MiniCP implements Solver {
     public void beliefPropa() {
         // First decide whether we trigger BP or simply reuse current marginals
         int sum = 0;
-        for (int i = 0; i < variables.size(); i++) {
-            sum += variables.get(i).size();
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            sum += iterator.next().size();
         }
         potentialTrigger++;
         if (sum >= (1.0 - beliefUpdateThreshold) * sumDomainSizes.value()) { // trigger BP only if domains sufficiently changed
-            for (int i = 0; i < variables.size(); i++) {
-                variables.get(i).normalizeMarginals();
+            iterator = variables.iterator();
+            while (iterator.hasNext()) {
+                iterator.next().normalizeMarginals();
             }
             return; // reuse current marginals
         }
@@ -304,11 +306,13 @@ public class MiniCP implements Solver {
             }
             if (resetMarginalsBeforeBP) {
                 // start afresh at each search-tree node
-                for (int i = 0; i < variables.size(); i++) {
-                    variables.get(i).resetMarginals();
+                iterator = variables.iterator();
+                while (iterator.hasNext()) {
+                    iterator.next().resetMarginals();
                 }
-                for (int i = 0; i < constraints.size(); i++) {
-                    constraints.get(i).resetLocalBelief();
+                 Iterator<Constraint> iteratorC = constraints.iterator();
+                while (iteratorC.hasNext()) {
+                    iteratorC.next().resetLocalBelief();
                 }
                 prevOutsideBeliefRecorded = false;
             }
@@ -318,7 +322,8 @@ public class MiniCP implements Solver {
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName() + variables.get(i).toString());
+                        System.out.print(variables.get(i).getName());
+                        System.out.println(variables.get(i).toString());
                     }
                 }
                 previousEntropy = currentEntropy;
@@ -380,11 +385,13 @@ public class MiniCP implements Solver {
         try {
             if (resetMarginalsBeforeBP) {
                 // start afresh at each search-tree node
-                for (int i = 0; i < variables.size(); i++) {
-                    variables.get(i).resetMarginals();
+                Iterator<IntVar> iterator = variables.iterator();
+                while (iterator.hasNext()) {
+                    iterator.next().resetMarginals();
                 }
-                for (int i = 0; i < constraints.size(); i++) {
-                    constraints.get(i).resetLocalBelief();
+                Iterator<Constraint> iteratorC = constraints.iterator();
+                while (iteratorC.hasNext()) {
+                    iteratorC.next().resetLocalBelief();
                 }
             }
             for (int iter = 1; iter <= nbIterations; iter++) {
@@ -392,7 +399,8 @@ public class MiniCP implements Solver {
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
-                        System.out.println(variables.get(i).getName()+variables.get(i).toString());
+                        System.out.print(variables.get(i).getName());
+                        System.out.println(variables.get(i).toString());
                     }
                 }
             }
@@ -437,11 +445,13 @@ public class MiniCP implements Solver {
         while (!dampingFactorDetermined) {
 //            System.out.println("trying DAMPING FACTOR = " + dampingFactor());
             // start afresh
-            for (int i = 0; i < variables.size(); i++) {
-                variables.get(i).resetMarginals();
+           Iterator<IntVar> iterator = variables.iterator();
+            while (iterator.hasNext()) {
+                iterator.next().resetMarginals();
             }
-            for (int i = 0; i < constraints.size(); i++) {
-                constraints.get(i).resetLocalBelief();
+            Iterator<Constraint> iteratorC = constraints.iterator();
+            while (iteratorC.hasNext()) {
+                iteratorC.next().resetLocalBelief();
             }
             prevOutsideBeliefRecorded = false;
             currentEntropy = 1.0;
@@ -488,21 +498,25 @@ public class MiniCP implements Solver {
      */
     private void BPiteration() {
         Constraint c;
-        for (int i = 0; i < constraints.size(); i++) {
-            c = constraints.get(i);
+        Iterator<Constraint> iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
             if (c.isActive())
                 c.receiveMessages();
         }
-        for (int i = 0; i < variables.size(); i++) {
-            variables.get(i).resetMarginals(); // prepare to receive all the messages from constraints
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            iterator.next().resetMarginals(); // prepare to receive all the messages from constraints
         }
-        for (int i = 0; i < constraints.size(); i++) {
-            c = constraints.get(i);
+       iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
             if (c.isActive())
                 c.sendMessages();
         }
-        for (int i = 0; i < variables.size(); i++) {
-            variables.get(i).normalizeMarginals();
+       iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            iterator.next().normalizeMarginals();
         }
     }
 
@@ -513,9 +527,11 @@ public class MiniCP implements Solver {
     private double problemEntropy() {
         double sumNormalizedEntropy = 0.0;
         int nbUnboundBranchingVar = 0;
-        for(int i = 0; i < variables.size(); i++) {
-            if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
-                sumNormalizedEntropy += variables.get(i).entropy()/Math.log(variables.get(i).size());
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            IntVar v = iterator.next();
+            if(!v.isBound() && v.isForBranching()){
+                sumNormalizedEntropy += v.entropy()/Math.log(v.size());
                 nbUnboundBranchingVar ++;
             }
         }
@@ -528,15 +544,33 @@ public class MiniCP implements Solver {
      */
     private double smallestVariableEntropy() {
         double minEntropy = Double.MAX_VALUE;
-        for(int i = 0; i < variables.size(); i++) {
-            if(!variables.get(i).isBound() && variables.get(i).isForBranching()){
-                if (variables.get(i).entropy() < minEntropy)
-                    minEntropy = variables.get(i).entropy();
+       Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            IntVar v = iterator.next();
+            if (!v.isBound() && v.isForBranching()) {
+                if (v.entropy() < minEntropy)
+                    minEntropy = v.entropy();
             }
         }
         return minEntropy;
     }
 
+    /**
+     * computes and returns the smallest marginal
+     * note: only considers unbound branching variables
+     */
+    private double smallestMarginal() {
+        double minMarginal = Double.MAX_VALUE;
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            IntVar v = iterator.next();
+            if (!v.isBound() && v.isForBranching()) {
+                if (v.minMarginal() < minMarginal)
+                    minMarginal = v.minMarginal();
+            }
+        }
+        return minMarginal;
+    }
     private void propagate(Constraint c) {
         c.setScheduled(false);
         if (c.isActive())

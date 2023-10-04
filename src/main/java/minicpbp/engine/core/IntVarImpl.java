@@ -24,6 +24,7 @@ import minicpbp.util.exception.InconsistencyException;
 import minicpbp.util.Belief;
 
 import java.security.InvalidParameterException;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.ArrayList;
 
@@ -180,8 +181,10 @@ public class IntVarImpl implements IntVar {
 
 
     protected void scheduleAll(StateStack<Constraint> constraints) {
-        for (int i = 0; i < constraints.size(); i++)
-            cp.schedule(constraints.get(i));
+        Iterator<Constraint> iterator = constraints.iterator();
+        while (iterator.hasNext()) {
+            cp.schedule(iterator.next());
+        }
     }
 
     @Override
@@ -309,9 +312,10 @@ public class IntVarImpl implements IntVar {
     @Override
     public int wDeg(){
         int sum = 0;
-        for(int i = 0; i < constraints.size(); i++) {
+        Iterator<Constraint> iterator = constraints.iterator();
+        while (iterator.hasNext()) {
             //in dom/wdeg all constraint's weigth are initialized to 1, that's why there is a +1 for each constraint
-            sum += constraints.get(i).getFailureCount() + 1;
+            sum += iterator.next().getFailureCount() + 1;
         }
         return sum;
     }

@@ -16,6 +16,7 @@
 package minicpbp.state;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Generic Stack that can be saved and restored through
@@ -50,4 +51,6 @@ public class StateStack<E> {
     public E get(int index) {
         return stack.get(index);
     }
+
+    public Iterator<E> iterator() { return stack.iterator();}
 }
