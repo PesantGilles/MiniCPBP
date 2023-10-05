@@ -253,10 +253,8 @@ public class SumDC extends AbstractConstraint {
             } else {
                 for (int j = 0; j < s; j++) {
                     v = domainValues[j];
-                    if (minState[0] + v >= minState[1]) {
-                        if (op[0][minState[0] + v] == 0) {
+                    if ((minState[0] + v < minState[1]) || (minState[0] + v > maxState[1]) || (op[0][minState[0] + v] == 0)) {
                             x[idx].remove(v);
-                        }
                     }
                 }
             }
