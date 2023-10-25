@@ -521,6 +521,26 @@ public class MiniCP implements Solver {
     }
 
     /**
+     * Computes a global loss function from the constraints.
+     * Currently it sums the losses from each constraint.
+     */
+    public double globalLossFct() {
+        Iterator<Constraint> iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            iteratorC.next().setAuxVarsMarginalsWCounting();
+        }
+        double loss = 0;
+        Constraint c;
+        iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
+            c.receiveMessagesWCounting();
+            loss -= Math.log(beliefRep.rep2std(c.weightedCounting()));
+        }
+        return loss;
+    }
+
+    /**
      * computes and returns the current problem entropy (avg normalized entropy of the variables)
      * note: only considers unbound branching variables
      */

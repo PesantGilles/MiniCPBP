@@ -176,4 +176,31 @@ public class Among extends AbstractConstraint {
         }
     }
 
+    // Needed because it creates auxiliary indicator variables y
+    @Override
+    public void setAuxVarsMarginalsWCounting() {
+        this.receiveMessagesWCounting(); // get marginals for x variables
+        for (int i = 0; i < x.length; i++) {
+            double belief = beliefRep.zero();
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                if (V.contains(v)) {
+                    belief = beliefRep.add(belief, outsideBelief(i, v));
+                }
+            }
+            // set marginals for y[i]
+            vars[x.length + i].receiveMessage(1, belief);
+            vars[x.length + i].receiveMessage(0, beliefRep.complement(belief));
+            System.out.println("marginal for indicator var y["+i+"]=1 is "+belief);
+        }
+    }
+
+    @Override
+    public double weightedCounting() {
+        // reported by Sum constraint over indicator variables
+        System.out.println("weighted count for "+this.getName()+" constraint is reported by a SumDC constraint");
+        return beliefRep.one();
+    }
+
 }

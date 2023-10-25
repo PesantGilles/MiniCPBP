@@ -271,5 +271,11 @@ public interface Solver {
      * Makes MiniCP compute the minimal arity among all contraints
      */
     void computeMinArity();
-}
+
+    /**
+     * Computes a global loss function from the constraints.
+     */
+    double globalLossFct();
+
+ }
 

@@ -360,4 +360,43 @@ public class CostRegular extends AbstractConstraint {
         }
     }
 
+    @Override
+    public double weightedCounting() {
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(op[i], beliefRep.zero());
+        }
+        // Reach backward
+        Iterator<Integer> itr = finalStates.iterator();
+        while (itr.hasNext()) {
+            op[n - 1][itr.next().intValue()] = beliefRep.one();
+        }
+        for (int i = n - 1; i > 0; i--) {
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                double belief = beliefRep.zero();
+                for (int k = 0; k < nbStates; k++) {
+                    int newState = transitionFct[k][v];
+                    if ((newState >= 0) && (!beliefRep.isZero(op[i][newState]))) {
+                        // add the combination of op[i][newState] and outsideBelief(i,v) to op[i-1][k]
+                        op[i - 1][k] = beliefRep.add(op[i - 1][k], beliefRep.multiply(op[i][newState], outsideBelief(i, v)));
+                        System.out.println((i-1)+" "+k+" op "+op[i - 1][k]);
+                    }
+                }
+            }
+        }
+        double weightedCount = beliefRep.zero();
+        int s = x[0].fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+            int v = domainValues[j];
+            int newState = transitionFct[initialState][v];
+            if (newState >= 0) {
+                weightedCount = beliefRep.add(weightedCount, beliefRep.multiply(op[0][newState], outsideBelief(0, v)));
+                System.out.println("0 "+newState+" x "+outsideBelief(0, v));
+            }
+        }
+        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        return weightedCount;
+    }
+
 }

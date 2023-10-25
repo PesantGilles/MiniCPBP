@@ -70,7 +70,7 @@ public class TableCT extends AbstractConstraint {
         supporti = new BitSet(tableLength);
         tupleWeight = new double[tableLength];
 
-        // Allocate supportedByVarVal
+        // Allocate supports
         supports = new BitSet[xLength][];
         for (int i = 0; i < xLength; i++) {
             ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
@@ -79,7 +79,7 @@ public class TableCT extends AbstractConstraint {
                 supports[i][j] = new BitSet();
         }
 
-        // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
+        // Set values in supports, which contains all the tuples supported by each var-val pair
         for (int i = 0; i < tableLength; i++) { //i is the index of the tuple (in table)
             for (int j = 0; j < xLength; j++) { //j is the index of the current variable (in x)
                 if (x[j].contains(table[i][j])) {
@@ -110,7 +110,7 @@ public class TableCT extends AbstractConstraint {
         supporti = new BitSet(tableLength);
         tupleWeight = new double[tableLength];
 
-        // Allocate supportedByVarVal
+        // Allocate supports
         supports = new BitSet[xLength][];
         for (int i = 0; i < xLength; i++) {
             ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
@@ -119,7 +119,7 @@ public class TableCT extends AbstractConstraint {
                 supports[i][j] = new BitSet();
         }
 
-        // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
+        // Set values in supports, which contains all the tuples supported by each var-val pair
         for (int i = 0; i < tableLength; i++) { //i is the index of the tuple (in table)
             for (int j = 0; j < xLength; j++) { //j is the index of the current variable (in x)
                 if (x[j].contains(table[i][j])) {
@@ -236,4 +236,35 @@ public class TableCT extends AbstractConstraint {
     // FOR SIMPLE COUNTING:
     // the frequency of x[i]=v is given by (supports[i][v] /\ supportedTuples).cardinality()
 
+    @Override
+    public double weightedCounting() {
+
+        // Compute supportedTuples as
+        // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
+        //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
+        //
+        supportedTuples.set(0, tableLength); // set them all to true
+        for (int i = 0; i < xLength; i++) {
+            supporti.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                supporti.or(supports[i][domainValues[j] - ofs[i]]);
+            }
+            supportedTuples.and(supporti);
+        }
+
+        double weightedCount = beliefRep.zero();
+
+        // Each tuple has its own weight given by the product of the outside_belief of its elements.
+        // Compute these products, but only for supported tuples.
+        for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k + 1)) {
+            tupleWeight[k] = beliefRep.one();
+            for (int i = 0; i < xLength; i++) {
+                tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
+            }
+            weightedCount = beliefRep.add(weightedCount, tupleWeight[k]);
+        }
+        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        return weightedCount;
+    }
 }
