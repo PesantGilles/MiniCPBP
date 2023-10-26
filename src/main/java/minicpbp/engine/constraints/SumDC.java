@@ -427,4 +427,37 @@ public class SumDC extends AbstractConstraint {
 
         }
     }
+
+    @Override
+    public double weightedCounting() {
+        int s, v;
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(op[i], beliefRep.zero());
+        }
+        // Reach backward
+        op[n - 1][offset] = beliefRep.one();
+        for (int i = n - 1; i > 0; i--) {
+            s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                v = domainValues[j];
+//                System.out.println("i v "+i+" "+v);
+                for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
+                    if (!beliefRep.isZero(op[i][k + offset + v])) {
+                        // add the combination of op[i][k+offset+v] and outsideBelief(i,v) to op[i-1][k+offset]
+                            op[i - 1][k + offset] = beliefRep.add(op[i - 1][k + offset], beliefRep.multiply(op[i][k + offset + v], outsideBelief(i, v)));
+//                            System.out.println("outsideBelief(i,v)="+outsideBelief(i, v));
+//                            System.out.println(k+" "+op[i - 1][k + offset]);
+                    }
+                }
+            }
+        }
+        double weightedCount = beliefRep.zero();
+        s = x[0].fillArray(domainValues);
+        for (int j = 0; j < s; j++) {
+            v = domainValues[j];
+            weightedCount = beliefRep.add(weightedCount, beliefRep.multiply(op[0][offset + v], outsideBelief(0, v)));
+        }
+        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        return weightedCount;
+    }
 }

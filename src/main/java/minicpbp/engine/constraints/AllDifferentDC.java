@@ -130,8 +130,8 @@ public class AllDifferentDC extends AbstractConstraint {
 
         // allocate enough space for the data structures, even though we will need less and less as we go down the search tree
         beliefs = new double[freeVals.size()][freeVals.size()];
-        c = new int[freeVals.size() - 1];
-        permutation = new int[freeVals.size() - 1];
+        c = new int[freeVals.size()];
+        permutation = new int[freeVals.size()];
         varIndices = new int[freeVars.size()];
         vals = new int[freeVals.size()];
         rowMax = new double[freeVals.size()];
@@ -140,8 +140,8 @@ public class AllDifferentDC extends AbstractConstraint {
             setExactWCounting(true);
         } else {
             setExactWCounting(false); // actually, it will be exact below the threshold, which may happen lower in the search tree
-            precompute_gamma(freeVals.size() - 1);
         }
+        precompute_gamma(freeVals.size());
     }
 
     @Override
@@ -329,6 +329,57 @@ public class AllDifferentDC extends AbstractConstraint {
         }
     }
 
+    @Override
+    public double weightedCounting() {
+        double weightedCount = 1.0;
+        // contribution of bound variables to the weighted count
+        for (int i = 0; i < nVar; i++) {
+            if (x[i].isBound()) {
+                weightedCount *= beliefRep.rep2std(outsideBelief(i, x[i].min()));
+            }
+        }
+        int nbVar, nbVal;
+        // update freeVars/Vals according to bound variables
+        nbVar = freeVars.fillArray(varIndices);
+        for (int j = 0; j < nbVar; j++) {
+            int i = varIndices[j];
+            if (x[i].isBound()) {
+                freeVars.remove(i);
+                freeVals.remove(x[i].min());
+            }
+        }
+        nbVar = freeVars.fillArray(varIndices);
+        nbVal = freeVals.fillArray(vals);
+        // initialize outside beliefs matrix (MUST BE IN STANDARD [0,1] REPRESENTATION)
+        for (int j = 0; j < nbVar; j++) {
+            int i = varIndices[j];
+            for (int k = 0; k < nbVal; k++) {
+                int val = vals[k];
+                beliefs[j][k] = (x[i].contains(val) ? beliefRep.rep2std(outsideBelief(i, val)) : 0);
+            }
+        }
+        // may need to add dummy rows in order to make the beliefs matrix square
+        for (int j = 0; j < nbVal - nbVar; j++) {
+            for (int k = 0; k < nbVal; k++) {
+                beliefs[nbVar + j][k] = 1.0 ; // (STANDARD REPRESENTATION)
+            }
+        }
+        if (nbVal <= exactPermanentThreshold) {
+            // exact permanent
+            setExactWCounting(true);
+            weightedCount *= permanent(beliefs, nbVal);
+            // that value should actually be divided by (# dummy rows)!
+            for (int i=2; i <= nbVal - nbVar; i++)
+                weightedCount /= (double) i;
+        } else {
+            // approximate permanent
+            setExactWCounting(false);
+            weightedCount *= costBasedPermanent_UB3(-1, -1, nbVal, nbVal - nbVar);
+        }
+        System.out.println("weighted count for "+this.getName()+" constraint: "+beliefRep.std2rep(weightedCount));
+        return beliefRep.std2rep(weightedCount); // put beliefs back to their original representation
+    }
+
     // precompute gamma function up to n+1, to account for small floating-point errors
     private void precompute_gamma(int n) {
         int gamma_threshold = 100; // value of n beyond which we approximate n!
@@ -345,7 +396,7 @@ public class AllDifferentDC extends AbstractConstraint {
         }
     }
 
-    private double costBasedPermanent_UB3(int var, int val, double[][] m, int dim, int nbDummyRows) {
+    private double costBasedPermanent_UB3(int var, int val, int dim, int nbDummyRows) {
         // permanent upper bound U^3 for nonnegative matrices (from Soules 2003)
         // for matrix m without row of var and column of val
         double U3 = 1.0;
@@ -357,7 +408,7 @@ public class AllDifferentDC extends AbstractConstraint {
             if (i != var) { // exclude row of var whose belief we are computing
                 rowSum = rowMax = 0;
                 for (int j = 0; j < dim; j++) {
-                    tmp = m[i][j];
+                    tmp = beliefs[i][j];
                     if (j != val) { // exclude column of val whose belief we are computing
                         rowSum += tmp;
                         if (tmp > rowMax)
@@ -372,14 +423,15 @@ public class AllDifferentDC extends AbstractConstraint {
                 U3 *= rowMax * (gamma[tmpFloor] + (tmp - tmpFloor) * (gamma[tmpCeil] - gamma[tmpFloor]));
                 if (dummyRowCount > 1) {
                     // that upper bound should be divided by (# dummy rows)!
-                    U3 /= dummyRowCount;
+                    U3 /= (double) dummyRowCount;
                     dummyRowCount--;
                 }
             }
         }
         return U3;
     }
-    private void costBasedPermanent_UB3_precomputeRowMax(int dim) {
+
+   private void costBasedPermanent_UB3_precomputeRowMax(int dim) {
         double tmp;
         for (int i = 0; i < dim; i++) {
             rowMax[i] = rowMaxSecondBest[i] = 0;

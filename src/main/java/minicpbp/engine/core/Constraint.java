@@ -129,6 +129,7 @@ public interface Constraint {
 
     /**
      * Computes and returns the weighted count of solutions (i.e. weighted model counting) given the outside beliefs.
+     * !!!IMPORTANT NOTE!!!: the computation may rely on the fact that variables have all their beliefs initialized to beliefRep.one() upon creation (in StateSparseWeightedSet)
      */
     double weightedCounting();
 }

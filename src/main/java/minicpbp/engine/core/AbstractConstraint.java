@@ -336,6 +336,7 @@ public abstract class AbstractConstraint implements Constraint {
     /**
      * Computes and returns the weighted count of solutions (i.e. weighted model counting) given the outside beliefs.
      * To be defined in the actual constraint.
+     * !!!IMPORTANT NOTE!!!: the computation may rely on the fact that variables have all their beliefs initialized to beliefRep.one() upon creation (in StateSparseWeightedSet)
      * <p>
      * Default behaviour: returns beliefRep.one() (tautology constraint)
      */
