@@ -111,7 +111,7 @@ public final class Factory {
     }
 
     /**
-     * Creates a variable with a domain of specified arity.
+     * Creates a variable with a domain of specified size.
      *
      * @param cp the solver in which the variable is created
      * @param sz a positive value that is the size of the domain

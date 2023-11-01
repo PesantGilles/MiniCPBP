@@ -109,9 +109,13 @@ public interface Constraint {
     double weight();
 
     /**
-     * @return the constraint's weight
+     * @return the constraint's arity
      */
-    double arity();
+    int arity();
+    /**
+     * @return the constraint's dynamic arity, i.e. the number of unbound variables in its scope
+     */
+    int dynamicArity();
 
     int getFailureCount();
     void incrementFailureCount();

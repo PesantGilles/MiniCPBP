@@ -92,8 +92,16 @@ public abstract class AbstractConstraint implements Constraint {
         failureCount = 0;
     }
 
-    public double arity() {
-        return (double) vars.length;
+    public int arity() {
+        return vars.length;
+    }
+
+    public int dynamicArity() {
+        int k = 0;
+        for (int i = 0; i < vars.length; i++) {
+            if (!vars[i].isBound()) k++;
+        }
+        return k;
     }
 
     /*public double getWeight() {
@@ -102,9 +110,9 @@ public abstract class AbstractConstraint implements Constraint {
 				return 1.0;
 			case ARITY:
 				// assumes all model variables have already been declared/registered
-				return 1.0 + ((double) vars.length - cp.minArity())/ ((double) cp.getVariables().size()); 
+				return 1.0 + ((double) vars.length - (double) cp.minArity())/ ((double) cp.getVariables().size());
 			case ANTI:
-                return 1.0 - ((double) vars.length - cp.minArity()) / ((double) cp.getVariables().size());
+                return 1.0 - ((double) vars.length - (double) cp.minArity()) / ((double) cp.getVariables().size());
 			default:
 				throw new NotImplementedException();
 			}
