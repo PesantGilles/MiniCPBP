@@ -1,4 +1,4 @@
-
+1.0
 
 # README #
 
@@ -168,7 +168,7 @@ As the first line of the help message indicates, we should have at least four ar
 Run this command:
 
 ```
-$ java -jar target/minicpbp-0.5.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --search-type dfs --timeout 100
+$ java -jar target/minicpbp-1.0.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --search-type dfs --timeout 100
 ```
 
 This should output an output similar to the following:
@@ -201,7 +201,7 @@ You can control the number of iterations using the argument `max-iter`. The defa
 The flag `verify` asks the solver to check the solution if it finds one. Run the following command:
 
 ```
-$ java -jar target/minicpbp-0.5.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --timeout 100 --verify
+$ java -jar target/minicpbp-1.0.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --timeout 100 --verify
 ```
 
 In the output you see these added lines:
@@ -225,7 +225,7 @@ The flags `trace-bp` and `trace-search` instruct the solver to print the traces 
 The arguments `solution` and `stats` can be used to give paths for storing the solution or search statistics. Running the following command will create two files where the solution and search statistics are stored.  
 
 ```
-java -jar target/minicpbp-0.5.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --timeout 100 --solution LabeledDice.sol --stats LabeledDice.stats
+java -jar target/minicpbp-1.0.jar --input ../instances/Basic/Basic-m1-s1/LabeledDice.xml --branching max-marginal --timeout 100 --solution LabeledDice.sol --stats LabeledDice.stats
 ```
 
 ## Interpreting the search statistics
