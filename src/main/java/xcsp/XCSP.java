@@ -54,19 +54,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static minicpbp.cp.BranchingScheme.and;
-import static minicpbp.cp.BranchingScheme.firstFail;
-import static minicpbp.cp.BranchingScheme.firstFailRandomVal;
-import static minicpbp.cp.BranchingScheme.maxMarginalStrength;
-import static minicpbp.cp.BranchingScheme.maxMarginal;
-import static minicpbp.cp.BranchingScheme.minMarginalStrength;
-import static minicpbp.cp.BranchingScheme.minMarginal;
-import static minicpbp.cp.BranchingScheme.minEntropy;
-import static minicpbp.cp.BranchingScheme.impactEntropy;
-import static minicpbp.cp.BranchingScheme.minEntropyRegisterImpact;
-import static minicpbp.cp.BranchingScheme.minEntropyBiasedWheelSelectVal;
-import static minicpbp.cp.BranchingScheme.domWdeg;
-import static minicpbp.cp.BranchingScheme.impactBasedSearch;
+import static minicpbp.cp.BranchingScheme.*;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
