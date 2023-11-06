@@ -18,6 +18,9 @@ package minicpbp.util;
 
 import minicpbp.util.io.InputReader;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Context-Free Grammar for Grammar constraint
  * (code adapted from that of Claude-Guy Quimper)
@@ -32,6 +35,8 @@ public class CFG {
     private Production[] length1productions, length2productions;
     private int terminalCount; // Any integer c s.t. 0 <= c < terminalCount is a terminal
     private int nonTerminalCount; // Start symbol is terminalCount
+	private Set<Production>[] lhs1prod, lhs2prod; // productions indexed by left-hand-side
+	private Set<Production>[] rhs2prod; // productions indexed by 1st nonterminal on right-hand-side
 
     public CFG(InputReader reader) {
 	    terminalCount = reader.getInt();
@@ -40,11 +45,20 @@ public class CFG {
 		length2productionCount = reader.getInt();
 	    length1productions = new Production[length1productionCount];
 		length2productions = new Production[length2productionCount];
+		lhs1prod = new Set[nonTerminalCount];
+		lhs2prod = new Set[nonTerminalCount];
+		rhs2prod = new Set[nonTerminalCount];
+		for (int i = 0; i < nonTerminalCount; i++) {
+			lhs1prod[i] = new HashSet<Production>();
+			lhs2prod[i] = new HashSet<Production>();
+			rhs2prod[i] = new HashSet<Production>();
+		}
 		for(int i=0; i<length1productionCount; i++) {
 			length1productions[i] = new Production();
 			length1productions[i].left = reader.getInt();
 			length1productions[i].right = new int[1];
 			length1productions[i].right[0] = reader.getInt();
+			lhs1prod[length1productions[i].left - terminalCount].add(length1productions[i]);
 		}
 		for(int i=0; i<length2productionCount; i++) {
 			length2productions[i] = new Production();
@@ -52,6 +66,8 @@ public class CFG {
 			length2productions[i].right = new int[2];
 			length2productions[i].right[0] = reader.getInt();
 			length2productions[i].right[1] = reader.getInt();
+			lhs2prod[length2productions[i].left - terminalCount].add(length2productions[i]);
+			rhs2prod[length2productions[i].right[0] - terminalCount].add(length2productions[i]);
 		}
     }
 
@@ -69,6 +85,10 @@ public class CFG {
 		return length2productionCount;
 	}
 	public Production[] length2productions() { return length2productions; }
+
+	public Set<Production>[] lhs1prod() { return lhs1prod; }
+	public Set<Production>[] lhs2prod() { return lhs2prod; }
+	public Set<Production>[] rhs2prod() { return rhs2prod; }
 
 }
 

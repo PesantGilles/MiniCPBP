@@ -26,6 +26,7 @@ import minicpbp.util.exception.InconsistencyException;
 
 import java.security.InvalidParameterException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -108,13 +109,17 @@ public class Grammar extends AbstractConstraint {
         }
         // Compute possible productions
         for (int j = 2; j <= n; j++) {
-            for (int pIt = 0; pIt < g.length2productionCount(); pIt++) {
-                Production p = g.length2productions()[pIt];
-                for (int i = 0; i < n - j + 1; i++) {
-                    for (int k = 1; k < j; k++) {
-                        if (V[idx(i, k)].contains(p.right()[0]) && V[idx(i + k, j - k)].contains(p.right()[1])) {
-                            V[idx(i, j)].add(p.left()); // Production p can be applied from i over j characters
-    //                        System.out.println("pos "+i+"; length "+j+"; nonterminal "+p.left());
+            for (int i = 0; i < n - j + 1; i++) {
+                for (int k = 1; k < j; k++) {
+                    Iterator<Integer> itr = V[idx(i, k)].iterator();
+                    while (itr.hasNext()) { // for each nonterminal in table V at that index
+                        Iterator<Production> itr2 = g.rhs2prod()[itr.next() - g.terminalCount()].iterator();
+                        while (itr2.hasNext()) { // for each length-2 production with that nonterminal as 1st one on rhs
+                            Production p = itr2.next();
+                            if (V[idx(i + k, j - k)].contains(p.right()[1])) {
+                                V[idx(i, j)].add(p.left()); // Production p can be applied from i over j characters
+                                //                        System.out.println("pos "+i+"; length "+j+"; nonterminal "+p.left());
+                            }
                         }
                     }
                 }
@@ -129,9 +134,11 @@ public class Grammar extends AbstractConstraint {
         // Backtrack in the table and flag admissible productions
         for (int j = n; j > 1; j--) {
             for (int i = 0; i <= n - j; i++) {
-                for (int pIt = 0; pIt < g.length2productionCount(); pIt++) {
-                    Production p = g.length2productions()[pIt];
-                    if (flags[idx(i, j)].contains(p.left())) {
+                Iterator<Integer> itr = flags[idx(i, j)].iterator();
+                while (itr.hasNext()) { // for each flagged nonterminal at that index
+                    Iterator<Production> itr2 = g.lhs2prod()[itr.next() - g.terminalCount()].iterator();
+                    while (itr2.hasNext()) { // for each length-2 production with that nonterminal as lhs
+                        Production p = itr2.next();
                         for (int k = 1; k < j; k++) {
                             if (V[idx(i, k)].contains(p.right()[0]) && V[idx(i + k, j - k)].contains(p.right()[1])) {
                                 flags[idx(i, k)].add(p.right()[0]);
@@ -145,10 +152,11 @@ public class Grammar extends AbstractConstraint {
         // Filter out unsupported domain values
         for (int i = 0; i < n; i++) {
             supportedVals.clear();
-            for (int pIt = 0; pIt < g.length1productionCount(); pIt++) {
-                Production p = g.length1productions()[pIt];
-                if (flags[idx(i, 1)].contains(p.left())) {
-                    supportedVals.add(p.right()[0]);
+            Iterator<Integer> itr = flags[idx(i, 1)].iterator();
+            while (itr.hasNext()) { // for each flagged nonterminal in position i
+                Iterator<Production> itr2 = g.lhs1prod()[itr.next() - g.terminalCount()].iterator();
+                while (itr2.hasNext()) { // for each length-1 production with that nonterminal as lhs
+                    supportedVals.add(itr2.next().right()[0]);
                 }
             }
             int s = x[i].fillArray(domainValues);
@@ -163,7 +171,7 @@ public class Grammar extends AbstractConstraint {
 
     @Override
     public void updateBelief() {
-        // after fixpoint() has been called, flags contains nonterminals involved in some derivation tree
+        // after fixpoint() has been called, flags contains the nonterminals involved in some derivation tree
         // Clear table of beliefs
         for (int i = 0; i < n; i++) {
             for (int j = 1; j + i <= n; j++) {
@@ -181,13 +189,17 @@ public class Grammar extends AbstractConstraint {
         }
         // Move up the rows, accumulating beliefs
         for (int j = 2; j <= n; j++) {
-            for (int pIt = 0; pIt < g.length2productionCount(); pIt++) {
-                Production p = g.length2productions()[pIt];
-                for (int i = 0; i < n - j + 1; i++) {
-                    for (int k = 1; k < j; k++) {
-                        if (flags[idx(i, k)].contains(p.right()[0]) && flags[idx(i + k, j - k)].contains(p.right()[1])) {
-                            belief[idx(i, j)][p.left() - g.terminalCount()] = beliefRep.add(belief[idx(i, j)][p.left() - g.terminalCount()], beliefRep.multiply(belief[idx(i, k)][p.right()[0] - g.terminalCount()], belief[idx(i + k, j - k)][p.right()[1] - g.terminalCount()]));
-    //                        System.out.println("pos " + i + "; length " + j + "; nonterminal " + p.left() + " rewritten as " + p.right()[0] + " at " + i + ";" + k + " and " + p.right()[1] + " at " + (i + k) + ";" + (j - k));
+            for (int i = 0; i < n - j + 1; i++) {
+                for (int k = 1; k < j; k++) {
+                    Iterator<Integer> itr = flags[idx(i, k)].iterator();
+                    while (itr.hasNext()) { // for each flagged nonterminal at that index
+                        Iterator<Production> itr2 = g.rhs2prod()[itr.next() - g.terminalCount()].iterator();
+                        while (itr2.hasNext()) { // for each length-2 production with that nonterminal as 1st one on rhs
+                            Production p = itr2.next();
+                            if (flags[idx(i + k, j - k)].contains(p.right()[1])) {
+                                belief[idx(i, j)][p.left() - g.terminalCount()] = beliefRep.add(belief[idx(i, j)][p.left() - g.terminalCount()], beliefRep.multiply(belief[idx(i, k)][p.right()[0] - g.terminalCount()], belief[idx(i + k, j - k)][p.right()[1] - g.terminalCount()]));
+                                //   System.out.println("pos " + i + "; length " + j + "; nonterminal " + p.left() + " rewritten as " + p.right()[0] + " at " + i + ";" + k + " and " + p.right()[1] + " at " + (i + k) + ";" + (j - k));
+                            }
                         }
                     }
                 }
@@ -208,22 +220,20 @@ public class Grammar extends AbstractConstraint {
     private void dive(int nonTerminal, int len, int pos, double product) {
         if (len == 1) { // base case: bottom row
  //           System.out.println("reached bottom for pos "+pos+" and nonterminal "+nonTerminal+" with product "+product);
-            for (int pIt = 0; pIt < g.length1productionCount(); pIt++) {
-                Production p = g.length1productions()[pIt];
-                if (p.left() == nonTerminal) {
-                    setLocalBelief(pos, p.right()[0], beliefRep.add(localBelief(pos, p.right()[0]), product));
-                }
+            Iterator<Production> itr2 = g.lhs1prod()[nonTerminal - g.terminalCount()].iterator();
+            while (itr2.hasNext()) { // for each length-1 production with nonTerminal as lhs
+                Production p = itr2.next();
+                setLocalBelief(pos, p.right()[0], beliefRep.add(localBelief(pos, p.right()[0]), product));
             }
             return;
         }
-        for (int pIt = 0; pIt < g.length2productionCount(); pIt++) {
-            Production p = g.length2productions()[pIt];
-            if (p.left() == nonTerminal) {
-                for (int k = 1; k < len; k++) {
-                    if (flags[idx(pos, k)].contains(p.right()[0]) && flags[idx(pos + k, len - k)].contains(p.right()[1])) {
-                        dive(p.right()[0], k, pos, beliefRep.multiply(product,belief[idx(pos + k, len - k)][p.right()[1] - g.terminalCount()]));
-                        dive(p.right()[1], len - k, pos + k, beliefRep.multiply(product,belief[idx(pos, k)][p.right()[0] - g.terminalCount()]));
-                    }
+        Iterator<Production> itr2 = g.lhs2prod()[nonTerminal - g.terminalCount()].iterator();
+        while (itr2.hasNext()) { // for each length-2 production with nonTerminal as lhs
+            Production p = itr2.next();
+            for (int k = 1; k < len; k++) {
+                if (flags[idx(pos, k)].contains(p.right()[0]) && flags[idx(pos + k, len - k)].contains(p.right()[1])) {
+                    dive(p.right()[0], k, pos, beliefRep.multiply(product,belief[idx(pos + k, len - k)][p.right()[1] - g.terminalCount()]));
+                    dive(p.right()[1], len - k, pos + k, beliefRep.multiply(product,belief[idx(pos, k)][p.right()[0] - g.terminalCount()]));
                 }
             }
         }
