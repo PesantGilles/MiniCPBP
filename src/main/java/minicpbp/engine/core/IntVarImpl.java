@@ -310,6 +310,14 @@ public class IntVarImpl implements IntVar {
     }
 
     @Override
+    public int deg(){
+        int sum = 0;
+        Iterator<Constraint> iterator = constraints.iterator();
+        while (iterator.hasNext())
+            if (iterator.next().isActive()) sum++;
+        return sum;
+    }
+
     public int wDeg(){
         int sum = 0;
         Iterator<Constraint> iterator = constraints.iterator();

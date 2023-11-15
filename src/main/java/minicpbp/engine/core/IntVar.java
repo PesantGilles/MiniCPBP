@@ -322,7 +322,17 @@ public interface IntVar {
      */
     public boolean isForBranching();
 
+    /**
+     *
+     * @return number of active constraints on this variable
+     */
+    public int deg();
+    /**
+     *
+     * @return weighted degree of this variable: sum of failure count of constraints on this variable
+     */
     public int wDeg();
+
 
     public String getName();
     public void setName(String name);

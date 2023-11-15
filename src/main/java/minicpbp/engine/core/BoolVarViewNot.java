@@ -110,6 +110,11 @@ public class BoolVarViewNot implements BoolVar {
     }
 
     @Override
+    public int deg() {
+        return x.deg();
+    }
+
+    @Override
     public int wDeg() {
         return x.wDeg();
     }

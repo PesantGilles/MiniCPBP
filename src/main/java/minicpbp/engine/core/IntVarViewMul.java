@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * A view on a variable of type {@code a*x}
  */
-public class IntVarViewMul implements IntVar {
+public class  IntVarViewMul implements IntVar {
 
     private final int a;
     private final IntVar x;
@@ -106,6 +106,11 @@ public class IntVarViewMul implements IntVar {
     @Override
     public int size() {
         return x.size();
+    }
+
+    @Override
+    public int deg() {
+        return x.deg();
     }
 
     @Override
