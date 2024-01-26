@@ -98,12 +98,14 @@ public class Absolute extends AbstractConstraint {
             int vy = domainValues[k];
             double b = beliefRep.zero();
             if (x.contains(vy)) {
-                b = beliefRep.add(b, outsideBelief(0, vy));
-                setLocalBelief(0, vy, outsideBelief(1, vy));
+                double solnWeight = beliefRep.multiply(outsideBelief(0, vy), outsideBelief(1, vy));
+                b = beliefRep.add(b, solnWeight);
+                setLocalBelief(0, vy, solnWeight);
             }
             if (x.contains(-vy) && vy != 0 /* avoid double counting */) {
-                b = beliefRep.add(b, outsideBelief(0, -vy));
-                setLocalBelief(0, -vy, outsideBelief(1, vy));
+                double solnWeight = beliefRep.multiply(outsideBelief(0, -vy), outsideBelief(1, vy));
+                b = beliefRep.add(b, solnWeight);
+                setLocalBelief(0, -vy, solnWeight);
             }
             setLocalBelief(1, vy, b);
         }
