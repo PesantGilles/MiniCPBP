@@ -365,9 +365,10 @@ public class SumDC extends AbstractConstraint {
                     for (int k = Math.max(minState[i + 1], minState[i] + v); k <= Math.min(maxState[i + 1], maxState[i] + v); k++) {
                         if (!beliefRep.isZero(op[i][k])) {
                             // add the combination of op[i][k] and outsideBelief(idx,v) to op[i-1][k-v]
-                            op[i - 1][k - v] = beliefRep.add(op[i - 1][k - v], beliefRep.multiply(op[i][k], outsideBelief(idx, v)));
-                            // add the combination of ip[i][k-v] and op[i][k] to belief
-                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k - v], op[i][k]));
+                            double b = beliefRep.multiply(op[i][k], outsideBelief(idx, v));
+                            op[i - 1][k - v] = beliefRep.add(op[i - 1][k - v], b);
+                            // add the combination of ip[i][k-v], op[i][k], and outsideBelief(idx, v) to belief
+                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k - v], b));
                         }
                     }
                     setLocalBelief(idx, v, belief);
@@ -377,7 +378,7 @@ public class SumDC extends AbstractConstraint {
             s = x[idx].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 v = domainValues[j];
-                setLocalBelief(idx, v, op[0][minState[0] + v]); // unlike propagate(), second index cannot be out of bounds (would have been filtered out already)
+                setLocalBelief(idx, v, beliefRep.multiply(op[0][minState[0] + v], outsideBelief(idx, v))); // unlike propagate(), second index cannot be out of bounds (would have been filtered out already)
             }
         } else { // non-incremental version
             for (int i = 0; i < n; i++) {
@@ -411,9 +412,10 @@ public class SumDC extends AbstractConstraint {
                     for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
                         if (!beliefRep.isZero(op[i][k + offset + v])) {
                             // add the combination of op[i][k+offset+v] and outsideBelief(i,v) to op[i-1][k+offset]
-                            op[i - 1][k + offset] = beliefRep.add(op[i - 1][k + offset], beliefRep.multiply(op[i][k + offset + v], outsideBelief(i, v)));
-                            // add the combination of ip[i][k+offset] and op[i][k+offset+V] to belief
-                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k + offset], op[i][k + offset + v]));
+                            double b = beliefRep.multiply(op[i][k + offset + v], outsideBelief(i, v));
+                            op[i - 1][k + offset] = beliefRep.add(op[i - 1][k + offset], b);
+                            // add the combination of ip[i][k+offset], op[i][k+offset+V], and outsideBelief(i, v) to belief
+                            belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k + offset], b));
                         }
                     }
                     setLocalBelief(i, v, belief);
@@ -422,7 +424,7 @@ public class SumDC extends AbstractConstraint {
             s = x[0].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 v = domainValues[j];
-                setLocalBelief(0, v, op[0][offset + v]);
+                setLocalBelief(0, v, beliefRep.multiply(op[0][offset + v], outsideBelief(0, v)));
             }
 
         }

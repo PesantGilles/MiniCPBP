@@ -194,9 +194,10 @@ public class Regular extends AbstractConstraint {
                     int newState = transitionFct[k][v];
                     if ((newState >= 0) && (!beliefRep.isZero(op[i][newState]))) {
                         // add the combination of op[i][newState] and outsideBelief(i,v) to op[i-1][k]
-                        op[i - 1][k] = beliefRep.add(op[i - 1][k], beliefRep.multiply(op[i][newState], outsideBelief(i, v)));
-                        // add the combination of ip[i][k] and op[i][newState] to belief
-                        belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k], op[i][newState]));
+                        double b = beliefRep.multiply(op[i][newState], outsideBelief(i, v));
+                        op[i - 1][k] = beliefRep.add(op[i - 1][k], b);
+                        // add the combination of ip[i][k], op[i][newState], and outsideBelief(i,v) to belief
+                        belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k], b));
                     }
                 }
                 setLocalBelief(i, v, belief);
@@ -207,7 +208,7 @@ public class Regular extends AbstractConstraint {
             int v = domainValues[j];
             int newState = transitionFct[initialState][v];
             if (newState >= 0) {
-                setLocalBelief(0, v, op[0][newState]);
+                setLocalBelief(0, v, beliefRep.multiply(op[0][newState], outsideBelief(0, v)));
             } else
                 setLocalBelief(0, v, beliefRep.zero());
         }

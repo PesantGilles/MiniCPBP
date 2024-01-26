@@ -260,11 +260,9 @@ public class Circuit extends AbstractConstraint {
 //            System.out.println();
             for (int i = 0; i < pathLength - 1; i++) {
 //                System.out.println(i);
-                density[path[i]][orig[path[i + 1]].value()] = beliefRep.add(density[path[i]][orig[path[i + 1]].value()],
-                        beliefRep.divide(beliefRep.std2rep(W),outsideBelief(path[i],orig[path[i + 1]].value())));
+                density[path[i]][orig[path[i + 1]].value()] = beliefRep.add(density[path[i]][orig[path[i + 1]].value()], beliefRep.std2rep(W));
             }
-            density[path[pathLength - 1]][path[0]] = beliefRep.add(density[path[pathLength - 1]][path[0]],
-                    beliefRep.divide(beliefRep.std2rep(W),outsideBelief(path[pathLength - 1],path[0])));
+            density[path[pathLength - 1]][path[0]] = beliefRep.add(density[path[pathLength - 1]][path[0]], beliefRep.std2rep(W));
             return W;
         }
         return 0;

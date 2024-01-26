@@ -146,8 +146,8 @@ public class ShortTableCT extends AbstractConstraint {
         for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k + 1)) {
             tupleWeight[k] = beliefRep.one();
             for (int i = 0; i < xLength; i++) {
-		if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
-		    tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
+		        if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
+		            tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
             }
         }
 
@@ -156,29 +156,11 @@ public class ShortTableCT extends AbstractConstraint {
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
                 double belief = beliefRep.zero();
-                double outsideBelief_i_v = outsideBelief(i, v);
                 BitSet support_i_v = supports[i][v - ofs[i]];
                 // Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
-                if (!beliefRep.isZero(outsideBelief_i_v)) {
-                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
-                        if (supportedTuples.get(k)) {
-                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
-                        }
-                    }
-                } else { // special case of null outside belief (avoid division by zero)
-                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
-                        if (supportedTuples.get(k)) {
-                            double weight = beliefRep.one();
-                            for (int i2 = 0; i2 < i; i2++) {
-				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            for (int i2 = i + 1; i2 < xLength; i2++) {
-				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            belief = beliefRep.add(belief, weight);
-                        }
+                for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
+                    if (supportedTuples.get(k)) {
+                        belief = beliefRep.add(belief, tupleWeight[k]);
                     }
                 }
                 setLocalBelief(i, v, belief);

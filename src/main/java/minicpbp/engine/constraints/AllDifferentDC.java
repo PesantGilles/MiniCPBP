@@ -306,7 +306,7 @@ public class AllDifferentDC extends AbstractConstraint {
                     if (x[i].contains(val)) {
                         // note: will be normalized later in AbstractConstraint.sendMessages()
                         // put beliefs back to their original representation
-                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_exact(j, k, nbVal)));
+                        setLocalBelief(i, val, beliefRep.multiply(outsideBelief(i, val), beliefRep.std2rep(costBasedPermanent_exact(j, k, nbVal))));
                     }
                 }
             }
@@ -321,8 +321,7 @@ public class AllDifferentDC extends AbstractConstraint {
                     if (x[i].contains(val)) {
                         // note: will be normalized later in AbstractConstraint.sendMessages()
                         // put beliefs back to their original representation
-                        setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3_faster(j, k, nbVal, nbVal - nbVar)));
-  //                      setLocalBelief(i, val, beliefRep.std2rep(costBasedPermanent_UB3(j, k, beliefs, nbVal, nbVal - nbVar)));
+                        setLocalBelief(i, val, beliefRep.multiply(outsideBelief(i, val), beliefRep.std2rep(costBasedPermanent_UB3_faster(j, k, nbVal, nbVal - nbVar))));
                     }
                 }
             }

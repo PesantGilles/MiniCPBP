@@ -138,13 +138,13 @@ public class NegTableCT extends AbstractConstraint {
                 // The condition for removing value v from x[i] is to check if
                 // there are enough (distinct) forbidden tuples to cover all possible supports
                 int v = domainValues[j];
-		BitSet menacingIntersect = (BitSet) menacing.clone();
-		menacingIntersect.and(conflicts[i][v - ofs[i]]);
-		if (menacingIntersect.cardinality() >= prodDomainsi) {
-		    x[i].remove(v);
-		}
+		        BitSet menacingIntersect = (BitSet) menacing.clone();
+		        menacingIntersect.and(conflicts[i][v - ofs[i]]);
+		        if (menacingIntersect.cardinality() >= prodDomainsi) {
+		            x[i].remove(v);
+		        }
+	        }
 	    }
-	}
     }
 
     @Override
@@ -174,32 +174,16 @@ public class NegTableCT extends AbstractConstraint {
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
                 double belief = beliefRep.zero();
-                double outsideBelief_i_v = outsideBelief(i, v);
                 BitSet conflicts_i_v = conflicts[i][v - ofs[i]];
                 // Iterate over conflicts[i][v] /\ menacing, accumulating the weight of tuples.
-                if (!beliefRep.isZero(outsideBelief_i_v)) {
-                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
-                        if (menacing.get(k)) {
-                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
-                        }
+                for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
+                    if (menacing.get(k)) {
+                        belief = beliefRep.add(belief, tupleWeight[k]);
                     }
-                } else { // special case of null outside belief (avoid division by zero)
-                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
-                        if (menacing.get(k)) {
-                            double weight = beliefRep.one();
-                            for (int i2 = 0; i2 < i; i2++) {
-                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            for (int i2 = i + 1; i2 < xLength; i2++) {
-                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            belief = beliefRep.add(belief, weight);
-                        }
-                    }
-		}
+                }
                 setLocalBelief(i, v, beliefRep.complement(belief));
+	        }
 	    }
-	}
     }
 
 }

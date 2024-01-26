@@ -110,31 +110,58 @@ public class IsEqualVar extends AbstractConstraint { // b <=> x == y
 
     @Override
     public void updateBelief() {
-	    double beliefSAT;
+	    double beliefSAT = beliefRep.zero(); // that x=y is satisfied
+        double beliefUNSAT = beliefRep.zero(); // that x=y is unsatisfied
 	    int v;
-        beliefSAT = beliefRep.zero(); // that x=y is satisfied
         // Treatment of x
         int nVal = x.fillArray(domainValues);
 	    for (int k = 0; k < nVal; k++) {
 	        v = domainValues[k];
 	        if (y.contains(v)) {
-                setLocalBelief(1, v, beliefRep.add( beliefRep.multiply(outsideBelief(2,v), outsideBelief(0,1)), beliefRep.multiply(beliefRep.complement(outsideBelief(2,v)), outsideBelief(0,0)) ));
-		        beliefSAT = beliefRep.add(beliefSAT,beliefRep.multiply(outsideBelief(1,v),outsideBelief(2,v)));
-	        } else
-                setLocalBelief(1, v, outsideBelief(0,0));
+                double bSAT = beliefRep.multiply(outsideBelief(1,v), outsideBelief(2,v));
+                double bUNSAT = beliefRep.multiply(outsideBelief(1,v), beliefRep.complement(outsideBelief(2,v)));
+                setLocalBelief(1, v, beliefRep.add( beliefRep.multiply(bSAT, outsideBelief(0,1)), beliefRep.multiply(bUNSAT, outsideBelief(0,0)) ));
+                beliefSAT = beliefRep.add(beliefSAT, bSAT);
+                beliefUNSAT = beliefRep.add(beliefUNSAT, bUNSAT);
+            } else {
+                setLocalBelief(1, v, beliefRep.multiply(outsideBelief(1, v), outsideBelief(0, 0)));
+                beliefUNSAT = beliefRep.add(beliefUNSAT, outsideBelief(1, v));
+            }
 	    }
         // Treatment of y
         nVal = y.fillArray(domainValues);
 	    for (int k = 0; k < nVal; k++) {
 	        v = domainValues[k];
 	        if (x.contains(v))
-                setLocalBelief(2, v, beliefRep.add( beliefRep.multiply(outsideBelief(1,v), outsideBelief(0,1)), beliefRep.multiply(beliefRep.complement(outsideBelief(1,v)), outsideBelief(0,0)) ));
+                setLocalBelief(2, v, beliefRep.add( beliefRep.multiply(beliefRep.multiply(outsideBelief(2,v), outsideBelief(1,v)), outsideBelief(0,1)), beliefRep.multiply(beliefRep.multiply(outsideBelief(2,v), beliefRep.complement(outsideBelief(1,v))), outsideBelief(0,0)) ));
 	        else
-                setLocalBelief(2, v, outsideBelief(0,0));
+                setLocalBelief(2, v, beliefRep.multiply(outsideBelief(2,v), outsideBelief(0,0)));
 	    }
         // Treatment of b
+        beliefSAT = beliefRep.multiply(outsideBelief(0,1), beliefSAT);
 	    setLocalBelief(0, 1, beliefSAT);
-	    setLocalBelief(0, 0, beliefRep.complement(beliefSAT));
+        beliefUNSAT = beliefRep.multiply(outsideBelief(0,0), beliefUNSAT);
+	    setLocalBelief(0, 0, beliefUNSAT);
+    }
+
+    @Override
+    public double weightedCounting() {
+        double beliefSAT = beliefRep.zero(); // that x=y is satisfied
+        double beliefUNSAT = beliefRep.zero(); // that x=y is not satisfied
+        int v;
+        int nVal = x.fillArray(domainValues);
+        for (int k = 0; k < nVal; k++) {
+            v = domainValues[k];
+            if (y.contains(v)) {
+                beliefSAT = beliefRep.add(beliefSAT,beliefRep.multiply(outsideBelief(1,v),outsideBelief(2,v)));
+                beliefUNSAT = beliefRep.add(beliefUNSAT,beliefRep.multiply(outsideBelief(1,v),beliefRep.complement(outsideBelief(2,v))));
+            } else {
+                beliefUNSAT = beliefRep.add(beliefUNSAT,outsideBelief(1,v));
+            }
+        }
+        double weightedCount = beliefRep.add(beliefRep.multiply(beliefSAT,outsideBelief(0,1)), beliefRep.multiply(beliefUNSAT,outsideBelief(0,0)));
+        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        return weightedCount;
     }
 
 }

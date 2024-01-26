@@ -158,21 +158,25 @@ public class Among extends AbstractConstraint {
     @Override
     public void updateBelief() {
         for (int i = 0; i < x.length; i++) {
-            double belief = beliefRep.zero();
+            double beliefYis1 = beliefRep.zero();
+            double beliefYis0 = beliefRep.zero();
             int s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
                 // set belief for x[i]==v
                 if (V.contains(v)) {
-                    setLocalBelief(i, v, outsideBelief(x.length + i, 1));
-                    belief = beliefRep.add(belief, outsideBelief(i, v));
+                    double solnWeight = beliefRep.multiply(outsideBelief(i, v), outsideBelief(x.length + i, 1));
+                    setLocalBelief(i, v, solnWeight);
+                    beliefYis1 = beliefRep.add(beliefYis1, solnWeight);
                 } else {
-                    setLocalBelief(i, v, outsideBelief(x.length + i, 0));
+                    double solnWeight = beliefRep.multiply(outsideBelief(i, v), outsideBelief(x.length + i, 0));
+                    setLocalBelief(i, v, solnWeight);
+                    beliefYis0 = beliefRep.add(beliefYis0, solnWeight);
                 }
             }
             // set beliefs for y[i]
-            setLocalBelief(x.length + i, 1, belief);
-            setLocalBelief(x.length + i, 0, beliefRep.complement(belief));
+            setLocalBelief(x.length + i, 1, beliefYis1);
+            setLocalBelief(x.length + i, 0, beliefYis0);
         }
     }
 
