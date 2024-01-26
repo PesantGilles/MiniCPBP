@@ -223,8 +223,18 @@ public abstract class AbstractConstraint implements Constraint {
     public void resetLocalBelief() {
         for (int i = 0; i < vars.length; i++) {
             int s = vars[i].fillArray(domainValues);
+            double uniform = beliefRep.divide(beliefRep.one(),(double) s);
             for (int j = 0; j < s; j++) {
-                setLocalBelief(i, domainValues[j], beliefRep.one());
+                setLocalBelief(i, domainValues[j], uniform);
+            }
+        }
+    }
+    public void resetOutsideBelief() {
+        for (int i = 0; i < vars.length; i++) {
+            int s = vars[i].fillArray(domainValues);
+            double uniform = beliefRep.divide(beliefRep.one(),(double) s);
+            for (int j = 0; j < s; j++) {
+                setOutsideBelief(i, domainValues[j], uniform);
             }
         }
     }
@@ -296,7 +306,7 @@ public abstract class AbstractConstraint implements Constraint {
                 }
             }
         }
- //       System.out.println();
+//        System.out.println();
     }
 
     /**

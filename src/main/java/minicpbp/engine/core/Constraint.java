@@ -92,9 +92,14 @@ public interface Constraint {
     void sendMessages();
 
     /**
-     * Sets the local belief to certainty.
+     * Sets the local belief to uniform distribution.
      */
     void resetLocalBelief();
+
+    /**
+     * Sets the outside belief to uniform distribution.
+     */
+    void resetOutsideBelief();
 
     /**
      * Sets the constraint's weight to a nonnegative value.
