@@ -261,8 +261,8 @@ public abstract class AbstractConstraint implements Constraint {
                     assert localBelief(i, val) <= beliefRep.one() && localBelief(i, val) >= beliefRep.zero() : "c Should be normalized! localBelief(i,val) = " + localBelief(i, val);
                     setOutsideBelief(i, val, vars[i].sendMessage(val, beliefRep.pow(localBelief(i, val), this.weight)));
                 }
-                normalizeBelief(i, (j, val) -> outsideBelief(j, val),
-                        (j, val, b) -> setOutsideBelief(j, val, b));
+//                normalizeBelief(i, (j, val) -> outsideBelief(j, val),
+//                        (j, val, b) -> setOutsideBelief(j, val, b));
                 if (cp.dampingMessages()) {
                     if (cp.prevOutsideBeliefRecorded())
                         dampenMessages(i);
@@ -280,8 +280,8 @@ public abstract class AbstractConstraint implements Constraint {
  //       System.out.println(getName()+".sendMessages()");
         for (int i = 0; i < vars.length; i++) {
             if (!vars[i].isBound()) { // if the variable is bound, it is pointless to send a "certainly true" message
-                normalizeBelief(i, (j, val) -> localBelief(j, val),
-                        (j, val, b) -> setLocalBelief(j, val, b));
+     //           normalizeBelief(i, (j, val) -> localBelief(j, val),
+     //                   (j, val, b) -> setLocalBelief(j, val, b));
                 int s = vars[i].fillArray(domainValues);
  //               System.out.print(vars[i].getName()+": ");
                 for (int j = 0; j < s; j++) {

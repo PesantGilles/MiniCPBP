@@ -315,15 +315,19 @@ public class MiniCP implements Solver {
                 while (iterator.hasNext()) {
                     iterator.next().resetMarginals();
                 }
-                 Iterator<Constraint> iteratorC = constraints.iterator();
+                Constraint c;
+                Iterator<Constraint> iteratorC = constraints.iterator();
                 while (iteratorC.hasNext()) {
-                    iteratorC.next().resetLocalBelief();
+                    c = iteratorC.next();
+                    c.resetLocalBelief();
+                    c.resetOutsideBelief();
                 }
                 prevOutsideBeliefRecorded = false;
             }
             double previousEntropy, currentEntropy = 1.0;
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
+    //            BPiterationReversed();
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
                     for (int i = 0; i < variables.size(); i++) {
@@ -409,6 +413,10 @@ public class MiniCP implements Solver {
                     }
                 }
             }
+            Iterator<IntVar> iterator = variables.iterator();
+            while (iterator.hasNext()) {
+                iterator.next().normalizeMarginals();
+            }
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
             while (!propagationQueue.isEmpty())
@@ -454,9 +462,12 @@ public class MiniCP implements Solver {
             while (iterator.hasNext()) {
                 iterator.next().resetMarginals();
             }
+            Constraint c;
             Iterator<Constraint> iteratorC = constraints.iterator();
             while (iteratorC.hasNext()) {
-                iteratorC.next().resetLocalBelief();
+                c = iteratorC.next();
+                c.resetLocalBelief();
+                c.resetOutsideBelief();
             }
             prevOutsideBeliefRecorded = false;
             currentEntropy = 1.0;
@@ -466,6 +477,7 @@ public class MiniCP implements Solver {
             // BP dive
             for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
+//                BPiterationReversed();
                 previousEntropy = currentEntropy;
                 previousDeltaEntropy = currentDeltaEntropy;
                 currentEntropy = problemEntropy();
@@ -519,7 +531,35 @@ public class MiniCP implements Solver {
             if (c.isActive())
                 c.sendMessages();
         }
-       iterator = variables.iterator();
+//       iterator = variables.iterator();
+//        while (iterator.hasNext()) {
+//            iterator.next().normalizeMarginals();
+//        }
+    }
+
+    /**
+     * a single iteration of Belief Propagation:
+     * from constraints to variables, and then from variables to constraints
+     */
+    private void BPiterationReversed() {
+        Iterator<IntVar> iterator = variables.iterator();
+        while (iterator.hasNext()) {
+            iterator.next().resetMarginals(); // prepare to receive and aggregate the messages from constraints
+        }
+        Constraint c;
+        Iterator<Constraint> iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
+            if (c.isActive())
+                c.sendMessages();
+        }
+        iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
+            if (c.isActive())
+                c.receiveMessages();
+        }
+        iterator = variables.iterator();
         while (iterator.hasNext()) {
             iterator.next().normalizeMarginals();
         }
