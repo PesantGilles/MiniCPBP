@@ -40,7 +40,8 @@ public class Grammar extends AbstractConstraint {
     private Set<Integer>[] V;
     private Set<Integer>[] flags;
     private Set<Integer> supportedVals;
-    private double[][] belief; // probabilistic weight of each nonterminal symbol at each idx
+    private double[][] belief; // probabilistic weight of derivation subtrees rooted at each nonterminal symbol at each idx
+    private double[][] forks; // accumulated probabilistic weight from forks in derivation trees above each nonterminal symbol at each idx
 
     /**
      * Creates a grammar constraint.
@@ -62,6 +63,7 @@ public class Grammar extends AbstractConstraint {
         V = new Set[n*(n+1)/2];
         flags = new Set[n*(n+1)/2];
         belief = new double[n*(n+1)/2][g.nonTerminalCount()];
+        forks = new double[n*(n+1)/2][g.nonTerminalCount()];
         for (int i = 0; i < V.length; i++) {
             V[i] = new HashSet<Integer>();
             flags[i] = new HashSet<Integer>();
@@ -171,6 +173,7 @@ public class Grammar extends AbstractConstraint {
 
     @Override
     public void updateBelief() {
+        // adapted from CYK algorithm
         // after fixpoint() has been called, flags contains the nonterminals involved in some derivation tree
         // Clear table of beliefs
         for (int i = 0; i < n; i++) {
@@ -198,42 +201,51 @@ public class Grammar extends AbstractConstraint {
                             Production p = itr2.next();
                             if (flags[idx(i + k, j - k)].contains(p.right()[1])) {
                                 belief[idx(i, j)][p.left() - g.terminalCount()] = beliefRep.add(belief[idx(i, j)][p.left() - g.terminalCount()], beliefRep.multiply(belief[idx(i, k)][p.right()[0] - g.terminalCount()], belief[idx(i + k, j - k)][p.right()[1] - g.terminalCount()]));
-                                //   System.out.println("pos " + i + "; length " + j + "; nonterminal " + p.left() + " rewritten as " + p.right()[0] + " at " + i + ";" + k + " and " + p.right()[1] + " at " + (i + k) + ";" + (j - k));
                             }
                         }
                     }
                 }
             }
         }
- //       System.out.println("belief at top is " + belief[idx(0, n)][0]);
-        // Clear local beliefs
+        // Clear table of forks
         for (int i = 0; i < n; i++) {
+            for (int j = 1; j + i <= n; j++) {
+                Arrays.fill(forks[idx(i, j)], beliefRep.zero());
+            }
+        }
+        // Initialize top row (starting nonterminal)
+        forks[idx(0,n)][0] = beliefRep.one();
+        // Go down the rows, accumulating the product of beliefs that branch off
+        for (int j = n; j > 1; j--) {
+            for (int i = 0; i <= n - j; i++) {
+                Iterator<Integer> itr = flags[idx(i, j)].iterator();
+                while (itr.hasNext()) { // for each flagged nonterminal at that index
+                    Iterator<Production> itr2 = g.lhs2prod()[itr.next() - g.terminalCount()].iterator();
+                    while (itr2.hasNext()) { // for each length-2 production with that nonterminal as lhs
+                        Production p = itr2.next();
+                        for (int k = 1; k < j; k++) {
+                            if (flags[idx(i, k)].contains(p.right()[0]) && flags[idx(i + k, j - k)].contains(p.right()[1])) {
+                                forks[idx(i, k)][p.right()[0] - g.terminalCount()] = beliefRep.add(forks[idx(i, k)][p.right()[0] - g.terminalCount()], beliefRep.multiply(forks[idx(i, j)][p.left() - g.terminalCount()], belief[idx(i + k, j - k)][p.right()[1] - g.terminalCount()]));
+                                forks[idx(i + k, j - k)][p.right()[1] - g.terminalCount()] = beliefRep.add(forks[idx(i + k, j - k)][p.right()[1] - g.terminalCount()], beliefRep.multiply(forks[idx(i, j)][p.left() - g.terminalCount()], belief[idx(i, k)][p.right()[0] - g.terminalCount()]));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Add the forks to the local belief of the corresponding var-val pair
+        for (int i = 0; i < n; i++) {
+            // Clear local beliefs
             int s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 setLocalBelief(i, domainValues[j], beliefRep.zero());
             }
-        }
-        // For each derivation tree, go down each path from root to leaf, taking the product of beliefs that branch off that path, and add the result to the local belief of the corresponding var-val pair
-        dive(g.terminalCount(), n, 0, beliefRep.one());
-    }
-
-    private void dive(int nonTerminal, int len, int pos, double product) {
-        if (len == 1) { // base case: bottom row
- //           System.out.println("reached bottom for pos "+pos+" and nonterminal "+nonTerminal+" with product "+product);
-            Iterator<Production> itr2 = g.lhs1prod()[nonTerminal - g.terminalCount()].iterator();
-            while (itr2.hasNext()) { // for each length-1 production with nonTerminal as lhs
-                Production p = itr2.next();
-                setLocalBelief(pos, p.right()[0], beliefRep.add(localBelief(pos, p.right()[0]), product));
-            }
-            return;
-        }
-        Iterator<Production> itr2 = g.lhs2prod()[nonTerminal - g.terminalCount()].iterator();
-        while (itr2.hasNext()) { // for each length-2 production with nonTerminal as lhs
-            Production p = itr2.next();
-            for (int k = 1; k < len; k++) {
-                if (flags[idx(pos, k)].contains(p.right()[0]) && flags[idx(pos + k, len - k)].contains(p.right()[1])) {
-                    dive(p.right()[0], k, pos, beliefRep.multiply(product,belief[idx(pos + k, len - k)][p.right()[1] - g.terminalCount()]));
-                    dive(p.right()[1], len - k, pos + k, beliefRep.multiply(product,belief[idx(pos, k)][p.right()[0] - g.terminalCount()]));
+            Iterator<Integer> itr = flags[idx(i, 1)].iterator();
+            while (itr.hasNext()) { // for each flagged nonterminal in position i
+                Iterator<Production> itr2 = g.lhs1prod()[itr.next() - g.terminalCount()].iterator();
+                while (itr2.hasNext()) { // for each length-1 production with that nonterminal as lhs
+                    Production p = itr2.next();
+                    setLocalBelief(i, p.right()[0], beliefRep.add(localBelief(i, p.right()[0]), forks[idx(i, 1)][p.left() - g.terminalCount()]));
                 }
             }
         }
