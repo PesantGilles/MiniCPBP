@@ -448,7 +448,7 @@ public class MiniCP implements Solver {
         double previousDeltaEntropy, currentDeltaEntropy;
         int valleyCount;
         while (!dampingFactorDetermined) {
-//            System.out.println("trying DAMPING FACTOR = " + dampingFactor());
+            System.out.println("trying DAMPING FACTOR = " + dampingFactor());
             // start afresh
            Iterator<IntVar> iterator = variables.iterator();
             while (iterator.hasNext()) {
@@ -471,15 +471,15 @@ public class MiniCP implements Solver {
                 currentEntropy = problemEntropy();
                 currentDeltaEntropy = currentEntropy - previousEntropy;
                 prevOutsideBeliefRecorded = true;
- //               System.out.println("iteration " + iter + "; problem entropy = " + currentEntropy + "; previous entropy = " + previousEntropy);
+                System.out.println("iteration " + iter + "; problem entropy = " + currentEntropy + "; previous entropy = " + previousEntropy);
                 if (currentEntropy == 0) { // either all branching vars are bound or BP says there's no solution
                     break;
                 }
                 if (previousDeltaEntropy <= 0 && currentDeltaEntropy > ENTROPY_TOLERANCE) {
-//                    System.out.println("valley");
+                    System.out.println("valley");
                     valleyCount++;
                     if (valleyCount >= 2) {
- //                       System.out.println("two valleys ==> oscillation");
+                        System.out.println("two valleys ==> oscillation");
                         if (dampingFactor() - DAMPING_FACTOR_DELTA >= MIN_DAMPING_FACTOR) {
                             setDampingFactor(dampingFactor() - DAMPING_FACTOR_DELTA); // increase damping
                             dampingFactorDetermined = false;
@@ -543,6 +543,42 @@ public class MiniCP implements Solver {
             loss -= Math.log(beliefRep.rep2std(c.weightedCounting()));
         }
         return loss;
+    }
+
+    /**
+     * Computes gradients for the globalLossFct.
+     * !!! SPECIALIZED FOR PLS !!!
+     */
+    public double[][][] globalLossFctGradients() {
+        int order = (int) Math.sqrt( (double) variables.size());
+        double[][][] gradients = new double[order][order][order];
+        for (int i = 0; i < order; i++)
+            for (int j = 0; j < order; j++)
+                for (int v = 0; v < order; v++)
+                    gradients[i][j][v] = 0;
+        Constraint c;
+        Iterator<Constraint> iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
+            c.receiveMessagesWCounting();
+            double denom = beliefRep.rep2std(c.weightedCounting());
+            c.updateBelief();
+            int id = Integer.parseInt(c.getName());
+            System.out.println(id);
+            if (id < order) { // alldiff on row id
+                for (int j = 0; j < order; j++)
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[j].contains(v))
+                            gradients[id][j][v] -= c.localBelief(j,v) / denom;
+            }
+            else { // alldiff on column id-order
+                for (int i = 0; i < order; i++)
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[i].contains(v))
+                            gradients[i][id-order][v] -= c.localBelief(i,v) / denom;
+            }
+        }
+        return gradients;
     }
 
     /**

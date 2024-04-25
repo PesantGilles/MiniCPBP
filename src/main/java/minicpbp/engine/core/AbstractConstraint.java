@@ -92,6 +92,8 @@ public abstract class AbstractConstraint implements Constraint {
         failureCount = 0;
     }
 
+    public IntVar[] vars() { return vars; }
+
     public int arity() {
         return vars.length;
     }
@@ -168,7 +170,7 @@ public abstract class AbstractConstraint implements Constraint {
         return weight;
     }
 
-    protected double localBelief(int i, int val) {
+    public double localBelief(int i, int val) {
         return localBelief[i][val - ofs[i]].value();
     }
 
@@ -316,7 +318,7 @@ public abstract class AbstractConstraint implements Constraint {
      * Default behaviour: uniform belief
      * CAVEAT: may set zero/one beliefs but should not directly remove domain values (only done in sendMessages() if actOnZeroOneBelief flag is set)
      */
-    protected void updateBelief() {
+    public void updateBelief() {
         if (!updateBeliefWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
                 System.out.println("c Warning: method updateBelief not implemented yet for " + getName() + " constraint. Using uniform belief instead.");

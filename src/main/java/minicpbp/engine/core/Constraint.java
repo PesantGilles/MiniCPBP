@@ -92,10 +92,19 @@ public interface Constraint {
     void sendMessages();
 
     /**
+     * Updates its local belief given the outside beliefs.
+     * To be defined in the actual constraint.
+     */
+    void updateBelief();
+
+    /**
      * Sets the local belief to uniform distribution.
      */
     void resetLocalBelief();
 
+    double localBelief(int i, int val);
+
+    IntVar[] vars();
     /**
      * Sets the outside belief to uniform distribution.
      */

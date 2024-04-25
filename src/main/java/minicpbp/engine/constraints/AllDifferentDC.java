@@ -376,7 +376,7 @@ public class AllDifferentDC extends AbstractConstraint {
             setExactWCounting(false);
             weightedCount *= costBasedPermanent_UB3(-1, -1, nbVal, nbVal - nbVar);
         }
-        System.out.println("weighted count for "+this.getName()+" constraint: "+beliefRep.std2rep(weightedCount));
+//        System.out.println("weighted count for "+this.getName()+" constraint: "+beliefRep.std2rep(weightedCount));
         return beliefRep.std2rep(weightedCount); // put beliefs back to their original representation
     }
 

@@ -284,5 +284,11 @@ public interface Solver {
      */
     double globalLossFct();
 
+    /**
+     * Computes gradients for the globalLossFct.
+     * !!! SPECIALIZED FOR PLS !!!
+     */
+    double[][][] globalLossFctGradients();
+
  }
 
