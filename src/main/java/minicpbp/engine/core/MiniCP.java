@@ -566,16 +566,40 @@ public class MiniCP implements Solver {
             int id = Integer.parseInt(c.getName());
             System.out.println(id);
             if (id < order) { // alldiff on row id
-                for (int j = 0; j < order; j++)
+                for (int j = 0; j < order; j++) {
+/*
                     for (int v = 0; v < order; v++)
                         if (c.vars()[j].contains(v))
                             gradients[id][j][v] -= c.localBelief(j,v) / denom;
+ */
+                    double num = 0;
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[j].contains(v))
+                            num += c.localBelief(j, v);
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[j].contains(v))
+                            gradients[id][j][v] += (num - 2 * c.localBelief(j, v)) / denom;
+                        else
+                            gradients[id][j][v] += num / denom;
+                }
             }
             else { // alldiff on column id-order
-                for (int i = 0; i < order; i++)
+                for (int i = 0; i < order; i++) {
+/*
                     for (int v = 0; v < order; v++)
                         if (c.vars()[i].contains(v))
                             gradients[i][id-order][v] -= c.localBelief(i,v) / denom;
+ */
+                    double num = 0;
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[i].contains(v))
+                            num += c.localBelief(i,v);
+                    for (int v = 0; v < order; v++)
+                        if (c.vars()[i].contains(v))
+                            gradients[i][id-order][v] += (num - 2 * c.localBelief(i,v)) / denom;
+                        else
+                            gradients[i][id-order][v] += num / denom;
+                }
             }
         }
         return gradients;
