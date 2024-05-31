@@ -574,11 +574,11 @@ public class MiniCP implements Solver {
  */
                     double num = 0;
                     for (int v = 0; v < order; v++)
-                        if (c.vars()[j].contains(v))
-                            num += c.localBelief(j, v);
+                        if (c.vars()[j].contains(v+1))
+                            num += c.localBelief(j, v+1);
                     for (int v = 0; v < order; v++)
-                        if (c.vars()[j].contains(v))
-                            gradients[id][j][v] += (num - 2 * c.localBelief(j, v)) / denom;
+                        if (c.vars()[j].contains(v+1))
+                            gradients[id][j][v] += (num - 2 * c.localBelief(j, v+1)) / denom;
                         else
                             gradients[id][j][v] += num / denom;
                 }
@@ -592,11 +592,11 @@ public class MiniCP implements Solver {
  */
                     double num = 0;
                     for (int v = 0; v < order; v++)
-                        if (c.vars()[i].contains(v))
-                            num += c.localBelief(i,v);
+                        if (c.vars()[i].contains(v+1))
+                            num += c.localBelief(i,v+1);
                     for (int v = 0; v < order; v++)
-                        if (c.vars()[i].contains(v))
-                            gradients[i][id-order][v] += (num - 2 * c.localBelief(i,v)) / denom;
+                        if (c.vars()[i].contains(v+1))
+                            gradients[i][id-order][v] += (num - 2 * c.localBelief(i,v+1)) / denom;
                         else
                             gradients[i][id-order][v] += num / denom;
                 }
