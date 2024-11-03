@@ -30,4 +30,6 @@ public interface Objective {
      * the next found solution is better.
      */
     void tighten();
+
+    boolean problemIsBound();
 }

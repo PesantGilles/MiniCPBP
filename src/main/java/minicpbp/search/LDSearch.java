@@ -217,11 +217,13 @@ public class LDSearch extends Search{
      */
     public SearchStatistics optimize(Objective obj, Predicate<SearchStatistics> limit) {
         SearchStatistics statistics = new SearchStatistics();
-//         onSolution(() -> obj.tighten());
-        onSolution(() -> {
-		//System.out.println("c (solution found in "+statistics.numberOfFailures()+" fails and "+statistics.timeElapsed()+" msecs)"); 
-		obj.tighten();
-    });
+        if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
+            onSolution(() -> {
+    //                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                        obj.tighten();
+                    }
+            );
+        }
         return solve(statistics, limit);
     }
 

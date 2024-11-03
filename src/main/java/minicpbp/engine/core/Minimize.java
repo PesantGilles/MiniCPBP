@@ -18,6 +18,8 @@ package minicpbp.engine.core;
 import minicpbp.search.Objective;
 import minicpbp.util.exception.InconsistencyException;
 
+import java.util.Iterator;
+
 /**
  * Minimization objective function
  */
@@ -37,5 +39,14 @@ public class Minimize implements Objective {
         if (!x.isBound()) throw new RuntimeException("objective not bound");
         this.bound = x.max() - 1;
         throw InconsistencyException.INCONSISTENCY;
+    }
+
+    public  boolean problemIsBound() {
+        Iterator<IntVar> iterator = x.getSolver().getVariables().iterator();
+        while (iterator.hasNext()) {
+            if (!iterator.next().isBound())
+               return false;
+        }
+        return true;
     }
 }
