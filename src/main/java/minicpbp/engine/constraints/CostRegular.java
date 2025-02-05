@@ -68,12 +68,12 @@ public class CostRegular extends AbstractConstraint {
         initialState = s;
         totalCost = tc;
         assert ((initialState >= 0) && (initialState < nbStates));
-	finalStates = new ArrayList<Integer>();
-        Iterator<Integer> itr = finalStates.iterator();
+	    finalStates = new ArrayList<Integer>();
+        Iterator<Integer> itr = f.iterator();
         while (itr.hasNext()) {
             int state = itr.next().intValue();
             assert ((state >= 0) && (state < nbStates));
-	    finalStates.add(state);
+	        finalStates.add(state);
         }
         int maxVal = Integer.MIN_VALUE;
         for (int i = 0; i < n; i++) {
