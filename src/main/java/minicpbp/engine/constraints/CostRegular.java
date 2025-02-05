@@ -85,7 +85,7 @@ public class CostRegular extends AbstractConstraint {
             assert (A[i].length == maxVal + 1);
             for (int j = 0; j < maxVal + 1; j++) {
                 assert (A[i][j] < nbStates);
-		transitionFct[i][j] = A[i][j];
+		        transitionFct[i][j] = A[i][j];
             }
         }
         cost = new int[n][nbStates][maxVal + 1];
@@ -117,26 +117,28 @@ public class CostRegular extends AbstractConstraint {
         setName("CostRegular");
         this.x = x;
         n = x.length;
-        transitionFct = A;
         nbStates = A.length;
         initialState = s;
-        finalStates = f;
         totalCost = tc;
         assert ((initialState >= 0) && (initialState < nbStates));
-        Iterator<Integer> itr = finalStates.iterator();
+	    finalStates = new ArrayList<Integer>();
+        Iterator<Integer> itr = f.iterator();
         while (itr.hasNext()) {
             int state = itr.next().intValue();
             assert ((state >= 0) && (state < nbStates));
+	        finalStates.add(state);
         }
         int maxVal = Integer.MIN_VALUE;
         for (int i = 0; i < n; i++) {
             if (x[i].max() > maxVal)
                 maxVal = x[i].max();
         }
-        for (int i = 0; i < transitionFct.length; i++) {
-            assert (transitionFct[i].length == maxVal + 1);
-            for (int j = 0; j < transitionFct[i].length; j++) {
-                assert (transitionFct[i][j] < nbStates);
+        transitionFct = new int[nbStates][maxVal + 1];
+        for (int i = 0; i < nbStates; i++) {
+            assert (A[i].length == maxVal + 1);
+            for (int j = 0; j < maxVal + 1; j++) {
+                assert (A[i][j] < nbStates);
+		        transitionFct[i][j] = A[i][j];
             }
         }
         cost = new int[n][nbStates][maxVal + 1];
@@ -167,26 +169,28 @@ public class CostRegular extends AbstractConstraint {
         setName("CostRegular");
         this.x = x;
         n = x.length;
-        transitionFct = A;
         nbStates = A.length;
         initialState = s;
-        finalStates = f;
         totalCost = tc;
         assert ((initialState >= 0) && (initialState < nbStates));
-        Iterator<Integer> itr = finalStates.iterator();
+	    finalStates = new ArrayList<Integer>();
+        Iterator<Integer> itr = f.iterator();
         while (itr.hasNext()) {
             int state = itr.next().intValue();
             assert ((state >= 0) && (state < nbStates));
+	        finalStates.add(state);
         }
         int maxVal = Integer.MIN_VALUE;
         for (int i = 0; i < n; i++) {
             if (x[i].max() > maxVal)
                 maxVal = x[i].max();
         }
-        for (int i = 0; i < transitionFct.length; i++) {
-            assert (transitionFct[i].length == maxVal + 1);
-            for (int j = 0; j < transitionFct[i].length; j++) {
-                assert (transitionFct[i][j] < nbStates);
+        transitionFct = new int[nbStates][maxVal + 1];
+        for (int i = 0; i < nbStates; i++) {
+            assert (A[i].length == maxVal + 1);
+            for (int j = 0; j < maxVal + 1; j++) {
+                assert (A[i][j] < nbStates);
+		        transitionFct[i][j] = A[i][j];
             }
         }
         cost = new int[n][nbStates][maxVal + 1];
