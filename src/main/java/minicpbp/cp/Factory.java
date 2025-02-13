@@ -1551,14 +1551,18 @@ public final class Factory {
      * @return a constraint so that {@code x is a word recognized by automaton A and of total cost tc}
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][][] c, IntVar tc) {
-        return new CostRegular(x, A, s, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, s, f, c, tc, vars);
     }
 
     /**
      * special case with 0 being the initial state
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][][] c, IntVar tc) {
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
@@ -1569,21 +1573,27 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
      * special case with 2D cost matrix: state x domain value
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][] c, IntVar tc) {
-        return new CostRegular(x, A, s, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, s, f, c, tc, vars);
     }
 
     /**
      * special case with 0 being the initial state
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][] c, IntVar tc) {
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
@@ -1594,21 +1604,27 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
      * special case with 1D cost matrix: domain value
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[] c, IntVar tc) {
-        return new CostRegular(x, A, s, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, s, f, c, tc, vars);
     }
 
     /**
      * special case with 0 being the initial state
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[] c, IntVar tc) {
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
@@ -1619,7 +1635,9 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        return new CostRegular(x, A, 0, f, c, tc);
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tc;
+        return new CostRegular(x, A, 0, f, c, tc, vars);
     }
 
     /**
@@ -1637,16 +1655,16 @@ public final class Factory {
         return new Grammar(x, g);
     }
 
-    /**
-     * Returns an among constraint.
-     * This relation is enforced by the {@link Among} constraint
-     * posted by calling this method.
-     *
-     * @param x an array of variables whose instantiations belonging to V we count
-     * @param V an array of values whose occurrences in x we count
-     * @param o the variable corresponding to the number of occurrences of values from V in x
-     * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
-     */
+         /**
+         * Returns an among constraint.
+         * This relation is enforced by the {@link Among} constraint
+         * posted by calling this method.
+         *
+         * @param x an array of variables whose instantiations belonging to V we count
+         * @param V an array of values whose occurrences in x we count
+         * @param o the variable corresponding to the number of occurrences of values from V in x
+         * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
+         */
     public static Constraint among(IntVar[] x, int[] V, IntVar o) {
         Solver cp = x[0].getSolver();
         IntVar[] vars = Arrays.copyOf(x, 2 * x.length);
