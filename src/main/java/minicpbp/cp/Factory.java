@@ -1665,7 +1665,7 @@ public final class Factory {
      * @param s     the initial state
      * @param f     a list of accepting states
      * @param R     a 3D array giving integer rewards for each combination of state, domain value, state
-     * @param tr    the total reward of sequence x computed as the sum (x100) of the corresponding integer rewards from array R.
+     * @param tr    the total reward of sequence x computed as the sum of the corresponding integer rewards from array R.
      */
     public static Constraint markov(IntVar[] x, double[][][] P, int s, List<Integer> f, int[][][] R, IntVar tr) {
         IntVar[] vars = Arrays.copyOf(x, x.length + 1);
