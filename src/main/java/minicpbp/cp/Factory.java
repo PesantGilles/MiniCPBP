@@ -1655,7 +1655,25 @@ public final class Factory {
         return new Grammar(x, g);
     }
 
-         /**
+    /**
+     * Returns a Markov constraint to describe a fully-observable, episodic, finite, discrete Markov Decision Process (MDP).
+     * <p> This constraint holds iff the sequence of actions reaches an accepting state with non-zero probability and collects a sum of rewards (undiscounted) equal to totalReward.
+     * <p> Note: Despite being episodic, in this implementation one can still move out of an accepting state and continue to collect rewards, i.e. there is no requirement for P to loop on every action with probability 1 at an accepting states and for R to be zero on these loops.
+     *
+     * @param x     a sequence of action variables (domain values are nonnegative and start at 0)
+     * @param P     a 3D array giving the transition probability between states given an action: {states} x {domain values} x {states} -> [0,1]
+     * @param s     the initial state
+     * @param f     a list of accepting states
+     * @param R     a 3D array giving integer rewards for each combination of state, domain value, state
+     * @param tr    the total reward of sequence x computed as the sum (x100) of the corresponding integer rewards from array R.
+     */
+    public static Constraint markov(IntVar[] x, double[][][] P, int s, List<Integer> f, int[][][] R, IntVar tr) {
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = tr;
+        return new Markov(x, P, s, f, R, tr, vars);
+    }
+
+    /**
          * Returns an among constraint.
          * This relation is enforced by the {@link Among} constraint
          * posted by calling this method.
