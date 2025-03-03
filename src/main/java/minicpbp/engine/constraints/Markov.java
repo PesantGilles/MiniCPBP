@@ -229,9 +229,13 @@ public class Markov extends AbstractConstraint {
     public void updateBelief() {
         for (int i = 0; i < n; i++) {
             Arrays.fill(ip[i], beliefRep.zero());
+            Arrays.fill(iminp[i], Integer.MAX_VALUE);
+            Arrays.fill(imaxp[i], Integer.MIN_VALUE);
         }
         // Reach forward
         ip[0][initialState] = beliefRep.one();
+        iminp[0][initialState] = 0;
+        imaxp[0][initialState] = 0;
         for (int i = 0; i < n - 1; i++) {
             int s = actions[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
@@ -240,7 +244,10 @@ public class Markov extends AbstractConstraint {
                     if (!beliefRep.isZero(ip[i][k])) {
                        for (int l = 0; l < nbStates; l++) {
                     	   if (proba[k][v][l] > 0) {
+    //                           System.out.println("layer "+(i+1)+"; from "+k+" to "+l+" on value "+v+": adding "+ip[i][k]+" x "+proba[k][v][l]+" x "+outsideBelief(i, v));
                                ip[i + 1][l] = beliefRep.add(ip[i + 1][l], beliefRep.multiply(ip[i][k], beliefRep.multiply(beliefRep.std2rep(proba[k][v][l]), outsideBelief(i, v))));
+                               iminp[i + 1][l] = Math.min(iminp[i + 1][l], iminp[i][k] + reward[k][v][l]);
+                               imaxp[i + 1][l] = Math.max(imaxp[i + 1][l], imaxp[i][k] + reward[k][v][l]);
                            }
                        }
                     }
@@ -249,6 +256,8 @@ public class Markov extends AbstractConstraint {
         }
         for (int i = 0; i < n; i++) {
             Arrays.fill(op[i], beliefRep.zero());
+            Arrays.fill(ominp[i], Integer.MAX_VALUE);
+            Arrays.fill(omaxp[i], Integer.MIN_VALUE);
             for (int k = 0; k < nbStates; k++) {
                 allRewards[i][k].clear();
             }
@@ -258,6 +267,8 @@ public class Markov extends AbstractConstraint {
         while (itr.hasNext()) {
             int val = itr.next().intValue();
             op[n - 1][val] = beliefRep.one();
+            ominp[n - 1][val] = 0;
+            omaxp[n - 1][val] = 0;
             allRewards[n - 1][val].put(0, 1.0);
         }
         for (int i = n - 1; i > 0; i--) {
@@ -267,8 +278,14 @@ public class Markov extends AbstractConstraint {
                 double belief = beliefRep.zero();
                 for (int k = 0; k < nbStates; k++) {
                     for (int l = 0; l < nbStates; l++) {
-			            if ((proba[k][v][l] > 0) && (!beliefRep.isZero(op[i][l]))) {
+			            if ((proba[k][v][l] > 0) && (!beliefRep.isZero(op[i][l])) &&
+					        (iminp[i][k] + reward[k][v][l] + ominp[i][l] <= totalReward.max()) && // reward-based reasoning
+					        (imaxp[i][k] + reward[k][v][l] + omaxp[i][l] >= totalReward.min())) {
+ //                           System.out.println("layer "+(i-1)+"; to "+l+" from "+k+" on value "+v+": adding "+op[i][l]+" x "+proba[k][v][l]+" x "+outsideBelief(i, v));
                             op[i - 1][k] = beliefRep.add(op[i - 1][k], beliefRep.multiply(op[i][l], beliefRep.multiply(beliefRep.std2rep(proba[k][v][l]), outsideBelief(i, v))));
+                            ominp[i - 1][k] = Math.min(ominp[i - 1][k], ominp[i][l] + reward[k][v][l]);
+                            omaxp[i - 1][k] = Math.max(omaxp[i - 1][k], omaxp[i][l] + reward[k][v][l]);
+ //                           System.out.println("adding to belief "+i+" "+v+": "+ip[i][k]+" x "+proba[k][v][l]+" x "+op[i][l]);
                             belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k], beliefRep.multiply(beliefRep.std2rep(proba[k][v][l]), op[i][l])));
                             for (Map.Entry<Integer, Double> set :
                                     allRewards[i][l].entrySet()) {
@@ -295,14 +312,16 @@ public class Markov extends AbstractConstraint {
             int v = domainValues[j];
             double belief = beliefRep.zero();
             for (int l = 0; l < nbStates; l++) {
-                if ((proba[initialState][v][l] > 0) && !beliefRep.isZero(op[0][l])) {
+                if ((proba[initialState][v][l] > 0) && !beliefRep.isZero(op[0][l]) &&
+                    (reward[initialState][v][l] + ominp[0][l] <= totalReward.max()) && // reward-based reasoning
+                    (reward[initialState][v][l] + omaxp[0][l] >= totalReward.min())) {
                     belief = beliefRep.add(belief, beliefRep.multiply(op[0][l], beliefRep.std2rep(proba[initialState][v][l])));
                     // set belief for totalReward variable
                     for (Map.Entry<Integer, Double> set :
                             allRewards[0][l].entrySet()) {
                         int newReward = set.getKey() + reward[initialState][v][l];
                         if (totalReward.contains(newReward)) {
-                            setLocalBelief(n, newReward, beliefRep.add(localBelief(n, newReward), beliefRep.multiply(beliefRep.std2rep(set.getValue()), beliefRep.multiply(outsideBelief(0,v), beliefRep.std2rep(proba[initialState][v][l])))));
+                           setLocalBelief(n, newReward, beliefRep.add(localBelief(n, newReward), beliefRep.multiply(beliefRep.std2rep(set.getValue()), beliefRep.multiply(outsideBelief(0,v), beliefRep.std2rep(proba[initialState][v][l])))));
                         }
                     }
                 }
