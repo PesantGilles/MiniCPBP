@@ -20,6 +20,7 @@ package minicpbp.examples;
 
 import minicpbp.engine.core.IntVar;
 import minicpbp.engine.core.Solver;
+import minicpbp.search.DFSearch;
 import minicpbp.search.LDSearch;
 import minicpbp.search.Objective;
 import minicpbp.search.SearchStatistics;
@@ -40,7 +41,8 @@ public class ClassicalAIplanning {
     public static int minPlanLength;
     public static int maxPlanLength;
     public static int nbActions;
-    public static int objectiveCombinator; // 0 if no objective; 1/2/3 for same/sum/max
+    // Note: the 'same' combinator should be used with caution unless each optimization constraint brings a very distinct perspective; otherwise 'sum' should be preferred
+	public static int objectiveCombinator; // 0 if no objective; 1/2/3 for same/sum/max
     public static int lowerBoundB;
     public static int lowerBoundC;
     public static int nbAutomata;
@@ -86,7 +88,7 @@ public class ClassicalAIplanning {
 	}
 
 	//###########################################
-	currentBestPlanCost = maxPlanLength * maxActionCost + 1; // trivial strict upper bound
+	currentBestPlanCost = maxPlanLength * maxActionCost * (objectiveCombinator==2 ? nbOptimizationConstraints : 1) + 1; // upper bound
 	long totalTime = 0;
 
 	//###########################################
@@ -103,9 +105,11 @@ public class ClassicalAIplanning {
 		IntVar[] action = new IntVar[length];
 		for (int i = 0; i < length; i++) {
 		    action[i] = makeIntVar(cp, 0, nbActions-1);
+			action[i].setName("action["+i+"]");
 		}
 		// objective to minimize
 		IntVar planCost = makeIntVar(cp, lowerBoundB + lowerBoundC*length, currentBestPlanCost - 1);
+		planCost.setName("plan cost");
 		IntVar[] automataCosts = new IntVar[nbOptimizationConstraints];
 		int k = 0;
 		// for each component of factored transition system...
@@ -146,21 +150,22 @@ public class ClassicalAIplanning {
 		
 		//###########################################
 		// define the search
-      		LDSearch search = makeLds(cp, maxMarginal(action));
+		LDSearch search = makeLds(cp, maxMarginal(action));
 		search.onSolution(() -> {
- 			System.out.println("plan: "+Arrays.toString(action));
- 			System.out.println("cost: "+planCost.toString());
+ 			System.out.print("plan: "+Arrays.toString(action));
+ 			System.out.print("  cost: "+planCost.toString());
 			/*
 			for (int i = 0; i < action.length; i++) {
 			    System.out.print(actionName[action[i].min()]+" ");
 			}
 			*/
-			System.out.print("   ... a plan of cost "+planCost.min());
+			System.out.println("   ... a plan of cost "+planCost.min());
 			currentBestPlanCost = planCost.min();
 		    });
+
 		Objective obj = cp.minimize(planCost);
-     		SearchStatistics stats = search.optimize(obj, statistics -> (statistics.timeElapsed() >= timeout && statistics.numberOfFailures() >= failout));
-		System.out.format("Statistics: %s\n", stats);
+		SearchStatistics stats = search.optimize(obj, statistics -> (statistics.timeElapsed() >= timeout && statistics.numberOfFailures() >= failout));
+		System.out.format("\nStatistics: %s\n", stats);
 		totalTime += stats.timeElapsed();
 	    }
 	    catch(InconsistencyException e){
