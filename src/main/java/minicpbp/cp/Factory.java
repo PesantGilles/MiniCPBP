@@ -1656,33 +1656,36 @@ public final class Factory {
     }
 
     /**
-     * Returns a Markov constraint to describe a fully-observable, episodic, finite, discrete Markov Decision Process (MDP).
-     * <p> This constraint holds iff the sequence of actions reaches an accepting state with non-zero probability and collects a sum of rewards (undiscounted) equal to totalReward.
-     * <p> Note: Despite being episodic, in this implementation one can still move out of an accepting state and continue to collect rewards, i.e. there is no requirement for P to loop on every action with probability 1 at an accepting states and for R to be zero on these loops.
+     * Returns a constraint to describe a fully-observable, finite, discrete Markov Decision Process (MDP) of order 1 with deterministic rewards.
+     * <p> This constraint holds iff the sequence of actions and states (start,a0,s0,...,an-1,sn-1) may occur with non-zero probability and collects a sum of rewards (undiscounted) equal to totalReward.
      *
-     * @param x     a sequence of action variables (domain values are nonnegative and start at 0)
-     * @param P     a 3D array giving the transition probability between states given an action: {states} x {domain values} x {states} -> [0,1]
-     * @param s     the initial state
-     * @param f     a list of accepting states
-     * @param R     a 3D array giving integer rewards for each combination of state, domain value, state
-     * @param tr    the total reward of sequence x computed as the sum of the corresponding integer rewards from array R.
+     * @param a     a sequence of action variables (domain values are nonnegative and start at 0)
+     * @param s     a sequence of state variables (domain values are nonnegative and start at 0)
+     * @param P     a 3D array giving the transition probability between states given an action: {states} x {actions} x {states} -> [0,1]
+     * @param R     a 3D array giving integer rewards: {states} x {actions} x {states} -> Z
+     * @param start the initial state
+     * @param tr    the total reward of sequence (start,a0,s0,...,an-1,sn-1) computed as the sum of the corresponding integer rewards from array R.
      */
-    public static Constraint markov(IntVar[] x, double[][][] P, int s, List<Integer> f, int[][][] R, IntVar tr) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tr;
-        return new Markov(x, P, s, f, R, tr, vars);
+    public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr) {
+        assert (a.length == s.length);
+        IntVar[] vars = Arrays.copyOf(a, 2 * a.length + 1);
+        for (int i = 0; i < s.length; i++) {
+            vars[a.length + i] = s[i];
+        }
+        vars[2 * a.length] = tr;
+        return new Markov(a, s, P, R, start, tr, vars);
     }
 
     /**
-         * Returns an among constraint.
-         * This relation is enforced by the {@link Among} constraint
-         * posted by calling this method.
-         *
-         * @param x an array of variables whose instantiations belonging to V we count
-         * @param V an array of values whose occurrences in x we count
-         * @param o the variable corresponding to the number of occurrences of values from V in x
-         * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
-         */
+     * Returns an among constraint.
+     * This relation is enforced by the {@link Among} constraint
+     * posted by calling this method.
+     *
+     * @param x an array of variables whose instantiations belonging to V we count
+     * @param V an array of values whose occurrences in x we count
+     * @param o the variable corresponding to the number of occurrences of values from V in x
+     * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
+     */
     public static Constraint among(IntVar[] x, int[] V, IntVar o) {
         Solver cp = x[0].getSolver();
         IntVar[] vars = Arrays.copyOf(x, 2 * x.length);
