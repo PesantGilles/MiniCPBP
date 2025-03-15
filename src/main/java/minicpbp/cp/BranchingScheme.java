@@ -178,6 +178,8 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> lexico(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -213,7 +215,9 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexicoMaxMarginalValue(IntVar... x) {
-	boolean tracing = x[0].getSolver().tracingSearch();
+	    boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -238,6 +242,47 @@ public final class BranchingScheme {
     }
 
     /**
+     * Lexicographic variable selection and  minMarginal value selection.
+     * It selects the first variable with a domain larger than one.
+     * Then it creates two branches:
+     * the left branch _removing_ the value with the smallest marginal from the domain;
+     * the right branch _assigning_ the variable to that value.
+     *
+     * @param x the variable on which the lexicographic/minMarginalValue strategy is applied.
+     * @return a lexicographic/minMarginalValue branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> lexicoMinMarginalValue(IntVar... x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> 1); // any constant value
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMinMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println(xs.toString());
+                                System.out.println("### branching on "+xs.getName()+"!="+v);
+                                branchNotEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println(xs.toString());
+                                System.out.println("### branching on "+xs.getName()+"="+v);
+                                branchEqual(xs, v);
+                        }
+                    );
+            }
+        };
+    }
+
+    /**
      * Lexicographic variable selection and  biased-wheel value selection.
      * It selects the first variable with a domain larger than one.
      * Then it creates two branches:
@@ -249,7 +294,9 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexicoBiasedWheelSelectVal(IntVar... x) {
-	boolean tracing = x[0].getSolver().tracingSearch();
+	    boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -286,6 +333,8 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> firstFail(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -322,6 +371,8 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> firstFailRandomVal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -360,6 +411,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> firstFailRandomTieBreakRandomVal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Random rand = x[0].getSolver().getRandomNbGenerator();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -396,7 +449,9 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailMaxMarginalValue(IntVar... x) {
-	boolean tracing = x[0].getSolver().tracingSearch();
+	    boolean tracing = x[0].getSolver().tracingSearch();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMin(x,
                     xi -> xi.size() > 1,
@@ -434,6 +489,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> firstFailRandomTieBreakMaxMarginalValue(IntVar... x) {
 	    boolean tracing = x[0].getSolver().tracingSearch();
         Random rand = x[0].getSolver().getRandomNbGenerator();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
@@ -473,6 +530,8 @@ public final class BranchingScheme {
     public static Supplier<Procedure[]> randomVarRandomVal(IntVar... x) {
         boolean tracing = x[0].getSolver().tracingSearch();
         Random rand = x[0].getSolver().getRandomNbGenerator();
+        for(IntVar a: x)
+            a.setForBranching(true);
         return () -> {
             IntVar xs = selectMinRandomTieBreak(x,
                     xi -> xi.size() > 1,
