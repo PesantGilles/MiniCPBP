@@ -74,17 +74,16 @@ public class Element1DVar extends AbstractConstraint {
 
     @Override
     public void propagate() {
-        if (y.isBound()) {
-            y.getSolver().post(equal(z,array[y.min()]));
-            setActive(false);
-        }
-        else if (z.isBound()) { // special case, important for inverse constraint
+        if (z.isBound()) { // special case, important for inverse constraint
             filterYwhenZbound();
             if (y.isBound()) {
                 array[y.min()].assign(z.min());
-  //              y.getSolver().post(equal(z,array[y.min()]));
                 setActive(false);
             }
+        }
+        else if (y.isBound()) {
+            y.getSolver().post(equal(z,array[y.min()]));
+            setActive(false);
         }
         else {
             zMin = z.min();
