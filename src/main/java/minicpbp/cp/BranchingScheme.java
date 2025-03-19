@@ -216,6 +216,7 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> lexicoMaxMarginalValue(IntVar... x) {
 	    boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -229,7 +230,7 @@ public final class BranchingScheme {
                 return branch(
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v);
+				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
@@ -450,6 +451,7 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> firstFailMaxMarginalValue(IntVar... x) {
 	    boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -463,7 +465,7 @@ public final class BranchingScheme {
                 return branch(
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v);
+				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
@@ -488,6 +490,7 @@ public final class BranchingScheme {
      */
     public static Supplier<Procedure[]> firstFailRandomTieBreakMaxMarginalValue(IntVar... x) {
 	    boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -503,7 +506,7 @@ public final class BranchingScheme {
                 return branch(
 			      () -> {
 				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v);
+				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
