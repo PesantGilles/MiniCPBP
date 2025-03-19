@@ -26,6 +26,7 @@ import java.util.Iterator;
 public class Minimize implements Objective {
     private int bound = Integer.MAX_VALUE;
     private final IntVar x;
+    private static boolean traceOptim = true;
 
     public Minimize(IntVar x) {
         this.x = x;
@@ -48,5 +49,12 @@ public class Minimize implements Objective {
                return false;
         }
         return true;
+    }
+    public void setTraceOptimizationFlag(boolean traceOptim) {
+        this.traceOptim = traceOptim;
+    }
+
+    public boolean tracingOptimization() {
+        return traceOptim;
     }
 }
