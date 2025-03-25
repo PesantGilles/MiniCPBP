@@ -1001,6 +1001,44 @@ public final class BranchingScheme {
     };
 
     /**
+     * dom/wdeg strategy with max marginal value selection.
+     * It selects the first unbound variable with a smallest ratio of domain size to weighted degree.
+     * Then it creates two branches:
+     * the left branch assigning to the variable the value with the largest marginal;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the dom/wdeg strategy is applied.
+     * @return a dom/wdeg branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> domWdegMaxMarginalValue(IntVar... x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        for (IntVar a : x)
+            a.setForBranching(true);
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> ((double) xi.size()) / ((double) xi.wDeg()));
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.valueWithMaxMarginal();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
      * Maximum Marginal strategy.
      * It selects an unbound variable with the largest marginal
      * on one of the values in its domain.
