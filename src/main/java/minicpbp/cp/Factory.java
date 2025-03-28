@@ -1927,6 +1927,19 @@ public final class Factory {
         }
         return binPacking(b,size,l);
     }
+    /**
+     * more general case with variable-size items
+    */
+    public static Constraint binPacking(IntVar[] b, IntVar[] size, IntVar[] l) {
+        IntVar[] vars = Arrays.copyOf(b, b.length + l.length + size.length);
+        for (int i = 0; i < l.length; i++) {
+            vars[b.length + i] = l[i];
+        }
+        for (int i = 0; i < size.length; i++) {
+            vars[b.length + l.length + i] = size[i];
+        }
+        return new BinPackingVar(b,size,l,vars);
+    }
 
     /**
      * Returns a lexicographically less constraint between two arrays of variables of same length.
