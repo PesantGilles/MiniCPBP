@@ -833,6 +833,48 @@ public final class BranchingScheme {
     }
 
     /**
+     * Maximum Marginal Strength strategy + biased wheel selection of value.
+     * It selects an unbound variable with the largest marginal strength
+     * on one of the values in its domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable nondeterministically using biased wheel selection based on marginal distribution;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the max marginal strength strategy is applied.
+     * @return maxMarginalStrengthBiasedWheelSelectVal branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalStrengthBiasedWheelSelectVal(IntVar[] x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> 1.0 / xi.size() - beliefRep.rep2std(xi.maxMarginal()));
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.biasedWheelValue();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
      * Maximum Marginal Strength strategy with random tie breaking.
      * It selects an unbound variable with the largest marginal strength
      * on one of the values in its domain.
@@ -1069,6 +1111,48 @@ public final class BranchingScheme {
                         () -> {
                             if (tracing)
                                 System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+                            branchEqual(xs, v);
+                        },
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            branchNotEqual(xs, v);
+                        });
+            }
+        };
+    }
+
+    /**
+     * Maximum Marginal strategy + biased wheel selection of value.
+     * It selects an unbound variable with the largest marginal
+     * on one of the values in its domain.
+     * Then it creates two branches:
+     * the left branch assigning the variable nondeterministically using biased wheel selection based on marginal distribution;
+     * the right branch removing this value from the domain.
+     *
+     * @param x the variable on which the max marginal strategy is applied.
+     * @return maxMarginalBiasedWheelSelectVal branching strategy
+     * @see Factory#makeDfs(Solver, Supplier)
+     */
+    public static Supplier<Procedure[]> maxMarginalBiasedWheelSelectVal(IntVar... x) {
+        boolean tracing = x[0].getSolver().tracingSearch();
+        Belief beliefRep = x[0].getSolver().getBeliefRep();
+        for(IntVar a: x)
+            a.setForBranching(true);
+        if(x[0].getSolver().getWeighingScheme() == ConstraintWeighingScheme.ARITY)
+            x[0].getSolver().computeMinArity();
+        return () -> {
+            IntVar xs = selectMin(x,
+                    xi -> xi.size() > 1,
+                    xi -> -beliefRep.rep2std(xi.maxMarginal()));
+            if (xs == null)
+                return EMPTY;
+            else {
+                int v = xs.biasedWheelValue();
+                return branch(
+                        () -> {
+                            if (tracing)
+                                System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.marginal(v)));
                             branchEqual(xs, v);
                         },
                         () -> {
