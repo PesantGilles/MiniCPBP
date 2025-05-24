@@ -256,6 +256,9 @@ public class DFSearch extends Search{
         SearchStatistics statistics = new SearchStatistics();
         return solveRestarts(statistics, limit, 100, 1.5);
     }
+    public SearchStatistics solveRestarts(SearchStatistics statistics, Predicate<SearchStatistics> limit) {
+        return solveRestarts(statistics, limit, 100, 1.5);
+    }
 
     /**
      * Effectively start a depth first search with restarts
@@ -308,6 +311,70 @@ public class DFSearch extends Search{
             });
         }
         return solve(statistics, limit);
+    }
+
+    /**
+     * Effectively start a branch and bound
+     * depth first search with a given objective and restarts.
+     *
+     * @param obj the objective to optimize that is tightened each
+     *            time a new solution is found
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics optimizeRestarts(Objective obj) {
+        return optimizeRestarts(obj, stats -> false);
+    }
+
+    /**
+     * Effectively start a branch and bound
+     * depth first search with a given objective and restarts
+     * and with a given predicate called at each node
+     * to stop the search when it becomes true.
+     *
+     * @param obj the objective to optimize that is tightened each
+     *            time a new solution is found
+     * @param limit a predicate called at each node
+     *             that stops the search when it becomes true
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics optimizeRestarts(Objective obj, Predicate<SearchStatistics> limit) {
+        SearchStatistics statistics = new SearchStatistics();
+        if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
+            onSolution(() -> {
+                if (obj.tracingOptimization()) {
+                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                }
+                obj.tighten();
+            });
+        }
+        return solveRestarts(statistics, limit);
+    }
+
+    /**
+     * Effectively start a branch and bound
+     * depth first search with a given objective and restarts
+     * and with a given predicate called at each node
+     * to stop the search when it becomes true.
+     *
+     * @param obj the objective to optimize that is tightened each
+     *            time a new solution is found
+     * @param limit a predicate called at each node
+     *             that stops the search when it becomes true
+     * @param nbFailCutoff
+     * @param restartFactor
+     * @return an object with the statistics on the search
+     */
+    public SearchStatistics optimizeRestarts(Objective obj, Predicate<SearchStatistics> limit, int nbFailCutoff, double restartFactor) {
+        SearchStatistics statistics = new SearchStatistics();
+        if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
+            onSolution(() -> {
+                if (obj.tracingOptimization()) {
+                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                }
+                obj.tighten();
+            });
+        }
+        return solveRestarts(statistics, limit, nbFailCutoff, restartFactor);
     }
 
     /**
