@@ -24,6 +24,7 @@ import minicpbp.state.StateInt;
 
 import static minicpbp.cp.Factory.*;
 
+import java.util.Iterator;
 import java.util.stream.IntStream;
 import java.util.Set;
 import java.util.HashSet;
@@ -128,16 +129,31 @@ public class Among extends AbstractConstraint {
         int j;
         if (!var.contains(witnessInsideV[i].value())) {
             // find new witness
-            int s = var.fillArray(domainValues);
-            for (j = 0; j < s; j++) {
-                int v = domainValues[j];
-                if (V.contains(v)) {
-                    witnessInsideV[i].setValue(v);
-                    break;
+            // iterate over smallest between var's domain and V
+            if (var.size() < V.size()) {
+                int s = var.fillArray(domainValues);
+                for (j = 0; j < s; j++) {
+                    int v = domainValues[j];
+                    if (V.contains(v)) {
+                        witnessInsideV[i].setValue(v);
+                        break;
+                    }
                 }
+                if (j == s) // no inside witness
+                    return -1;
             }
-            if (j == s) // no inside witness
-                return -1;
+            else { // V is smaller
+                Iterator<Integer> itr = V.iterator();
+                while (itr.hasNext()) {
+                    int val = itr.next();
+                    if (var.contains(val)) {
+                        witnessInsideV[i].setValue(val);
+                        break;
+                    }
+                }
+                if (!var.contains(witnessInsideV[i].value())) // no inside witness
+                    return -1;
+            }
         }
         if (!var.contains(witnessOutsideV[i].value())) {
             // find new witness
