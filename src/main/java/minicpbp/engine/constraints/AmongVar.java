@@ -21,7 +21,6 @@ package minicpbp.engine.constraints;
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.state.StateInt;
-import minicpbp.util.exception.InconsistencyException;
 
 import static minicpbp.cp.Factory.*;
 
@@ -30,55 +29,49 @@ import java.util.stream.IntStream;
 import java.util.Set;
 import java.util.HashSet;
 
-public class Among extends AbstractConstraint {
+public class AmongVar extends AbstractConstraint {
     private IntVar[] x;
     private Set<Integer> V;
-    private int minOcc;
-    private int maxOcc;
-    private int n; // nb of vars
+    private IntVar o;
+    private IntVar[] y; // indicator variables: (y[i] == 1) iff (x[i] \in V)
     private int[] undecided; // indices of vars from x whose domain contains values both inside and outside of V
     private StateInt nUndecided; // current size of undecided
     private StateInt[] witnessInsideV; // for each x[i], an element from its domain that belongs to V
     private StateInt[] witnessOutsideV; // for each x[i], an element from its domain that does not belong to V
-    private StateInt nInside; // number of vars from x decided to be inside V
-    private StateInt nOutside; // number of vars from x decided to be outside V
 
     /**
-     * Creates an among constraint.
+     * Creates an among constraint with the number of occurrences given as a variable.
      * <p> This constraint holds iff
-     * {@code minOcc <= (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) <= maxOcc}.
+     * {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}.
      * <p>
+     * Decomposed into constraints (y[i] == 1) iff (x[i] \in V) and sum constraint y[0]+...+y[x.length-1]==o
      *
-     * @param x         an array of variables whose instantiations belonging to V we count
-     * @param V         an array of values whose occurrences in x we count
-     * @param minOcc    the minimum number of occurrences of values from V in x
-     * @param maxOcc    the maximum number of occurrences of values from V in x
+     * @param x    an array of variables whose instantiations belonging to V we count
+     * @param V    an array of values whose occurrences in x we count
+     * @param o    the variable corresponding to the number of occurrences of values from V in x
+     * @param y    an array of variables such that (y[i] == 1) iff (x[i] \in V)
+     * @param vars = x followed by y, variables for which we compute beliefs (passed to AbstractConstraint)
      */
-    public Among(IntVar[] x, int[] V, int minOcc, int maxOcc) {
-        super(x[0].getSolver(), x);
-        setName("Among");
+    public AmongVar(IntVar[] x, int[] V, IntVar o, IntVar[] y, IntVar[] vars) {
+        super(x[0].getSolver(), vars);
+        setName("AmongVar");
         this.x = x;
-        this.n = x.length;
-        this.minOcc = minOcc;
-        this.maxOcc = maxOcc;
-        if (minOcc > maxOcc)
-            throw InconsistencyException.INCONSISTENCY;
+        this.o = o;
+        this.y = y;
         this.V = new HashSet<Integer>();
         for (int i = 0; i < V.length; i++) {
             this.V.add(V[i]);
         }
-        nUndecided = getSolver().getStateManager().makeStateInt(n);
-        undecided = IntStream.range(0, n).toArray();
-        witnessInsideV = new StateInt[n];
-        witnessOutsideV = new StateInt[n];
-        for (int i = 0; i < n; i++) {
-            assert !x[i].contains(Integer.MIN_VALUE) : "Among constraint: variable x[" + i + "] has Integer.MIN_VALUE in its domain!";
+        nUndecided = getSolver().getStateManager().makeStateInt(x.length);
+        undecided = IntStream.range(0, x.length).toArray();
+        witnessInsideV = new StateInt[x.length];
+        witnessOutsideV = new StateInt[x.length];
+        for (int i = 0; i < x.length; i++) {
+            assert !x[i].contains(Integer.MIN_VALUE) : "AmongVar constraint: variable x[" + i + "] has Integer.MIN_VALUE in its domain!";
             witnessInsideV[i] = getSolver().getStateManager().makeStateInt(Integer.MIN_VALUE);
             witnessOutsideV[i] = getSolver().getStateManager().makeStateInt(Integer.MIN_VALUE);
         }
-        nInside = getSolver().getStateManager().makeStateInt(0);
-        nOutside = getSolver().getStateManager().makeStateInt(0);
-        setExactWCounting(false);
+        setExactWCounting(true);
     }
 
     @Override
@@ -90,8 +83,11 @@ public class Among extends AbstractConstraint {
             case SBP:
                 for (IntVar var : x)
                     var.propagateOnDomainChange(this);
+                for (IntVar var : y)
+                    var.propagateOnBind(this);
         }
         propagate();
+        getSolver().post(sum(y, o)); // link the indicator variables to the nb of occurrences
     }
 
     @Override
@@ -99,14 +95,24 @@ public class Among extends AbstractConstraint {
         int nU = nUndecided.value();
         for (int i = nU - 1; i >= 0; i--) {
             int idx = undecided[i];
-            switch (isDecided(x[idx], idx)) {
+            if (y[idx].isBound()) {
+                // bound y var --- adjust the domain of x[idx] accordingly
+                boolean takenFromV = (y[idx].min() == 1);
+                int s = x[idx].fillArray(domainValues);
+                for (int j = 0; j < s; j++) {
+                    int v = domainValues[j];
+                    if ((takenFromV ? !V.contains(v) : V.contains(v))) {
+                        x[idx].remove(v);
+                    }
+                }
+            } else switch (isDecided(x[idx], idx)) {
                 case 0:
                     continue; // still undecided --- skip the update of undecided[]
                 case 1:
-                    nInside.setValue(nInside.value()+1); // decided as taking a value inside V
+                    y[idx].assign(1); // decided as taking a value inside V
                     break;
                 case -1:
-                    nOutside.setValue(nOutside.value()+1); // decided as not taking a value inside V
+                    y[idx].assign(0); // decided as not taking a value inside V
                     break;
             }
             undecided[i] = undecided[nU - 1]; // Swap the variables
@@ -114,36 +120,6 @@ public class Among extends AbstractConstraint {
             nU--;
         }
         nUndecided.setValue(nU);
-        int nI = nInside.value();
-        int nO = nOutside.value();
-        if ((nI+nU < minOcc) || (n-(nO+nU) > maxOcc))
-            throw InconsistencyException.INCONSISTENCY; // unsatisfiable constraint
-        if (nI+nU == minOcc) { // force all undecided vars to be inside V
-            for (int i = nU - 1; i >= 0; i--) {
-                int idx = undecided[i];
-                int s = x[idx].fillArray(domainValues);
-                for (int j = 0; j < s; j++) {
-                    int v = domainValues[j];
-                    if (!V.contains(v)) {
-                        x[idx].remove(v);
-                    }
-                }
-            }
-        }
-        if (n-(nO+nU) == maxOcc) { // force all undecided vars to be outside V
-            for (int i = nU - 1; i >= 0; i--) {
-                int idx = undecided[i];
-                int s = x[idx].fillArray(domainValues);
-                for (int j = 0; j < s; j++) {
-                    int v = domainValues[j];
-                    if (V.contains(v)) {
-                        x[idx].remove(v);
-                    }
-                }
-            }
-        }
-        if ((nI >= minOcc) && (n - nO <= maxOcc))
-            this.setActive(false); // constraint is now satisfied
     }
 
     // returns 0 if var can still take a value inside and outside V
@@ -193,6 +169,54 @@ public class Among extends AbstractConstraint {
                 return 1;
         }
         return 0;
+    }
+
+    @Override
+    public void updateBelief() {
+        for (int i = 0; i < x.length; i++) {
+            double belief = beliefRep.zero();
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                // set belief for x[i]==v
+                if (V.contains(v)) {
+                    setLocalBelief(i, v, outsideBelief(x.length + i, 1));
+                    belief = beliefRep.add(belief, outsideBelief(i, v));
+                } else {
+                    setLocalBelief(i, v, outsideBelief(x.length + i, 0));
+                }
+            }
+            // set beliefs for y[i]
+            setLocalBelief(x.length + i, 1, belief);
+            setLocalBelief(x.length + i, 0, beliefRep.complement(belief));
+        }
+    }
+
+    // Needed because it creates auxiliary indicator variables y
+    @Override
+    public void setAuxVarsMarginalsWCounting() {
+        this.receiveMessagesWCounting(); // get marginals for x variables
+        for (int i = 0; i < x.length; i++) {
+            double belief = beliefRep.zero();
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                if (V.contains(v)) {
+                    belief = beliefRep.add(belief, outsideBelief(i, v));
+                }
+            }
+            // set marginals for y[i]
+            vars[x.length + i].receiveMessage(1, belief);
+            vars[x.length + i].receiveMessage(0, beliefRep.complement(belief));
+            System.out.println("marginal for indicator var y["+i+"]=1 is "+belief);
+        }
+    }
+
+    @Override
+    public double weightedCounting() {
+        // reported by Sum constraint over indicator variables
+        System.out.println("weighted count for "+this.getName()+" constraint is reported by a SumDC constraint");
+        return beliefRep.one();
     }
 
 }
