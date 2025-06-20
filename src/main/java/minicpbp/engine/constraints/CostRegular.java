@@ -340,6 +340,7 @@ public class CostRegular extends AbstractConstraint {
 
     @Override
     public void updateBelief() {
+        int s;
         for (int i = 0; i < n; i++) {
             Arrays.fill(ip[i], beliefRep.zero());
 	        Arrays.fill(iminp[i], Integer.MAX_VALUE);
@@ -350,7 +351,7 @@ public class CostRegular extends AbstractConstraint {
         iminp[0][initialState] = 0;
         imaxp[0][initialState] = 0;
         for (int i = 0; i < n - 1; i++) {
-            int s = x[i].fillArray(domainValues);
+            s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
                 for (int k = 0; k < nbStates; k++) {
@@ -386,7 +387,7 @@ public class CostRegular extends AbstractConstraint {
             }
         }
         for (int i = n - 1; i > 0; i--) {
-            int s = x[i].fillArray(domainValues);
+            s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
                 double belief = beliefRep.zero();
@@ -418,9 +419,11 @@ public class CostRegular extends AbstractConstraint {
                 setLocalBelief(i, v, belief);
             }
         }
-        int s = totalCost.fillArray(domainValues);
-        for (int j = 0; j < s; j++) {
-            setLocalBelief(n, domainValues[j], beliefRep.zero());
+        if (marginals4cost) {
+            s = totalCost.fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                setLocalBelief(n, domainValues[j], beliefRep.zero());
+            }
         }
         s = x[0].fillArray(domainValues);
         for (int j = 0; j < s; j++) {

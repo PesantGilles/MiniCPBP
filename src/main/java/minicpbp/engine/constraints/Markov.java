@@ -49,6 +49,7 @@ public class Markov extends AbstractConstraint {
     private int[][] ominp; // ominp[i][j] = smallest reward from state (i,j) to a final state by performing x[i+1]..x[n-1]
     private int[][] imaxp; // iminp[i][j] = largest reward reaching state (i,j) by performing x[0]..x[i-1] from the initial state
     private int[][] omaxp; // ominp[i][j] = largest reward from state (i,j) to a final state by performing x[i+1]..x[n-1]
+    private boolean marginals4tr; // flag for this computationally expensive option
     private HashMap<Integer,Double>[][] allRewards; // allRewards[i][j] = list of all <reward value, reward multiplicity> from state (i,j) to a final state by performing x[i+1]..x[n-1]
 
     /**
@@ -61,8 +62,9 @@ public class Markov extends AbstractConstraint {
      * @param R     a 3D array giving integer rewards: {states} x {actions} x {states} -> Z
      * @param start the initial state
      * @param tr    the total reward of sequence (start,a0,s0,...,an-1,sn-1) computed as the sum of the corresponding integer rewards from array R.
+     * @param marginals4tr flag for the computationally expensive option of computing marginals for tr
      */
-    public Markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr, IntVar[] vars) {
+    public Markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr, boolean marginals4tr, IntVar[] vars) {
         super(a[0].getSolver(), vars);
         setName("Markov");
         actions = a;
@@ -71,6 +73,7 @@ public class Markov extends AbstractConstraint {
         nbStates = P.length;
         initialState = start;
         totalReward = tr;
+        this.marginals4tr = marginals4tr;
         assert (a.length == s.length);
         assert ((initialState >= 0) && (initialState < nbStates));
 	    assert (R.length == nbStates);
@@ -114,10 +117,12 @@ public class Markov extends AbstractConstraint {
         ominp = new int[n][nbStates];
         imaxp = new int[n][nbStates];
         omaxp = new int[n][nbStates];
-        allRewards = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
-        for (int i=0; i<n; i++) {
-            for (int k = 0; k < nbStates; k++) {
-                allRewards[i][k] = new HashMap<Integer, Double>();
+        if (marginals4tr) {
+            allRewards = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
+            for (int i = 0; i < n; i++) {
+                for (int k = 0; k < nbStates; k++) {
+                    allRewards[i][k] = new HashMap<Integer, Double>();
+                }
             }
         }
         setExactWCounting(true);
@@ -323,8 +328,10 @@ public class Markov extends AbstractConstraint {
             Arrays.fill(op[i], beliefRep.zero());
             Arrays.fill(ominp[i], Integer.MAX_VALUE);
             Arrays.fill(omaxp[i], Integer.MIN_VALUE);
-            for (int k = 0; k < nbStates; k++) {
-                allRewards[i][k].clear();
+            if (marginals4tr) {
+                for (int k = 0; k < nbStates; k++) {
+                    allRewards[i][k].clear();
+                }
             }
         }
         // Reach backward and set local beliefs
@@ -334,7 +341,9 @@ public class Markov extends AbstractConstraint {
             op[n - 1][sk] = beliefRep.one();
             ominp[n - 1][sk] = 0;
             omaxp[n - 1][sk] = 0;
-            allRewards[n - 1][sk].put(0, 1.0);
+            if (marginals4tr) {
+                allRewards[n - 1][sk].put(0, 1.0);
+            }
         }
         for (int i = n - 1; i > 0; i--) {
             s = actions[i].fillArray(domainValues);
@@ -358,13 +367,15 @@ public class Markov extends AbstractConstraint {
                             omaxp[i - 1][sk] = Math.max(omaxp[i - 1][sk], omaxp[i][sl] + reward[sk][v][sl]);
                             belief = beliefRep.add(belief, beliefRep.multiply(ip[i][sk], beliefRep.multiply(beliefRep.std2rep(proba[sk][v][sl]), op[i][sl])));
                             stateBelief[sl] = beliefRep.add(stateBelief[sl], beliefRep.multiply(ip[i][sk], beliefRep.multiply(beliefRep.std2rep(proba[sk][v][sl]), op[i][sl])));
-                            for (Map.Entry<Integer, Double> set :
+                            if (marginals4tr) {
+                                for (Map.Entry<Integer, Double> set :
                                     allRewards[i][sl].entrySet()) {
-                                int newReward = set.getKey() + reward[sk][v][sl];
-                                if (allRewards[i - 1][sk].containsKey(newReward)) {
-                                    allRewards[i - 1][sk].replace(newReward, allRewards[i - 1][sk].get(newReward) + set.getValue() * beliefRep.rep2std(outsideBelief(i, v)) * proba[sk][v][sl]);
-                                } else {
-                                    allRewards[i - 1][sk].put(newReward, set.getValue() * beliefRep.rep2std(outsideBelief(i, v)) * proba[sk][v][sl]);
+                                    int newReward = set.getKey() + reward[sk][v][sl];
+                                    if (allRewards[i - 1][sk].containsKey(newReward)) {
+                                        allRewards[i - 1][sk].replace(newReward, allRewards[i - 1][sk].get(newReward) + set.getValue() * beliefRep.rep2std(outsideBelief(i, v)) * proba[sk][v][sl]);
+                                    } else {
+                                        allRewards[i - 1][sk].put(newReward, set.getValue() * beliefRep.rep2std(outsideBelief(i, v)) * proba[sk][v][sl]);
+                                    }
                                 }
                             }
                         }
@@ -378,9 +389,11 @@ public class Markov extends AbstractConstraint {
                 setLocalBelief(n+i, sl, stateBelief[sl]);
             }
         }
-        s = totalReward.fillArray(domainValues);
-        for (int j = 0; j < s; j++) {
-            setLocalBelief(2*n, domainValues[j], beliefRep.zero());
+        if (marginals4tr) {
+            s = totalReward.fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                setLocalBelief(2 * n, domainValues[j], beliefRep.zero());
+            }
         }
         s = actions[0].fillArray(domainValues);
         size2 = states[0].fillArray(stateDomainValues2);
@@ -397,12 +410,14 @@ public class Markov extends AbstractConstraint {
                     (reward[initialState][v][sl] + omaxp[0][sl] >= totalReward.min())) {
                     belief = beliefRep.add(belief, beliefRep.multiply(op[0][sl], beliefRep.std2rep(proba[initialState][v][sl])));
                     stateBelief[sl] = beliefRep.add(stateBelief[sl], beliefRep.multiply(op[0][sl], beliefRep.std2rep(proba[initialState][v][sl])));
-                    // set belief for totalReward variable
-                    for (Map.Entry<Integer, Double> set :
-                            allRewards[0][sl].entrySet()) {
-                        int newReward = set.getKey() + reward[initialState][v][sl];
-                        if (totalReward.contains(newReward)) {
-                           setLocalBelief(2*n, newReward, beliefRep.add(localBelief(2*n, newReward), beliefRep.multiply(beliefRep.std2rep(set.getValue()), beliefRep.multiply(outsideBelief(0,v), beliefRep.std2rep(proba[initialState][v][sl])))));
+                    if (marginals4tr) {
+                        // set belief for totalReward variable
+                        for (Map.Entry<Integer, Double> set :
+                                allRewards[0][sl].entrySet()) {
+                            int newReward = set.getKey() + reward[initialState][v][sl];
+                            if (totalReward.contains(newReward)) {
+                                setLocalBelief(2 * n, newReward, beliefRep.add(localBelief(2 * n, newReward), beliefRep.multiply(beliefRep.std2rep(set.getValue()), beliefRep.multiply(outsideBelief(0, v), beliefRep.std2rep(proba[initialState][v][sl])))));
+                            }
                         }
                     }
                 }
@@ -414,14 +429,6 @@ public class Markov extends AbstractConstraint {
             int sl = stateDomainValues2[l];
             setLocalBelief(n, sl, stateBelief[sl]);
         }
-        // might as well achieve domain consistency on totalReward
-        s = totalReward.fillArray(domainValues);
-        for (int j = 0; j < s; j++) {
-            int r = domainValues[j];
-            if (beliefRep.isZero(localBelief(2*n, r))) {
-                totalReward.remove(r);
-            }
-        }
-    }
+   }
 
 }

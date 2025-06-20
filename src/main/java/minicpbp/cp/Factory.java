@@ -1561,9 +1561,7 @@ public final class Factory {
      * special case without computing marginals for cost variable
      */
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][][] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, s, f, c, tc, false, vars);
+        return new CostRegular(x, A, s, f, c, tc, false, x);
     }
 
     /**
@@ -1575,9 +1573,7 @@ public final class Factory {
         return new CostRegular(x, A, 0, f, c, tc, marginals4cost, vars);
     }
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][][] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1597,9 +1593,7 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1611,9 +1605,7 @@ public final class Factory {
         return new CostRegular(x, A, s, f, c, tc, marginals4cost, vars);
     }
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, s, f, c, tc, false, vars);
+        return new CostRegular(x, A, s, f, c, tc, false, x);
     }
 
     /**
@@ -1625,9 +1617,7 @@ public final class Factory {
         return new CostRegular(x, A, 0, f, c, tc, marginals4cost, vars);
     }
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[][] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1647,9 +1637,7 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1661,9 +1649,7 @@ public final class Factory {
         return new CostRegular(x, A, s, f, c, tc, marginals4cost, vars);
     }
     public static Constraint costRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, s, f, c, tc, false, vars);
+        return new CostRegular(x, A, s, f, c, tc, false, x);
     }
 
     /**
@@ -1675,9 +1661,7 @@ public final class Factory {
         return new CostRegular(x, A, 0, f, c, tc, marginals4cost, vars);
     }
     public static Constraint costRegular(IntVar[] x, int[][] A, List<Integer> f, int[] c, IntVar tc) {
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1697,9 +1681,7 @@ public final class Factory {
         for (int i = 0; i < A.length; i++) {
             f.add(i);
         }
-        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
-        vars[x.length] = tc;
-        return new CostRegular(x, A, 0, f, c, tc, false, vars);
+        return new CostRegular(x, A, 0, f, c, tc, false, x);
     }
 
     /**
@@ -1727,15 +1709,24 @@ public final class Factory {
      * @param R     a 3D array giving integer rewards: {states} x {actions} x {states} -> Z
      * @param start the initial state
      * @param tr    the total reward of sequence (start,a0,s0,...,an-1,sn-1) computed as the sum of the corresponding integer rewards from array R.
+     * @param marginals4tr flag for the computationally expensive option of computing marginals for tr
      */
     public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr) {
+        assert (a.length == s.length);
+        IntVar[] vars = Arrays.copyOf(a, 2 * a.length);
+        for (int i = 0; i < s.length; i++) {
+            vars[a.length + i] = s[i];
+        }
+        return new Markov(a, s, P, R, start, tr, false, vars);
+    }
+    public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr, boolean marginals4tr) {
         assert (a.length == s.length);
         IntVar[] vars = Arrays.copyOf(a, 2 * a.length + 1);
         for (int i = 0; i < s.length; i++) {
             vars[a.length + i] = s[i];
         }
         vars[2 * a.length] = tr;
-        return new Markov(a, s, P, R, start, tr, vars);
+        return new Markov(a, s, P, R, start, tr, marginals4tr, vars);
     }
 
     /**
