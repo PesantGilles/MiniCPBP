@@ -46,6 +46,7 @@ public class CostRegular extends AbstractConstraint {
     private int[][] ominp; // ominp[i][j] = length of shortest path from state (i,j) to a final state by reading x[i+1]..x[n-1]
     private int[][] imaxp; // iminp[i][j] = length of longest path reaching state (i,j) by reading x[0]..x[i-1] from the initial state
     private int[][] omaxp; // ominp[i][j] = length of longest path from state (i,j) to a final state by reading x[i+1]..x[n-1]
+    private boolean marginals4cost; // flag for this computationally expensive option
     private HashMap<Integer,Double>[][] allCosts; // allCosts[i][j] = list of all <cost value, cost multiplicity> from state (i,j) to a final state by reading x[i+1]..x[n-1]
 
 
@@ -60,10 +61,11 @@ public class CostRegular extends AbstractConstraint {
      * @param f  a list of accepting states
      * @param c  a 3D array giving integer costs for each combination of variable, state, and domain value (in that order)
      * @param tc the total cost of word x computed as the sum of the corresponding integer costs from array c
+     * @param marginals4cost flag for the computationally expensive option of computing marginals for tc
      *           <p>
      *           Note: any negative value in A indicates that there is no valid transition from the given state on that given domain value
      */
-    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][][] c, IntVar tc, IntVar[] vars) {
+    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][][] c, IntVar tc, boolean marginals4cost, IntVar[] vars) {
         super(x[0].getSolver(), vars);
         setName("CostRegular");
         this.x = x;
@@ -71,6 +73,7 @@ public class CostRegular extends AbstractConstraint {
         nbStates = A.length;
         initialState = s;
         totalCost = tc;
+        this.marginals4cost = marginals4cost;
         assert ((initialState >= 0) && (initialState < nbStates));
 	    finalStates = new ArrayList<Integer>();
         Iterator<Integer> itr = f.iterator();
@@ -109,10 +112,12 @@ public class CostRegular extends AbstractConstraint {
         ominp = new int[n][nbStates];
         imaxp = new int[n][nbStates];
         omaxp = new int[n][nbStates];
-        allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
-        for (int i=0; i<n; i++) {
-            for (int k = 0; k < nbStates; k++) {
-                allCosts[i][k] = new HashMap<Integer, Double>();
+        if (marginals4cost) {
+            allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
+            for (int i = 0; i < n; i++) {
+                for (int k = 0; k < nbStates; k++) {
+                    allCosts[i][k] = new HashMap<Integer, Double>();
+                }
             }
         }
         setExactWCounting(true);
@@ -121,7 +126,7 @@ public class CostRegular extends AbstractConstraint {
     /**
      * Special case of 2D cost matrix: state x domain value
      */
-    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][] c, IntVar tc, IntVar[] vars) {
+    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[][] c, IntVar tc, boolean marginals4cost, IntVar[] vars) {
         super(x[0].getSolver(), vars);
         setName("CostRegular");
         this.x = x;
@@ -129,6 +134,7 @@ public class CostRegular extends AbstractConstraint {
         nbStates = A.length;
         initialState = s;
         totalCost = tc;
+        this.marginals4cost = marginals4cost;
         assert ((initialState >= 0) && (initialState < nbStates));
 	    finalStates = new ArrayList<Integer>();
         Iterator<Integer> itr = f.iterator();
@@ -166,10 +172,12 @@ public class CostRegular extends AbstractConstraint {
         ominp = new int[n][nbStates];
         imaxp = new int[n][nbStates];
         omaxp = new int[n][nbStates];
-        allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
-        for (int i=0; i<n; i++) {
-            for (int k = 0; k < nbStates; k++) {
-                allCosts[i][k] = new HashMap<Integer, Double>();
+        if (marginals4cost) {
+            allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
+            for (int i = 0; i < n; i++) {
+                for (int k = 0; k < nbStates; k++) {
+                    allCosts[i][k] = new HashMap<Integer, Double>();
+                }
             }
         }
         setExactWCounting(true);
@@ -178,7 +186,7 @@ public class CostRegular extends AbstractConstraint {
     /**
      * Special case of 1D cost matrix: domain value
      */
-    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[] c, IntVar tc, IntVar[] vars) {
+    public CostRegular(IntVar[] x, int[][] A, int s, List<Integer> f, int[] c, IntVar tc, boolean marginals4cost, IntVar[] vars) {
         super(x[0].getSolver(), vars);
         setName("CostRegular");
         this.x = x;
@@ -186,6 +194,7 @@ public class CostRegular extends AbstractConstraint {
         nbStates = A.length;
         initialState = s;
         totalCost = tc;
+        this.marginals4cost = marginals4cost;
         assert ((initialState >= 0) && (initialState < nbStates));
 	    finalStates = new ArrayList<Integer>();
         Iterator<Integer> itr = f.iterator();
@@ -222,10 +231,12 @@ public class CostRegular extends AbstractConstraint {
         ominp = new int[n][nbStates];
         imaxp = new int[n][nbStates];
         omaxp = new int[n][nbStates];
-        allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
-        for (int i=0; i<n; i++) {
-            for (int k = 0; k < nbStates; k++) {
-                allCosts[i][k] = new HashMap<Integer, Double>();
+        if (marginals4cost) {
+            allCosts = (HashMap<Integer, Double>[][]) new HashMap[n][nbStates];
+            for (int i = 0; i < n; i++) {
+                for (int k = 0; k < nbStates; k++) {
+                    allCosts[i][k] = new HashMap<Integer, Double>();
+                }
             }
         }
         setExactWCounting(true);
@@ -357,8 +368,10 @@ public class CostRegular extends AbstractConstraint {
             Arrays.fill(op[i], beliefRep.zero());
             Arrays.fill(ominp[i], Integer.MAX_VALUE);
             Arrays.fill(omaxp[i], Integer.MIN_VALUE);
-            for (int k = 0; k < nbStates; k++) {
-                allCosts[i][k].clear();
+            if (marginals4cost) {
+                for (int k = 0; k < nbStates; k++) {
+                    allCosts[i][k].clear();
+                }
             }
 	}
         // Reach backward and set local beliefs
@@ -368,7 +381,9 @@ public class CostRegular extends AbstractConstraint {
             op[n - 1][val] = beliefRep.one();
             ominp[n - 1][val] = 0;
             omaxp[n - 1][val] = 0;
-            allCosts[n - 1][val].put(0, 1.0);
+            if (marginals4cost) {
+                allCosts[n - 1][val].put(0, 1.0);
+            }
         }
         for (int i = n - 1; i > 0; i--) {
             int s = x[i].fillArray(domainValues);
@@ -386,15 +401,17 @@ public class CostRegular extends AbstractConstraint {
                         omaxp[i - 1][k] = Math.max(omaxp[i - 1][k], omaxp[i][newState] + cost[i][k][v]);
                         // add the combination of ip[i][k] and op[i][newState] to belief
                         belief = beliefRep.add(belief, beliefRep.multiply(ip[i][k], op[i][newState]));
-                        for (Map.Entry<Integer, Double> set :
-                                allCosts[i][newState].entrySet()) {
-			                int newCost = set.getKey() + cost[i][k][v];
-			                if (allCosts[i - 1][k].containsKey(newCost)) {
-				                allCosts[i - 1][k].replace(newCost, allCosts[i - 1][k].get(newCost) + set.getValue() * beliefRep.rep2std(outsideBelief(i, v)));
-			                } else {
-				                allCosts[i - 1][k].put(newCost, set.getValue() * beliefRep.rep2std(outsideBelief(i, v)));
+                        if (marginals4cost) {
+                            for (Map.Entry<Integer, Double> set :
+                                    allCosts[i][newState].entrySet()) {
+                                int newCost = set.getKey() + cost[i][k][v];
+                                if (allCosts[i - 1][k].containsKey(newCost)) {
+                                    allCosts[i - 1][k].replace(newCost, allCosts[i - 1][k].get(newCost) + set.getValue() * beliefRep.rep2std(outsideBelief(i, v)));
+                                } else {
+                                    allCosts[i - 1][k].put(newCost, set.getValue() * beliefRep.rep2std(outsideBelief(i, v)));
+                                }
                             }
-			            }
+                        }
                     }
                 }
                 // NOTE: does not take into account the outside beliefs of totalCost (TODO?)
@@ -414,15 +431,16 @@ public class CostRegular extends AbstractConstraint {
                     (cost[0][initialState][v] + omaxp[0][newState] >= totalCost.min())) {
                 // NOTE: does not take into account the outside beliefs of totalCost (TODO?)
                 setLocalBelief(0, v, op[0][newState]);
-		        // set belief for totalCost variable
-		        for (Map.Entry<Integer, Double> set :
-			                allCosts[0][newState].entrySet()) {
-		                int newCost = set.getKey() + cost[0][initialState][v];
+                if (marginals4cost) {
+                    // set belief for totalCost variable
+                    for (Map.Entry<Integer, Double> set :
+                            allCosts[0][newState].entrySet()) {
+                        int newCost = set.getKey() + cost[0][initialState][v];
                         if (totalCost.contains(newCost)) {
-//                            System.out.println(newCost+": current="+localBelief(n, newCost)+"; add to it "+beliefRep.std2rep(set.getValue())+" x "+outsideBelief(0,v));
-                            setLocalBelief(n, newCost, beliefRep.add(localBelief(n, newCost), beliefRep.multiply(beliefRep.std2rep(set.getValue()), outsideBelief(0,v))));
+                            setLocalBelief(n, newCost, beliefRep.add(localBelief(n, newCost), beliefRep.multiply(beliefRep.std2rep(set.getValue()), outsideBelief(0, v))));
                         }
-		        }
+                    }
+                }
             } else {
                 // NOTE: does not take into account the outside beliefs of totalCost (TODO?)
                 setLocalBelief(0, v, beliefRep.zero());
@@ -435,14 +453,6 @@ public class CostRegular extends AbstractConstraint {
             }
 	    }
         */
-        // might as well achieve domain consistency on totalCost
-        s = totalCost.fillArray(domainValues);
-        for (int j = 0; j < s; j++) {
-            int r = domainValues[j];
-            if (beliefRep.isZero(localBelief(n, r))) {
-                totalCost.remove(r);
-            }
-        }
     }
 
     @Override
