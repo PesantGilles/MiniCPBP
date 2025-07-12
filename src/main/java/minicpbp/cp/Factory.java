@@ -1731,24 +1731,47 @@ public final class Factory {
 
     /**
      * Returns an among constraint with a variable representing the number of occurrences
-     * This relation is enforced by the {@link AmongVar} constraint
+     * This relation is enforced by the {@link AmongVarBC} constraint
      * posted by calling this method.
+     *
+     * Enforces bounds consistency on the occurrence variable o (the default).
+     *
+     * @param x an array of variables whose instantiations belonging to V we count
+     * @param V an array of values whose occurrences in x we count
+     * @param o the variable corresponding to the number of occurrences of values from V in x
+     * @return a constraint so that {@code o.min() <= (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) <= o.max()}
+     */
+    public static Constraint among(IntVar[] x, int[] V, IntVar o) {
+        return among(x, V, o, true);
+    }
+
+    /**
+     * Returns an among constraint with a variable representing the number of occurrences
+     * This relation is enforced by the {@link AmongVarBC} or {@link AmongVar} constraint
+     * posted by calling this method.
+     *
+     * Enforces domain or bounds consistency on the occurrence variable o depending on boolean bc
      *
      * @param x an array of variables whose instantiations belonging to V we count
      * @param V an array of values whose occurrences in x we count
      * @param o the variable corresponding to the number of occurrences of values from V in x
      * @return a constraint so that {@code (x[0] \in V) + (x[1] \in V) + ... + (x[x.length-1] \in V) == o}
      */
-    public static Constraint among(IntVar[] x, int[] V, IntVar o) {
-        Solver cp = x[0].getSolver();
-        IntVar[] vars = Arrays.copyOf(x, 2 * x.length);
-        IntVar[] y = new IntVar[x.length]; // indicator variables: (y[i] == 1) iff (x[i] \in V)
-        for (int i = 0; i < y.length; i++) {
-            y[i] = makeIntVar(cp, 0, 1);
-            y[i].setName("y" + "[" + i + "]");
-            vars[x.length + i] = y[i];
+    public static Constraint among(IntVar[] x, int[] V, IntVar o, boolean bc) {
+        if (bc) {
+            return new AmongVarBC(x,V,o);
         }
-        return new AmongVar(x, V, o, y, vars);
+        else {
+            Solver cp = x[0].getSolver();
+            IntVar[] vars = Arrays.copyOf(x, 2 * x.length);
+            IntVar[] y = new IntVar[x.length]; // indicator variables: (y[i] == 1) iff (x[i] \in V)
+            for (int i = 0; i < y.length; i++) {
+                y[i] = makeIntVar(cp, 0, 1);
+                y[i].setName("y" + "[" + i + "]");
+                vars[x.length + i] = y[i];
+            }
+            return new AmongVar(x, V, o, y, vars);
+        }
     }
 
     /**
@@ -1785,7 +1808,10 @@ public final class Factory {
      * special cases with a single value in V
      */
     public static Constraint among(IntVar[] x, int v, IntVar o) {
-        return among(x, new int[]{v}, o);
+        return among(x, new int[]{v}, o, true);
+    }
+    public static Constraint among(IntVar[] x, int v, IntVar o, boolean bc) {
+        return among(x, new int[]{v}, o, bc);
     }
 
     public static Constraint atleast(IntVar[] x, int v, int lb) {
