@@ -1711,14 +1711,6 @@ public final class Factory {
      * @param tr    the total reward of sequence (start,a0,s0,...,an-1,sn-1) computed as the sum of the corresponding integer rewards from array R.
      * @param marginals4tr flag for the computationally expensive option of computing marginals for tr
      */
-    public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr) {
-        assert (a.length == s.length);
-        IntVar[] vars = Arrays.copyOf(a, 2 * a.length);
-        for (int i = 0; i < s.length; i++) {
-            vars[a.length + i] = s[i];
-        }
-        return new Markov(a, s, P, R, start, tr, false, vars);
-    }
     public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr, boolean marginals4tr) {
         assert (a.length == s.length);
         IntVar[] vars = Arrays.copyOf(a, 2 * a.length + 1);
@@ -1727,6 +1719,14 @@ public final class Factory {
         }
         vars[2 * a.length] = tr;
         return new Markov(a, s, P, R, start, tr, marginals4tr, vars);
+    }
+    public static Constraint markov(IntVar[] a, IntVar[] s, double[][][] P, int[][][] R, int start, IntVar tr) {
+        assert (a.length == s.length);
+        IntVar[] vars = Arrays.copyOf(a, 2 * a.length);
+        for (int i = 0; i < s.length; i++) {
+            vars[a.length + i] = s[i];
+        }
+        return new Markov(a, s, P, R, start, tr, false, vars);
     }
 
     /**
@@ -2255,4 +2255,60 @@ public final class Factory {
         return new Oracle(x, v, m);
     }
 
+    /**
+     * Returns a firstOccurrence constraint.
+     * This relation is enforced by the {@link FirstOccurrence} constraint
+     * posted by calling this method.
+     *
+     * @param x     an array of variables whose instantiations belonging to V we consider
+     * @param V     an array of values
+     * @param pos   the index of the first occurrence of a value from V in x
+     * @return a constraint such that {@code (x[0] \notin V) & ... & (x[pos-1] \notin V) & (x[pos] \in V)}.
+     */
+    public static Constraint firstOccurrence(IntVar[] x, int[] V, IntVar pos) {
+        IntVar[] vars = Arrays.copyOf(x, x.length + 1);
+        vars[x.length] = pos;
+        return new FirstOccurrence(x, V, pos, vars);
+    }
+
+    /**
+     * The symmetric case, about the last occurrence
+     * This relation is enforced by the {@link FirstOccurrence} constraint
+     * posted by calling this method.
+     *
+     * @param x     an array of variables whose instantiations belonging to V we consider
+     * @param V     an array of values
+     * @param pos   the index of the last occurrence of a value from V in x
+     * @return a constraint such that {@code (x[x.length-1] \notin V) & ... & (x[pos+1] \notin V) & (x[pos] \in V)}.
+     */
+    public static Constraint lastOccurrence(IntVar[] x, int[] V, IntVar pos) {
+        IntVar[] xReversed = new IntVar[x.length];
+        for (int i = 0; i < x.length; i++) {
+            xReversed[i] = x[x.length-1 - i];
+        }
+        IntVar posReversed = plus(minus(pos), x.length-1);
+        IntVar[] vars = Arrays.copyOf(xReversed, x.length + 1);
+        vars[x.length] = posReversed;
+        return new FirstOccurrence(xReversed, V, posReversed, vars);
+    }
+
+    /**
+     * Returns a spanOccurrence constraint.
+     * This relation is enforced by the {@link FirstOccurrence} constraint
+     * posted by calling this method.
+     *
+     * @param x         an array of variables whose instantiations belonging to V we consider
+     * @param V         an array of values
+     * @param firstPos  the index of the first occurrence of a value from V in x
+     * @param lastPos   the index of the last occurrence of a value from V in x
+     * Note: This constraint is currently decomposed into a firstOccurrence and a lastOccurrence constraint.
+     */
+    public static Constraint spanOccurrence(IntVar[] x, int[] V, IntVar firstPos, IntVar lastPos) {
+        IntVar[] vars = Arrays.copyOf(x, x.length + 2);
+        vars[x.length] = firstPos;
+        vars[x.length+1] = lastPos;
+        return new SpanOccurrence(x, V, firstPos, lastPos, vars);
+    }
+
 }
+
