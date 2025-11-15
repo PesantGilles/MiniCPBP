@@ -285,6 +285,9 @@ public class MiniCP implements Solver {
      */
     @Override
     public void beliefPropa() {
+ //       System.out.println(variables.size()+" variables");
+ //       System.out.println(constraints.size()+" constraints");
+        Constraint c;
         // First decide whether we trigger BP or simply reuse current marginals
         int sum = 0;
         Iterator<IntVar> iterator = variables.iterator();
@@ -317,12 +320,15 @@ public class MiniCP implements Solver {
                 }
                  Iterator<Constraint> iteratorC = constraints.iterator();
                 while (iteratorC.hasNext()) {
-                    iteratorC.next().resetLocalBelief();
+                    c = iteratorC.next();
+                    if (c.isActive())
+                        c.resetLocalBelief();
                 }
                 prevOutsideBeliefRecorded = false;
             }
             double previousEntropy, currentEntropy = 1.0;
-            for (int iter = 1; iter <= beliefPropaMaxIter; iter++) {
+            int iter;
+            for (iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
                 if (traceBP) {
                     System.out.println("##### after BP iteration " + iter + " #####");
@@ -362,16 +368,18 @@ public class MiniCP implements Solver {
                 if (currentEntropy == 0) { // either all branching vars are bound or BP says there's no solution
                     break;
                 }
+                // CAVEAT: this one only really makes sense if we are branching on the min entropy or max marginal (strength) variable
                 if (smallEntropy <= MIN_VAR_ENTROPY) { // at least one variable with low uncertainty about the value it should take
                     break;
                 }
                 if ((iter > 1) /* give it a chance to kick in */ && (currentEntropy == previousEntropy)) { // marginals probably did not change either (and won't in the future)
                     break;
                 }
-                if ((iter > 2) /* give it a chance to stabilize */ && (currentEntropy - previousEntropy > ENTROPY_TOLERANCE)) { // entropy actually increased
-                    break;
-                }
+ //               if ((iter > 2) /* give it a chance to stabilize */ && (currentEntropy - previousEntropy > ENTROPY_TOLERANCE)) { // entropy actually increased
+ //                   break;
+ //               }
             }
+//            System.out.println("after "+iter+" BP iterations");
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
             while (!propagationQueue.isEmpty())
@@ -387,6 +395,7 @@ public class MiniCP implements Solver {
     public void vanillaBP(int nbIterations) {
         notifyBeliefPropa();
         setDamp(false);
+        Constraint c;
         try {
             if (resetMarginalsBeforeBP) {
                 // start afresh at each search-tree node
@@ -396,7 +405,9 @@ public class MiniCP implements Solver {
                 }
                 Iterator<Constraint> iteratorC = constraints.iterator();
                 while (iteratorC.hasNext()) {
-                    iteratorC.next().resetLocalBelief();
+                    c = iteratorC.next();
+                    if (c.isActive())
+                        c.resetLocalBelief();
                 }
             }
             for (int iter = 1; iter <= nbIterations; iter++) {
@@ -441,6 +452,7 @@ public class MiniCP implements Solver {
     private void BPtuneDamping() {
         final double MIN_DAMPING_FACTOR = 0.5;
         final double DAMPING_FACTOR_DELTA = 0.15;
+        Constraint c;
         setDamp(true);
         setDampingFactor(1.0);
         boolean dampingFactorDetermined = false;
@@ -456,7 +468,9 @@ public class MiniCP implements Solver {
             }
             Iterator<Constraint> iteratorC = constraints.iterator();
             while (iteratorC.hasNext()) {
-                iteratorC.next().resetLocalBelief();
+                c = iteratorC.next();
+                if (c.isActive())
+                    c.resetLocalBelief();
             }
             prevOutsideBeliefRecorded = false;
             currentEntropy = 1.0;
@@ -476,7 +490,7 @@ public class MiniCP implements Solver {
                     break;
                 }
                 if (previousDeltaEntropy <= 0 && currentDeltaEntropy > ENTROPY_TOLERANCE) {
-//                    System.out.println("valley");
+ //                   System.out.println("valley");
                     valleyCount++;
                     if (valleyCount >= 2) {
  //                       System.out.println("two valleys ==> oscillation");
@@ -519,7 +533,7 @@ public class MiniCP implements Solver {
             if (c.isActive())
                 c.sendMessages();
         }
-       iterator = variables.iterator();
+        iterator = variables.iterator();
         while (iterator.hasNext()) {
             iterator.next().normalizeMarginals();
         }
@@ -539,8 +553,10 @@ public class MiniCP implements Solver {
         iteratorC = constraints.iterator();
         while (iteratorC.hasNext()) {
             c = iteratorC.next();
-            c.receiveMessagesWCounting();
-            loss -= Math.log(beliefRep.rep2std(c.weightedCounting()));
+            if (c.isActive()) {
+                c.receiveMessagesWCounting();
+                loss -= Math.log(beliefRep.rep2std(c.weightedCounting()));
+            }
         }
         return loss;
     }
@@ -642,127 +658,127 @@ public class MiniCP implements Solver {
 
     @Override
     public IntVar[] sample(double fraction, IntVar[] vars) {
- 	final double initialAccuracy = 0.01; // relative error threshold of cell size wrt fraction
- 	final double maxNumerator = 100.0; // beyond this, we relax the accuracy
-	assert (fraction > 0) && (fraction < 1.0);
-	// the prime numbers under 100
-	int primes[] = {5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97}; // don't use very small primes because it leaves very little room for rhs of inequalities
-	int i;
-	// find largest domain element
-	int maxDomElt = 0;
-	for(i=0; i<vars.length; i++) {
-	    if (vars[i].max() > maxDomElt)
-		maxDomElt = vars[i].max();
-	}
-	// find the smallest prime at least as large as maxDomElt
-	for(i=0; i<primes.length; i++) 
-	    if (primes[i] >= maxDomElt) break;
-	if (i == primes.length) {
-	    System.out.println("Domain values larger than currently recorded primes!");
-	    System.exit(0);
-	}
-	int p = primes[i];
-	assert (p <= maxNumerator);
-//  	System.out.println("p = "+p);
-	// compute a sufficiently accurate combination of m linear modular constraints
-	double accuracy = initialAccuracy;
-	int m;
-	double exactNumerator, floorNum, ceilNum;
-	LinkedList<Integer> factors = new LinkedList<>();
-	do {
-	    m = 0;
-	    exactNumerator = fraction;
-	    while (factors.isEmpty()) {
-		m++;
-		exactNumerator *= p;
-//   		System.out.println("m="+m+"  exactNum="+exactNumerator+"  epsilon="+accuracy);
-		if (Math.abs(exactNumerator - 1.0)/exactNumerator <= accuracy) break; // a system of equality constraints is sufficient
-		if (exactNumerator > maxNumerator) {
-//   		    System.out.println("numerator is getting too big --- relax accuracy");
-		    break;
-		}
-		floorNum = Math.floor(exactNumerator);
-		ceilNum = Math.ceil(exactNumerator);
-		if (exactNumerator - floorNum < ceilNum - exactNumerator) {
-		    // try with floor first
-		    factors = accurateFactorization(floorNum, exactNumerator, accuracy, m, p);
-		    if (factors.isEmpty())
-			factors = accurateFactorization(ceilNum, exactNumerator, accuracy, m, p);
-		}
-		else {
-		    // try with ceil first
-		    factors = accurateFactorization(ceilNum, exactNumerator, accuracy, m, p);
-		    if (factors.isEmpty())
-			factors = accurateFactorization(floorNum, exactNumerator, accuracy, m, p);
-		}
+ 	    final double initialAccuracy = 0.01; // relative error threshold of cell size wrt fraction
+ 	    final double maxNumerator = 100.0; // beyond this, we relax the accuracy
+	    assert (fraction > 0) && (fraction < 1.0);
+	    // the prime numbers under 100
+	    int primes[] = {5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97}; // don't use very small primes because it leaves very little room for rhs of inequalities
+	    int i;
+	    // find largest domain element
+	    int maxDomElt = 0;
+	    for(i=0; i<vars.length; i++) {
+	        if (vars[i].max() > maxDomElt)
+		        maxDomElt = vars[i].max();
 	    }
-	    accuracy *= 2;
-	} while (exactNumerator > maxNumerator);
-//    	System.out.println("factors: "+factors.toString());
-	int nbIneq = factors.size();
-	int nbEq = m - nbIneq;
-//     	System.out.println("nb eq ; ineq "+nbEq+" ; "+nbIneq);
-	// set up the linear modular constraints
- 	Constraint L = null;
-	IntVar[] paramVars;
-	if (nbEq>0) {
-	    int[][] Ae = new int[nbEq][vars.length];
-	    int[] be = new int[nbEq];
-	    for (i=0; i<nbEq; i++) {
-		be[i] = rand.nextInt(p);
-		for (int j=0; j<Ae[i].length; j++) {
-		    Ae[i][j] = rand.nextInt(p);
-		}
-	    }
-	    L = Factory.linEqSystemModP(Ae,vars,be,p);
-	    this.post(L);
-	    paramVars = ((LinEqSystemModP) L).getParamVars(); // parametric variables of GJE solved form
-	}
-	else {
-	    paramVars = vars;
-	}
-	if (nbIneq>0) { 
-	    IntVar[] augmentedVars = Arrays.copyOf(paramVars, paramVars.length + 1);
-	    augmentedVars[paramVars.length] = Factory.makeIntVar(this, 1, 1);
-	    int[][] Ai = new int[nbIneq][augmentedVars.length];
-	    int[] bi = new int[nbIneq];
-	    for (i=0; i<nbIneq; i++) {
-		bi[i] = factors.remove() - 1;
-//   		System.out.println("ineq rhs: "+bi[i]);
-		for (int j=0; j<Ai[i].length; j++) {
-		    Ai[i][j] = rand.nextInt(p);
-		}
-	    }
-	    L = Factory.linIneqSystemModP(Ai,augmentedVars,bi,p);
-	    this.post(L);
-	}
-	return paramVars; 
+	    // find the smallest prime at least as large as maxDomElt
+	    for(i=0; i<primes.length; i++)
+	        if (primes[i] >= maxDomElt) break;
+        if (i == primes.length) {
+            System.out.println("Domain values larger than currently recorded primes!");
+            System.exit(0);
+        }
+        int p = primes[i];
+        assert (p <= maxNumerator);
+        //  	System.out.println("p = "+p);
+        // compute a sufficiently accurate combination of m linear modular constraints
+        double accuracy = initialAccuracy;
+        int m;
+        double exactNumerator, floorNum, ceilNum;
+        LinkedList<Integer> factors = new LinkedList<>();
+        do {
+            m = 0;
+            exactNumerator = fraction;
+            while (factors.isEmpty()) {
+                m++;
+                exactNumerator *= p;
+                // System.out.println("m="+m+"  exactNum="+exactNumerator+"  epsilon="+accuracy);
+                if (Math.abs(exactNumerator - 1.0)/exactNumerator <= accuracy) break; // a system of equality constraints is sufficient
+                if (exactNumerator > maxNumerator) {
+                    // System.out.println("numerator is getting too big --- relax accuracy");
+                    break;
+                }
+                floorNum = Math.floor(exactNumerator);
+                ceilNum = Math.ceil(exactNumerator);
+                if (exactNumerator - floorNum < ceilNum - exactNumerator) {
+                    // try with floor first
+                    factors = accurateFactorization(floorNum, exactNumerator, accuracy, m, p);
+                    if (factors.isEmpty())
+                        factors = accurateFactorization(ceilNum, exactNumerator, accuracy, m, p);
+                }
+                else {
+                    // try with ceil first
+                    factors = accurateFactorization(ceilNum, exactNumerator, accuracy, m, p);
+                    if (factors.isEmpty())
+                        factors = accurateFactorization(floorNum, exactNumerator, accuracy, m, p);
+                }
+            }
+            accuracy *= 2;
+        } while (exactNumerator > maxNumerator);
+        // System.out.println("factors: "+factors.toString());
+        int nbIneq = factors.size();
+        int nbEq = m - nbIneq;
+        // System.out.println("nb eq ; ineq "+nbEq+" ; "+nbIneq);
+        // set up the linear modular constraints
+        Constraint L = null;
+        IntVar[] paramVars;
+        if (nbEq>0) {
+            int[][] Ae = new int[nbEq][vars.length];
+            int[] be = new int[nbEq];
+            for (i=0; i<nbEq; i++) {
+                be[i] = rand.nextInt(p);
+                for (int j=0; j<Ae[i].length; j++) {
+                    Ae[i][j] = rand.nextInt(p);
+                }
+            }
+            L = Factory.linEqSystemModP(Ae,vars,be,p);
+            this.post(L);
+            paramVars = ((LinEqSystemModP) L).getParamVars(); // parametric variables of GJE solved form
+        }
+        else {
+            paramVars = vars;
+        }
+        if (nbIneq>0) {
+            IntVar[] augmentedVars = Arrays.copyOf(paramVars, paramVars.length + 1);
+            augmentedVars[paramVars.length] = Factory.makeIntVar(this, 1, 1);
+            int[][] Ai = new int[nbIneq][augmentedVars.length];
+            int[] bi = new int[nbIneq];
+            for (i=0; i<nbIneq; i++) {
+                bi[i] = factors.remove() - 1;
+                // System.out.println("ineq rhs: "+bi[i]);
+                for (int j=0; j<Ai[i].length; j++) {
+                    Ai[i][j] = rand.nextInt(p);
+                }
+            }
+            L = Factory.linIneqSystemModP(Ai,augmentedVars,bi,p);
+            this.post(L);
+        }
+        return paramVars;
     }	    
 
     private LinkedList<Integer> accurateFactorization(double intNum, double exactNum, double accuracy, int m, int p) {
-	if (intNum <= 1.0)
-	    return new LinkedList<>(); // cannot be factorized
-	double relError = Math.abs(exactNum - intNum) / exactNum;
-//   	System.out.println("exactNum="+exactNum+" intNum="+intNum+" rel error="+relError);
-	if (relError > accuracy)
-	    return new LinkedList<>(); // not accurate enough
-	// decompose intNum into the fewest factors (and no more than m), all less than p
-	return factorize((int) intNum, m, p-1);
+	    if (intNum <= 1.0)
+	        return new LinkedList<>(); // cannot be factorized
+	    double relError = Math.abs(exactNum - intNum) / exactNum;
+        //   	System.out.println("exactNum="+exactNum+" intNum="+intNum+" rel error="+relError);
+	    if (relError > accuracy)
+	        return new LinkedList<>(); // not accurate enough
+	    // decompose intNum into the fewest factors (and no more than m), all less than p
+	    return factorize((int) intNum, m, p-1);
     }
     
     private LinkedList<Integer> factorize(int n, int m, int f) {
-	LinkedList<Integer> factors = new LinkedList<>();
-	while ((f>1) && (n>1)) {
-	    while (n%f==0) {
-		factors.add(f);
-		n /= f;
+	    LinkedList<Integer> factors = new LinkedList<>();
+	    while ((f>1) && (n>1)) {
+	        while (n%f==0) {
+		        factors.add(f);
+		        n /= f;
+	        }
+	        f--;
 	    }
-	    f--;
-	}
- 	if ((n==1) && (factors.size()<=m))
-	    return factors;
-	else
-	    return new LinkedList<>(); // n could not be factorized (in at most m factors)
+ 	    if ((n==1) && (factors.size()<=m))
+	        return factors;
+	    else
+	        return new LinkedList<>(); // n could not be factorized (in at most m factors)
     }
 }
 
