@@ -21,6 +21,7 @@ package minicpbp.engine.core;
 import minicpbp.state.StateStack;
 import minicpbp.util.Procedure;
 import minicpbp.util.exception.InconsistencyException;
+import java.lang.ArithmeticException;
 import minicpbp.util.Belief;
 
 import java.security.InvalidParameterException;
@@ -261,6 +262,12 @@ public class IntVarImpl implements IntVar {
 
     @Override
     public void setMarginal(int v, double m) {
+        if (Double.isNaN(m)) {
+            throw new ArithmeticException("NaN marginal of variable "+this.name+" on value "+v);
+        }
+        if (Double.compare(+0.0f, m) == 0) {
+            throw new ArithmeticException("Double underflow for marginal of variable "+this.name+" on value "+v);
+        }
         domain.setMarginal(v, m);
     }
 

@@ -54,6 +54,7 @@ public class ShortTableCT extends AbstractConstraint {
         this.xLength = x.length;
         this.table = table;
         this.tableLength = table.length;
+        assert xLength == table[0].length;
 	    this.star = star;
         ofs = new int[xLength];
         supportedTuples = new BitSet(tableLength);

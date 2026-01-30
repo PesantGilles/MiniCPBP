@@ -187,9 +187,7 @@ public class SparseSetDomain implements IntDomain {
     }
 
     @Override
-    public void setMarginal(int v, double m) {
-        domain.setWeight(v, m);
-    }
+    public void setMarginal(int v, double m) { domain.setWeight(v, m); }
 
     @Override
     public void resetMarginals() {
