@@ -554,11 +554,30 @@ public class MiniCP implements Solver {
         while (iteratorC.hasNext()) {
             c = iteratorC.next();
             if (c.isActive()) {
-                c.receiveMessagesWCounting();
-                loss -= Math.log(beliefRep.rep2std(c.weightedCounting()));
+                loss += c.loss();
             }
         }
         return loss;
+    }
+
+    /**
+     * Computes gradients for variable/value pairs from the constraints given outside beliefs.
+     */
+    public void globalGradients() {
+        Iterator<Constraint> iteratorC = constraints.iterator();
+        while (iteratorC.hasNext()) {
+            iteratorC.next().setAuxVarsMarginalsWCounting();
+        }
+        Constraint c;
+        iteratorC = constraints.iterator();
+        System.out.println("*** GRADIENTS ***");
+        while (iteratorC.hasNext()) {
+            c = iteratorC.next();
+            if (c.isActive()) {
+                System.out.println("** Constraint "+c.getName());
+                c.gradients();
+            }
+        }
     }
 
     /**

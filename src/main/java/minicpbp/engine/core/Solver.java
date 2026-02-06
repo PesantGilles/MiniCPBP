@@ -284,5 +284,10 @@ public interface Solver {
      */
     double globalLossFct();
 
- }
+    /**
+     * Computes gradients for variable/value pairs from the constraints given outside beliefs.
+     */
+    void globalGradients();
+
+}
 

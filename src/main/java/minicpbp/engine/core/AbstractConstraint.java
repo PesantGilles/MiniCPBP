@@ -291,11 +291,11 @@ public abstract class AbstractConstraint implements Constraint {
                     assert localB <= beliefRep.one() && localB >= beliefRep.zero() : "c Should be normalized! localB = " + localB;
                     if (getSolver().actingOnZeroOneBelief() && isExactWCounting()) {
                         if (beliefRep.isZero(localB)) { // no support from this constraint
-//  			    System.out.println(getName()+".sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
+  			                // System.out.println(getName()+".sendMessages(): removing value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ZERO");
                             vars[i].remove(val); // standard domain consistency filtering
                             getSolver().fixPoint();
                         } else if (beliefRep.isOne(localB)) { // backbone var for this constraint (and hence for all of them)
-//  			    System.out.println(getName()+".sendMessages(): assigning value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ONE");
+  			                // System.out.println(getName()+".sendMessages(): assigning value "+val+" from the domain of "+vars[i].getName()+vars[i].toString()+" because its local belief is ONE");
                             vars[i].assign(val);
                             getSolver().fixPoint();
                             break; // all other values in this loop will have been removed from the domain
@@ -310,12 +310,45 @@ public abstract class AbstractConstraint implements Constraint {
     }
 
     /**
-     * Updates its local belief given the outside beliefs.
+     * Returns the semantic loss, computed using weighted model counting.
      * To be defined in the actual constraint.
      * <p>
-     * Default behaviour: uniform belief
-     * CAVEAT: may set zero/one beliefs but should not directly remove domain values (only done in sendMessages() if actOnZeroOneBelief flag is set)
+     * Default behaviour: returns zero (tautology constraint)
      */
+    public double loss() {
+        receiveMessagesWCounting(); // collect pmfs over the domains of the variables in the scope of the constraint
+        return -Math.log(beliefRep.rep2std(weightedCounting()));
+    }
+
+    /**
+     * Computes gradients for variable/value pairs from the constraints given outside beliefs.
+     */
+    public void gradients() {
+        receiveMessagesWCounting(); // collect pmfs over the domains of the variables in the scope of the constraint
+        double wc = beliefRep.rep2std(weightedCounting());
+        updateBelief();
+        for (int i = 0; i < vars.length; i++) {
+            System.out.println("* "+vars[i].getName());
+            normalizeBelief(i, (j, val) -> localBelief(j, val), (j, val, b) -> setLocalBelief(j, val, b));
+            int s = vars[i].fillArray(domainValues);
+            double sumOverDomain = 0;
+            for (int j = 0; j < s; j++) {
+                sumOverDomain += localBelief(i, domainValues[j]);
+            }
+            for (int j = 0; j < s; j++) {
+                double gradient = (sumOverDomain - 2.0*localBelief(i, domainValues[j])) / wc;
+                System.out.println(domainValues[j]+": "+gradient);
+            }
+        }
+    }
+
+    /**
+       * Updates its local belief given the outside beliefs.
+       * To be defined in the actual constraint.
+       * <p>
+       * Default behaviour: uniform belief
+       * CAVEAT: may set zero/one beliefs but should not directly remove domain values (only done in sendMessages() if actOnZeroOneBelief flag is set)
+       */
     protected void updateBelief() {
         if (!updateBeliefWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
@@ -331,7 +364,7 @@ public abstract class AbstractConstraint implements Constraint {
 
     /**
      * Collects messages (outside beliefs) from the variables in its scope.
-     * Used to compute a loss function via weighted counting
+     * Used to compute the semantic loss and gradients via weighted counting
      */
     public void receiveMessagesWCounting() {
         for (int i = 0; i < vars.length; i++) {
@@ -358,7 +391,7 @@ public abstract class AbstractConstraint implements Constraint {
      * <p>
      * Default behaviour: returns beliefRep.one() (tautology constraint)
      */
-    public double weightedCounting() {
+    protected double weightedCounting() {
         if (!weightedCountingWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
                 System.out.println("c Warning: method weightedCounting not implemented yet for " + getName() + " constraint. Returning beliefRep.one() instead.");
