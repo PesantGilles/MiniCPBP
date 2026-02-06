@@ -265,9 +265,6 @@ public class IntVarImpl implements IntVar {
         if (Double.isNaN(m)) {
             throw new ArithmeticException("NaN marginal of variable "+this.name+" on value "+v);
         }
-        if (Double.compare(+0.0f, m) == 0) {
-            throw new ArithmeticException("Double underflow for marginal of variable "+this.name+" on value "+v);
-        }
         domain.setMarginal(v, m);
     }
 
