@@ -97,4 +97,20 @@ public class NotEqual extends AbstractConstraint {
         }
     }
 
+    public double weightedCounting() {
+        double weightedCount = beliefRep.zero();
+        for (int vx = x.min(); vx <= x.max(); vx++) {
+            if (x.contains(vx)) {
+                if (y.contains(vx - c)) {
+                    weightedCount = beliefRep.add(weightedCount,
+                                    beliefRep.multiply(outsideBelief(0, vx), beliefRep.complement(outsideBelief(1, vx - c))));
+                } else {
+                    weightedCount = beliefRep.add(weightedCount, outsideBelief(0, vx));
+                }
+            }
+        }
+        System.out.println("weighted count for "+this.getName()+" constraint: "+ weightedCount);
+        return weightedCount; 
+    }
+
 }
