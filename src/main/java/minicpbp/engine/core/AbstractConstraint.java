@@ -326,6 +326,10 @@ public abstract class AbstractConstraint implements Constraint {
     public void gradients() {
         receiveMessagesWCounting(); // collect pmfs over the domains of the variables in the scope of the constraint
         double wc = beliefRep.rep2std(weightedCounting());
+        if (wc == 0) {
+            System.out.println("*** Warning! Infinite loss; mitigating by producing some very large gradients ***");
+            wc = 1.0E-10;
+        }
         updateBelief();
         for (int i = 0; i < vars.length; i++) {
             System.out.println("* "+vars[i].getName());
