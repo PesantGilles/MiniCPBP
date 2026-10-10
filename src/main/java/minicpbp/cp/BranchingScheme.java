@@ -31,6 +31,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.Random;
+import minicpbp.util.Log;
 
 import static minicpbp.cp.Factory.*;
 
@@ -177,7 +178,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexico(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -190,13 +190,11 @@ public final class BranchingScheme {
                 int v = xs.min();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -215,7 +213,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexicoMaxMarginalValue(IntVar... x) {
-	    boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -229,13 +226,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+				  Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  Log.branchNotEqual(xs.getName(), v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -254,7 +249,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexicoMinMarginalValue(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -267,15 +261,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMinMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println(xs.toString());
-                                System.out.println("### branching on "+xs.getName()+"!="+v);
+                                Log.branchNotEqual(xs.getName(), v);
                                 branchNotEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println(xs.toString());
-                                System.out.println("### branching on "+xs.getName()+"="+v);
+                                Log.branchEqual(xs.getName(), v);
                                 branchEqual(xs, v);
                         }
                     );
@@ -295,7 +285,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> lexicoBiasedWheelSelectVal(IntVar... x) {
-	    boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -308,13 +297,11 @@ public final class BranchingScheme {
                 int v = xs.biasedWheelValue();
                 return branch(
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v);
+				  Log.branchEqual(xs.getName(), v);
 				  branchEqual(xs, v);
 			      },
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  Log.branchNotEqual(xs.getName(), v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -333,7 +320,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFail(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -346,13 +332,11 @@ public final class BranchingScheme {
                 int v = xs.min();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -371,7 +355,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailRandomVal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
         return () -> {
@@ -384,13 +367,11 @@ public final class BranchingScheme {
                 int v = xs.randomValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -410,7 +391,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailRandomTieBreakRandomVal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -425,13 +405,11 @@ public final class BranchingScheme {
                 int v = xs.randomValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; nb of ties=" + nbTied);
+                            Log.branchEqual(xs.getName(), v, "nb of ties=" + nbTied);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -450,7 +428,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailMaxMarginalValue(IntVar... x) {
-	    boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -464,13 +441,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+				  Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  Log.branchNotEqual(xs.getName(), v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -489,7 +464,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> firstFailRandomTieBreakMaxMarginalValue(IntVar... x) {
-	    boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
@@ -505,13 +479,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"="+v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+				  Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()));
 				  branchEqual(xs, v);
 			      },
 			      () -> {
-				  if (tracing)
-				      System.out.println("### branching on "+xs.getName()+"!="+v);
+				  Log.branchNotEqual(xs.getName(), v);
 				  branchNotEqual(xs, v);
 			      } );
             }
@@ -531,7 +503,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> randomVarRandomVal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -546,13 +517,11 @@ public final class BranchingScheme {
                 int v = xs.randomValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; nb of ties=" + nbTied);
+                            Log.branchEqual(xs.getName(), v, "nb of ties=" + nbTied);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -572,7 +541,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minEntropy(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -588,13 +556,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "entropy=" + xs.entropy());
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -614,7 +580,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minEntropyRandomTieBreak(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
@@ -632,13 +597,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "entropy=" + xs.entropy());
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -659,7 +622,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minEntropyRegisterImpact(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -675,13 +637,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "entropy=" + xs.entropy());
                             branchEqualRegisterImpact(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -689,7 +649,6 @@ public final class BranchingScheme {
     }
 
     public static Supplier<Procedure[]> impactBasedSearch(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -705,13 +664,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMinImpact();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.marginal(v)), "entropy=" + xs.entropy());
                             branchEqualRegisterImpactOnDomains(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -719,7 +676,6 @@ public final class BranchingScheme {
     }
 
     public static Supplier<Procedure[]> impactEntropy(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -735,13 +691,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMinImpact();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.marginal(v)), "entropy=" + xs.entropy());
                             branchEqualRegisterImpact(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -761,7 +715,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minEntropyBiasedWheelSelectVal(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -777,13 +730,11 @@ public final class BranchingScheme {
                 int v = xs.biasedWheelValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; entropy=" + xs.entropy());
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.marginal(v)), "entropy=" + xs.entropy());
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -803,7 +754,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalStrength(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -819,13 +769,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -845,7 +793,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalStrengthBiasedWheelSelectVal(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -861,13 +808,11 @@ public final class BranchingScheme {
                 int v = xs.biasedWheelValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.marginal(v)) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.marginal(v)), "strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()));
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -887,7 +832,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalStrengthRandomTieBreak(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
@@ -905,13 +849,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()) + "; nb of ties=" + nbTied);
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "strength=" + (beliefRep.rep2std(xs.maxMarginal()) - 1.0 / xs.size()), "nb of ties=" + nbTied);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -931,7 +873,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalRegretRandomTieBreak(IntVar[] x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
@@ -949,13 +890,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + "; marginal=" + beliefRep.rep2std(xs.maxMarginal()) + "; regret=" + (beliefRep.rep2std(xs.maxMarginalRegret())) + "; nb of ties=" + nbTied);
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()), "regret=" + (beliefRep.rep2std(xs.maxMarginalRegret())), "nb of ties=" + nbTied);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -975,7 +914,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minMarginalStrength(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -991,13 +929,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMinMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
+                            Log.branchNotEqual(xs.getName(), v, "marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
                             branchNotEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         });
             }
@@ -1016,7 +952,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> domWdeg(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for(IntVar a: x)
             a.setForBranching(true);
             return () -> {
@@ -1029,13 +964,11 @@ public final class BranchingScheme {
                     int v = xs.min();
                     return branch(
                             () -> {
-                                if (tracing)
-                                    System.out.println("### branching on " + xs.getName() + "=" + v);
+                                Log.branchEqual(xs.getName(), v);
                                 branchEqual(xs, v);
                             },
                             () -> {
-                                if (tracing)
-                                    System.out.println("### branching on " + xs.getName() + "!=" + v);
+                                Log.branchNotEqual(xs.getName(), v);
                                 branchNotEqual(xs, v);
                             });
                 }
@@ -1054,7 +987,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> domWdegMaxMarginalValue(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         for (IntVar a : x)
             a.setForBranching(true);
         return () -> {
@@ -1067,13 +999,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -1093,7 +1023,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -1109,13 +1038,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()));
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -1135,7 +1062,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalBiasedWheelSelectVal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -1151,13 +1077,11 @@ public final class BranchingScheme {
                 int v = xs.biasedWheelValue();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.marginal(v)));
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.marginal(v)));
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -1177,7 +1101,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> maxMarginalRandomTieBreak(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         Random rand = x[0].getSolver().getRandomNbGenerator();
         for(IntVar a: x)
@@ -1195,13 +1118,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMaxMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v + " marginal=" + beliefRep.rep2std(xs.maxMarginal()));
+                            Log.branchEqual(xs.getName(), v, "marginal=" + beliefRep.rep2std(xs.maxMarginal()));
                             branchEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v);
+                            Log.branchNotEqual(xs.getName(), v);
                             branchNotEqual(xs, v);
                         });
             }
@@ -1221,7 +1142,6 @@ public final class BranchingScheme {
      * @see Factory#makeDfs(Solver, Supplier)
      */
     public static Supplier<Procedure[]> minMarginal(IntVar... x) {
-        boolean tracing = x[0].getSolver().tracingSearch();
         Belief beliefRep = x[0].getSolver().getBeliefRep();
         for(IntVar a: x)
             a.setForBranching(true);
@@ -1237,13 +1157,11 @@ public final class BranchingScheme {
                 int v = xs.valueWithMinMarginal();
                 return branch(
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "!=" + v + " marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
+                            Log.branchNotEqual(xs.getName(), v, "marginal=" + (1 - beliefRep.rep2std(xs.minMarginal())));
                             branchNotEqual(xs, v);
                         },
                         () -> {
-                            if (tracing)
-                                System.out.println("### branching on " + xs.getName() + "=" + v);
+                            Log.branchEqual(xs.getName(), v);
                             branchEqual(xs, v);
                         });
             }

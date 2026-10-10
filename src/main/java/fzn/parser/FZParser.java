@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import fzn.Model;
 import minicpbp.util.exception.NotImplementedException;
+import minicpbp.util.Log;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class FZParser {
 		UnbufferedCharStream input = new UnbufferedCharStream(new FileInputStream(fname));
 		return readFlatZincModel(input, acceptAnyCstr);
 		}catch(IOException e){
-	        System.err.println("File " + fname + " not found. Aborting.");
+	        Log.error("File " + fname + " not found. Aborting.");
 			System.exit(1);
 		}
 		return null;
@@ -85,22 +86,22 @@ public class FZParser {
 	        if(p.getNumberOfSyntaxErrors()>0){
 	          
 	          throw new NotImplementedException("Parsing Error Somewhere");
-	          /*System.err.println("Syntax error. Aborting.");
-	          System.err.println("If the flatzinc file is correct, please report to the developers.");
+	          /*Log.error("Syntax error. Aborting.");
+	          Log.error("If the flatzinc file is correct, please report to the developers.");
 	          System.exit(1);*/
 	        }
 			return m;
 		/*}catch(RecognitionException e){
 			e.printStackTrace();//TODO: report more friendly messages
-			System.err.println("Syntax error. Aborting.");
-	          System.err.println("If the flatzinc file is correct, please report to the developers.");
+			Log.error("Syntax error. Aborting.");
+	          Log.error("If the flatzinc file is correct, please report to the developers.");
 			System.exit(1);
 		}catch(ParsingException e){
-		  System.err.println(e.getMessage());
+		  Log.error(e.getMessage());
 		  //e.printStackTrace();
 		  //TODO: report more friendly and complete messages
-          System.err.println("Syntax error. Aborting.");
-          System.err.println("If the flatzinc file is correct, please report to the developers.");
+          Log.error("Syntax error. Aborting.");
+          Log.error("If the flatzinc file is correct, please report to the developers.");
           System.exit(1);
 		}*/
 		//return null;

@@ -18,6 +18,8 @@
 
 package minicpbp.engine.constraints;
 
+import minicpbp.util.Log;
+
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 
@@ -109,7 +111,7 @@ public class NotEqual extends AbstractConstraint {
                 }
             }
         }
-        System.out.println("weighted count for "+this.getName()+" constraint: "+ weightedCount);
+        Log.constraint("weighted count for "+this.getName()+" constraint: "+ weightedCount);
         return weightedCount; 
     }
 

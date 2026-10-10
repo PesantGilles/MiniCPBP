@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import minicpbp.util.Log;
 import java.util.StringTokenizer;
 
 
@@ -46,7 +47,7 @@ public class InputReader {
                 do {
                     line = in.readLine();
                     if (line == null) {
-                        System.out.println("No more line to read");
+                        Log.error("No more line to read");
                         throw new RuntimeException("End of file");
                     }
                     tokenizer = new StringTokenizer(line);
@@ -77,7 +78,7 @@ public class InputReader {
                 do {
                     line = in.readLine();
                     if (line == null) {
-                        System.out.println("No more line to read");
+                        Log.error("No more line to read");
                         throw new RuntimeException("End of file");
                     }
                     tokenizer = new StringTokenizer(line);
@@ -101,7 +102,7 @@ public class InputReader {
                 do {
                     line = in.readLine();
                     if (line == null) {
-                        System.out.println("No more line to read");
+                        Log.error("No more line to read");
                         throw new RuntimeException("End of file");
                     }
                     tokenizer = new StringTokenizer(in.readLine());

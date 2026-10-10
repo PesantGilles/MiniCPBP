@@ -28,6 +28,7 @@ import minicpbp.util.Procedure;
 import minicpbp.util.Belief;
 import minicpbp.util.StdBelief;
 import minicpbp.util.LogBelief;
+import minicpbp.util.Log;
 import minicpbp.engine.constraints.LinEqSystemModP;
 
 import java.util.*;
@@ -72,12 +73,6 @@ public class MiniCP implements Solver {
     // ARITY  /* a constraint's weight is related to its arity; = 1 + (arity - min_arity)/total_nb_of_vars */
     private static final ConstraintWeighingScheme Wscheme = ConstraintWeighingScheme.SAME;
 
-    //****************************
-
-    //***** TRACING SWITCHES *****
-    private static boolean traceBP = false;
-    private static boolean traceSearch = false;
-    private static boolean traceEntropy = false;
     //****************************
 
 
@@ -153,15 +148,15 @@ public class MiniCP implements Solver {
     }
 
     public void setTraceBPFlag(boolean traceBP) {
-        MiniCP.traceBP = traceBP;
+        Log.setTraceBP(traceBP);
     }
 
     public void setTraceSearchFlag(boolean traceSearch) {
-        MiniCP.traceSearch = traceSearch;
+        Log.setTraceSearch(traceSearch);
     }
 
     public void setTraceEntropyFlag(boolean traceEntropy) {
-        MiniCP.traceEntropy = traceEntropy;
+        Log.setTraceEntropy(traceEntropy);
     }
 
     public void setMaxIter(int maxIter) {
@@ -193,7 +188,7 @@ public class MiniCP implements Solver {
     }
 
     public boolean tracingSearch() {
-        return traceSearch;
+        return Log.isTracingSearch();
     }
 
     public void schedule(Constraint c) {
@@ -330,40 +325,14 @@ public class MiniCP implements Solver {
             int iter;
             for (iter = 1; iter <= beliefPropaMaxIter; iter++) {
                 BPiteration();
-                if (traceBP) {
-                    System.out.println("##### after BP iteration " + iter + " #####");
-                    for (int i = 0; i < variables.size(); i++) {
-                        System.out.print(variables.get(i).getName());
-                        System.out.println(variables.get(i).toString());
-                    }
-                }
+                Log.bpIteration(iter, variables);
                 previousEntropy = currentEntropy;
                 currentEntropy = problemEntropy();
                 double smallEntropy = smallestVariableEntropy();
                 if (dampingMessages())
                     prevOutsideBeliefRecorded = true;
-                if (traceBP) {
-                    System.out.println("problem entropy = " + currentEntropy);
-                    System.out.println("smallest variable entropy = " + smallEntropy);
-                }
-                if (traceEntropy) {
-                    double minEntropy = 1;
-                    double maxEntropy = 0;
-                    double modelEntropy = 0.0;
-                    for (int i = 0; i < variables.size(); i++) {
-                        if (!variables.get(i).isBound() && variables.get(i).isForBranching()) {
-                            if (minEntropy > variables.get(i).entropy() / Math.log(variables.get(i).size()))
-                                minEntropy = variables.get(i).entropy() / Math.log(variables.get(i).size());
-                            if (maxEntropy < variables.get(i).entropy() / Math.log(variables.get(i).size()))
-                                maxEntropy = variables.get(i).entropy() / Math.log(variables.get(i).size());
-                            modelEntropy += variables.get(i).entropy() / Math.log(variables.get(i).size());
-                        }
-                    }
-                    modelEntropy = modelEntropy / nbBranchingVariables();
-                    System.out.println("model entropy : " + modelEntropy);
-                    System.out.println("min entropy : " + minEntropy);
-                    System.out.println("max entropy : " + maxEntropy);
-                }
+                Log.bpEntropy(currentEntropy, smallEntropy);
+                Log.modelEntropy(variables, nbBranchingVariables());
                 // stopping criteria
                 if (currentEntropy == 0) { // either all branching vars are bound or BP says there's no solution
                     break;
@@ -412,13 +381,7 @@ public class MiniCP implements Solver {
             }
             for (int iter = 1; iter <= nbIterations; iter++) {
                 BPiteration();
-                if (traceBP) {
-                    System.out.println("##### after BP iteration " + iter + " #####");
-                    for (int i = 0; i < variables.size(); i++) {
-                        System.out.print(variables.get(i).getName());
-                        System.out.println(variables.get(i).toString());
-                    }
-                }
+                Log.bpIteration(iter, variables);
             }
         } catch (InconsistencyException e) {
             // empty the queue and unset the scheduled status
@@ -503,9 +466,7 @@ public class MiniCP implements Solver {
                 }
             }
         }
-        if (traceBP) {
-            System.out.println("FINAL DAMPING FACTOR = " + dampingFactor());
-        }
+        Log.bpDampingFactor(dampingFactor());
         if (dampingFactor() == 1.0) {
             setDamp(false);
         }
@@ -570,11 +531,11 @@ public class MiniCP implements Solver {
         }
         Constraint c;
         iteratorC = constraints.iterator();
-        System.out.println("*** GRADIENTS ***");
+        Log.gradientHeader();
         while (iteratorC.hasNext()) {
             c = iteratorC.next();
             if (c.isActive()) {
-                System.out.println("** Constraint "+c.getName());
+                Log.gradientConstraint(c.getName());
                 c.gradients();
             }
         }
@@ -693,7 +654,7 @@ public class MiniCP implements Solver {
 	    for(i=0; i<primes.length; i++)
 	        if (primes[i] >= maxDomElt) break;
         if (i == primes.length) {
-            System.out.println("Domain values larger than currently recorded primes!");
+            Log.info("Domain values larger than currently recorded primes!");
             System.exit(0);
         }
         int p = primes[i];

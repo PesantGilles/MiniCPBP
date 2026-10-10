@@ -19,6 +19,7 @@
 package minicpbp.engine.constraints;
 
 import minicpbp.engine.core.AbstractConstraint;
+import minicpbp.util.Log;
 import minicpbp.engine.core.Constraint;
 import minicpbp.engine.core.Solver;
 import minicpbp.engine.core.IntVar;
@@ -133,9 +134,9 @@ public class LinEqSystemModP extends AbstractConstraint {
         GaussJordanElimination(m, nU);
 
 	/* 
-   	System.out.println("after GJ Elim");
+   	Log.constraint("after GJ Elim");
   	for (int i=0; i<m; i++) {
-  	    System.out.println(Arrays.toString(this.A[i]));
+  	    Log.constraint(Arrays.toString(this.A[i]));
   	}
 	*/
 
@@ -164,17 +165,17 @@ public class LinEqSystemModP extends AbstractConstraint {
 
         // identify the parametric variables (useful for branching)
         paramIdx = new int[nU - nNonparam];
-// 	System.out.print("param vars: ");
+// 	Log.constraintPrint("param vars: ");
         for (int j = 0; j < nU - nNonparam; j++) {
             paramIdx[j] = unBounds[nNonparam + j];
-// 	    System.out.print(x[paramIdx[j]].getName()+" ");
+// 	    Log.constraintPrint(x[paramIdx[j]].getName()+" ");
         }
 /*
- 	System.out.print("\n nonparam vars: ");
+ 	Log.constraintPrint("\n nonparam vars: ");
 	for (int j=0; j<nNonparam; j++) {
-	    System.out.print(x[unBounds[j]].getName()+" ");
+	    Log.constraintPrint(x[unBounds[j]].getName()+" ");
 	}
-	System.out.println();
+	Log.constraint();
 */
 	/* 
 	// post a SumModP constraint for each equation in the reduced row echelon form
@@ -224,7 +225,7 @@ public class LinEqSystemModP extends AbstractConstraint {
             for (int j = 1; j < nU - nNonparam + 1; j++)
                 if (this.A[i][nNonparam + j - 1] == 0)
                     nbSolns *= x[unBounds[nNonparam + j - 1]].size();
-//  	    System.out.println("eq "+i+" has "+nbSolns+" solutions");
+//  	    Log.constraint("eq "+i+" has "+nbSolns+" solutions");
             avgNbSolns += nbSolns;
         }
         avgNbSolns /= nNonparam;
@@ -356,7 +357,7 @@ public class LinEqSystemModP extends AbstractConstraint {
 	    for (int i = 0; i < nNonparam; i++) { 
 		likelihood *= ((double) x[unBounds[i]].size());
 	    }
-//  	    System.out.println("likelihood = "+likelihood);
+//  	    Log.constraint("likelihood = "+likelihood);
 
  	    double nTuplesUB = 1; // upper bound on nb combinations of values for parametric vars
 	    for (int i = nU - 1; i >= nNonparam; i--) { // restrict to parametric vars
@@ -393,20 +394,20 @@ public class LinEqSystemModP extends AbstractConstraint {
      */
             // TODO? switch to domain events for all vars
             // TODO: map domain values to their canonical rep
-//  	System.out.println("current unbounds are:");
+//  	Log.constraint("current unbounds are:");
 // 	for (int j = 0; j < nUnBounds.value(); j++) {
-// 	    System.out.println(x[unBounds[j]].getName()+x[unBounds[j]].toString());
+// 	    Log.constraint(x[unBounds[j]].getName()+x[unBounds[j]].toString());
 // 	}
 
-//  	System.out.println("\n enumerating tuples:");
-//  	System.out.println("posting Table with "+nU+" unbounds");
+//  	Log.constraint("\n enumerating tuples:");
+//  	Log.constraint("posting Table with "+nU+" unbounds");
             // enumerate tuples over parametric variables and accumulate them in Tuples
             nTuples = 0;
             paramEnum(1);
-//      System.out.println(nTuples+" tuples whereas the upper bound is "+nTuplesUB+"; "+nU+" unbound vars");
-//      System.out.println(nTuples+" tuples ; "+nU+" unbound vars");
+//      Log.constraint(nTuples+" tuples whereas the upper bound is "+nTuplesUB+"; "+nU+" unbound vars");
+//      Log.constraint(nTuples+" tuples ; "+nU+" unbound vars");
 // 	for (int i = 0; i < x.length; i++) {
-// 	    System.out.println(x[i].getName()+x[i].toString());
+// 	    Log.constraint(x[i].getName()+x[i].toString());
 //      }
             if (nTuples == 0)
                 throw new InconsistencyException();
@@ -429,7 +430,7 @@ public class LinEqSystemModP extends AbstractConstraint {
             }
         }
         // perform table filtering (borrowed from TableCT.propagate())
-// 	System.out.println("filtering...");
+// 	Log.constraint("filtering...");
         supportedTuples.set(0, nTuples); // set them all to true
         if (supportedTuples.length() > nTuples)
             supportedTuples.clear(nTuples, supportedTuples.length()); // disregard tuples from former table
@@ -437,25 +438,25 @@ public class LinEqSystemModP extends AbstractConstraint {
         for (int i = 0; i < nU; i++) {
             supporti.clear(); // set them all to false
             int s = x[unBounds[i]].fillArray(domainValues);
-// 	    System.out.println("building supporti for "+x[unBounds[i]].getName());
+// 	    Log.constraint("building supporti for "+x[unBounds[i]].getName());
             for (int j = 0; j < s; j++) {
-// 		System.out.println("val "+domainValues[j]+": "+Arrays.toString(supports[i][domainValues[j]-ofs[i]].stream().toArray()));
+// 		Log.constraint("val "+domainValues[j]+": "+Arrays.toString(supports[i][domainValues[j]-ofs[i]].stream().toArray()));
                 supporti.or(supports[i][domainValues[j] - ofs[i]]);
             }
             supportedTuples.and(supporti);
         }
-// 	System.out.println("currently supported tuples are: "+Arrays.toString(supportedTuples.stream().toArray()));
+// 	Log.constraint("currently supported tuples are: "+Arrays.toString(supportedTuples.stream().toArray()));
         if (supportedTuples.isEmpty())
             throw new InconsistencyException();
         for (int i = 0; i < nU; i++) {
             int s = x[unBounds[i]].fillArray(domainValues);
-// 	    System.out.println("considering "+x[unBounds[i]].getName()+x[unBounds[i]].toString());
+// 	    Log.constraint("considering "+x[unBounds[i]].getName()+x[unBounds[i]].toString());
             for (int j = 0; j < s; j++) {
                 // The condition for removing the setValue v from x[i] is to check if
                 // there is no intersection between supportedTuples and the support[i][v]
                 int v = domainValues[j];
                 if (!supports[i][v - ofs[i]].intersects(supportedTuples)) {
-// 		    System.out.println("removing "+v+" for "+x[unBounds[i]].getName()+x[unBounds[i]].toString());
+// 		    Log.constraint("removing "+v+" for "+x[unBounds[i]].getName()+x[unBounds[i]].toString());
                     x[unBounds[i]].remove(v);
                 }
             }
@@ -479,18 +480,18 @@ public class LinEqSystemModP extends AbstractConstraint {
             int i;
             for (i = 0; i < nNonparam; i++) {
                 int sum = A[i][A[i].length - 1]; // rhs
-//  		System.out.print("for nonparam "+x[unBounds[i]].getName()+": "+sum);
+//  		Log.constraintPrint("for nonparam "+x[unBounds[i]].getName()+": "+sum);
                 for (int j = nNonparam; j < nUnBounds.value(); j++) { // unbound parametric vars
                     sum -= A[i][colIdx[j]] * tuple[j];
-//  		    System.out.print("-"+A[i][colIdx[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
+//  		    Log.constraintPrint("-"+A[i][colIdx[j]]+"*"+tuple[j]+"("+x[unBounds[j]].getName()+")");
                 }
                 for (int j = nUnBounds.value(); j < A[i].length - 1; j++) { // bound parametric vars
                     assert (x[unBounds[j]].isBound());
                     sum -= A[i][colIdx[j]] * x[unBounds[j]].min();
-//  		    System.out.print("--"+A[i][colIdx[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
+//  		    Log.constraintPrint("--"+A[i][colIdx[j]]+"*"+x[unBounds[j]].min()+"("+x[unBounds[j]].getName()+")");
                 }
                 sum = Math.floorMod(sum, p);
-//  		System.out.println();
+//  		Log.constraint();
                 if (!x[unBounds[i]].contains(sum))
                     break;
                 tuple[i] = sum;
@@ -498,9 +499,9 @@ public class LinEqSystemModP extends AbstractConstraint {
             if (i == nNonparam) { // tuple is consistent: add to Tuples
                 for (int j = 0; j < nUnBounds.value(); j++) {
                     Tuples[nTuples][j] = tuple[j];
-//   		    System.out.print(tuple[j]+" ");
+//   		    Log.constraintPrint(tuple[j]+" ");
                 }
-//   		System.out.println("   index:"+nTuples);
+//   		Log.constraint("   index:"+nTuples);
                 nTuples++;
             }
         }

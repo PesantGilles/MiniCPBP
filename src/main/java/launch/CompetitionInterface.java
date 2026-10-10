@@ -1,6 +1,7 @@
 package launch;
 
 import java.io.File;
+import minicpbp.util.Log;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,7 +46,7 @@ public class CompetitionInterface {
 		try {
 			cmd = parser.parse(options, args);
 		} catch (ParseException exp) {
-			System.err.println(exp.getMessage());
+			Log.error(exp.getMessage());
 			new HelpFormatter().printHelp("solve-XCSP", options);
 			System.exit(1);
 		}
@@ -92,7 +93,7 @@ public class CompetitionInterface {
 	private static void checkInputOption(String inputStr) {
 		File inputFile = new File(inputStr);
 		if (!inputFile.exists()) {
-			System.out.println("input file " + inputStr + " does not exist!");
+			Log.info("input file " + inputStr + " does not exist!");
 			System.exit(1);
 		}
 	}
@@ -103,12 +104,12 @@ public class CompetitionInterface {
 			timeout = Integer.valueOf(timeoutStr);
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			System.out.println("invalid timeout string " + timeoutStr);
+			Log.info("invalid timeout string " + timeoutStr);
 			System.exit(1);
 		}
 
 		if (timeout < 0 || timeout > Integer.MAX_VALUE) {
-			System.out.println("invalid timeout " + timeout);
+			Log.info("invalid timeout " + timeout);
 			System.exit(1);
 		}
 
@@ -121,12 +122,12 @@ public class CompetitionInterface {
 			f.delete();
 		try {
 			if (!f.createNewFile()) {
-				System.out.println("can not create file " + filename);
+				Log.info("can not create file " + filename);
 				System.exit(1);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("can not create file " + filename);
+			Log.info("can not create file " + filename);
 			System.exit(1);
 		}
 	}

@@ -40,6 +40,8 @@ import static minicpbp.cp.BranchingScheme.impactBasedSearch;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
 
+import minicpbp.util.Log;
+
 public class FZN {
 
     private String fileName;
@@ -85,12 +87,14 @@ public class FZN {
 
 	public void traceBP(boolean traceBP) {
 		FZN.traceBP = traceBP;
+		Log.setTraceBP(traceBP);
 	}
 
 	private static boolean traceSearch = false;
 
 	public void traceSearch(boolean traceSearch) {
 		FZN.traceSearch = traceSearch;
+		Log.setTraceSearch(traceSearch);
 	}
 
 	private static int maxIter = 5;
@@ -179,7 +183,7 @@ public class FZN {
 			search = makeLds(minicp, branching);
 			break;
 		default:
-			System.out.println("unknown search type");
+			Log.info("unknown search type");
 			System.exit(1);
 		}
 		return search;
@@ -200,7 +204,7 @@ public class FZN {
 //		minicp.setVariationThreshold(variationThreshold);
 
 		if (hasFailed) {
-			System.out.println("problem failed before initiating the search");
+			Log.info("problem failed before initiating the search");
 			throw InconsistencyException.INCONSISTENCY;
 		}
 	
@@ -259,7 +263,7 @@ public class FZN {
 			nbFailCutof = nbFailCutof*m.getDecisionsVar().length;
 			break;
 		default:
-			System.out.println("unknown search strategy");
+			Log.info("unknown search strategy");
 			System.exit(1);
 		}
 
@@ -270,7 +274,7 @@ public class FZN {
 		search.onSolution(() -> {
 			foundSolution = true;
 			solutionStr = m.getSolutionOutput();
-			System.out.print(solutionStr);
+			Log.infoPrint(solutionStr);
 		});
 		SearchStatistics stats;
 		//start the search
@@ -309,12 +313,12 @@ public class FZN {
 		
 		if (!foundSolution) {
 			if (stats.isCompleted())
-				System.out.println("=====UNSATISFIABLE=====");
+				Log.info("=====UNSATISFIABLE=====");
 			else
-				System.out.println("=====UNKNOWN=====");
+				Log.info("=====UNKNOWN=====");
 		}
 		else if(stats.isCompleted()) {
-			System.out.println("==========");
+			Log.info("==========");
 		}
 
 		Long runtime = System.currentTimeMillis() - t0;
@@ -330,12 +334,12 @@ public class FZN {
 	 */
 	private void printStats(SearchStatistics stats, String statsFileStr, Long runtime) {
 		//out.println("status: " + statusStr);
-		System.out.println("%%%mzn-stat: failures=" + stats.numberOfFailures());
+		Log.info("%%%mzn-stat: failures=" + stats.numberOfFailures());
 		if(m.getGoal() != ASTSolve.SAT)
-			System.out.println("%%%mzn-stat: objective=" + m.getObjective().min());
-		System.out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
-		System.out.println("%%%mzn-stat: solveTime=" + runtime);
-		System.out.println("%%%mzn-stat-end");
+			Log.info("%%%mzn-stat: objective=" + m.getObjective().min());
+		Log.info("%%%mzn-stat: nodes=" + stats.numberOfNodes());
+		Log.info("%%%mzn-stat: solveTime=" + runtime);
+		Log.info("%%%mzn-stat-end");
 
 		if(statsFileStr != "") {
 			PrintStream out = null;
@@ -344,7 +348,7 @@ public class FZN {
 				out = new PrintStream(new File(statsFileStr));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				System.out.println("unable to create file " + statsFileStr);
+				Log.info("unable to create file " + statsFileStr);
 				System.exit(1);
 			}
 

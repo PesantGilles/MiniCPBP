@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 
 import launch.SolveXCSPFZN.BranchingHeuristic;
 import launch.SolveXCSPFZN.TreeSearchType;
+import minicpbp.util.Log;
 
 public class SolveFZN {
 
@@ -103,7 +104,7 @@ public class SolveFZN {
 		try {
 			cmd = parser.parse(options, args);
 		} catch (ParseException exp) {
-			System.err.println(exp.getMessage());
+			Log.error(exp.getMessage());
 			new HelpFormatter().printHelp("solve-XCSP", options);
 			System.exit(1);
 		}
@@ -167,10 +168,10 @@ public class SolveFZN {
 	private static void checkBranchingOption(String branchingStr) {
 
 		if (!branchingMap.containsKey(branchingStr)) {
-			System.out.println("invalid branching strategy " + branchingStr);
-			System.out.println("Branching strategy should be one of the following: ");
+			Log.info("invalid branching strategy " + branchingStr);
+			Log.info("Branching strategy should be one of the following: ");
 			for (String branching : branchingMap.keySet())
-				System.out.println(branching);
+				Log.info(branching);
 			System.exit(1);
 		}
 	}
@@ -178,10 +179,10 @@ public class SolveFZN {
 	private static void checkSearchTypeOption(String searchTypeStr) {
 
 		if (!searchTypeMap.containsKey(searchTypeStr)) {
-			System.out.println("invalid search type " + searchTypeStr);
-			System.out.println("Search type should be one of the following: ");
+			Log.info("invalid search type " + searchTypeStr);
+			Log.info("Search type should be one of the following: ");
 			for (String branching : searchTypeMap.keySet())
-				System.out.println(branching);
+				Log.info(branching);
 			System.exit(1);
 		}
 	}
@@ -189,7 +190,7 @@ public class SolveFZN {
 	private static void checkInputOption(String inputStr) {
 		File inputFile = new File(inputStr);
 		if (!inputFile.exists()) {
-			System.out.println("input file " + inputStr + " does not exist!");
+			Log.info("input file " + inputStr + " does not exist!");
 			System.exit(1);
 		}
 	}
@@ -200,12 +201,12 @@ public class SolveFZN {
 			timeout = Integer.valueOf(timeoutStr);
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			System.out.println("invalid timeout string " + timeoutStr);
+			Log.info("invalid timeout string " + timeoutStr);
 			System.exit(1);
 		}
 
 		if (timeout < 0 || timeout > Integer.MAX_VALUE) {
-			System.out.println("invalid timeout " + timeout);
+			Log.info("invalid timeout " + timeout);
 			System.exit(1);
 		}
 
@@ -218,12 +219,12 @@ public class SolveFZN {
 			f.delete();
 		try {
 			if (!f.createNewFile()) {
-				System.out.println("can not create file " + filename);
+				Log.info("can not create file " + filename);
 				System.exit(1);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("can not create file " + filename);
+			Log.info("can not create file " + filename);
 			System.exit(1);
 		}
 	}

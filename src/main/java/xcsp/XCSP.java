@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 import static minicpbp.cp.BranchingScheme.*;
 import static minicpbp.cp.Factory.*;
 import static java.lang.reflect.Array.newInstance;
+import minicpbp.util.Log;
 
 public class XCSP implements XCallbacks2 {
 
@@ -531,35 +532,35 @@ public class XCSP implements XCallbacks2 {
 	}
 
 	private IntVar parseExpr(XNode<XVarInteger> tree) {
-//		System.out.println(tree.toString() + " op: " + tree.type + " arity: " + tree.arity());
+//		Log.info(tree.toString() + " op: " + tree.type + " arity: " + tree.arity());
 		Types.TypeExpr type = tree.type;
 		switch (tree.arity()) {
 			case 0:
 				if (type == Types.TypeExpr.VAR) {
-//					System.out.println("in var");
+//					Log.info("in var");
 					return mapVar.get(tree.var(0));
 				} else if (type == Types.TypeExpr.LONG) {
-//					System.out.println("in val");
+//					Log.info("in val");
 					int val = tree.val(0);
-//					System.out.println("had to turn val into var in expression tree (shouldn't happen?)");
+//					Log.info("had to turn val into var in expression tree (shouldn't happen?)");
 					return makeIntVar(minicp, val, val);
 				} else
 					throw new IllegalArgumentException("expression tree leaf that isn't a var nor a value?");
 			case 1:
 				return unaryArithmeticOperatorConstraint(parseExpr(tree.sons[0]), type.toUnalop());
 			case 2:
-//				System.out.println("in binary op");
+//				Log.info("in binary op");
 				if (type.isRelationalOperator()) {
-//					System.out.println("in relop");
+//					Log.info("in relop");
 					if (tree.sons[1].type == Types.TypeExpr.LONG) {
-//						System.out.println("in rel with val; type is " + type);
+//						Log.info("in rel with val; type is " + type);
 						return reifiedRelOperatorConstraintVal(parseExpr(tree.sons[0]), type.toRelop(), tree.sons[1].val(0));
 					} else {
 						return reifiedRelOperatorConstraintVar(parseExpr(tree.sons[0]), type.toRelop(), parseExpr(tree.sons[1]));
 					}
 				} else if (type.isArithmeticOperator()) {
 					if (tree.sons[1].type == Types.TypeExpr.LONG) {
-//						System.out.println("in arith with val; type is " + type);
+//						Log.info("in arith with val; type is " + type);
 						return arithmeticOperatorConstraintVal(parseExpr(tree.sons[0]), type.toAriop(), tree.sons[1].val(0));
 					} else {
 						return arithmeticOperatorConstraintVar(parseExpr(tree.sons[0]), type.toAriop(), parseExpr(tree.sons[1]));
@@ -1053,7 +1054,7 @@ public class XCSP implements XCallbacks2 {
 				minicp.post(element(xs, y, z));
 			}
 			else {
-				System.out.println("c Element constraint with an unsupported condition");
+				Log.info("c Element constraint with an unsupported condition");
 				System.exit(1);
 			}
 		} catch(InconsistencyException e) {
@@ -1080,16 +1081,16 @@ public class XCSP implements XCallbacks2 {
 						relConstraintVar(element(xs, y), op, z);
 					}
 					else {
-						System.out.println("c Element constraint with an unsupported condition");
+						Log.info("c Element constraint with an unsupported condition");
 						System.exit(1);
 					}
 					break;
 				case FIRST:
-					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					Log.info("c Ranking type for Element Constraint is not supported yet");
 					System.exit(1);
 					break;
 				case LAST:
-					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					Log.info("c Ranking type for Element Constraint is not supported yet");
 					System.exit(1);
 					break;
 			}
@@ -1116,16 +1117,16 @@ public class XCSP implements XCallbacks2 {
 						relConstraintVar(element(list, y), op, z);
 					}
 					else {
-						System.out.println("c Element constraint with an unsupported condition");
+						Log.info("c Element constraint with an unsupported condition");
 						System.exit(1);
 					}
 					break;
 				case FIRST:
-					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					Log.info("c Ranking type for Element Constraint is not supported yet");
 					System.exit(1);
 					break;
 				case LAST:
-					System.out.println("c Ranking type for Element Constraint is not supported yet");
+					Log.info("c Ranking type for Element Constraint is not supported yet");
 					System.exit(1);
 					break;
 			}
@@ -1152,7 +1153,7 @@ public class XCSP implements XCallbacks2 {
 				relConstraintVar(element(matrix, x, y), op, z);
 			}
 			else {
-				System.out.println("c Element constraint with an unsupported condition");
+				Log.info("c Element constraint with an unsupported condition");
 				System.exit(1);
 			}
 		} catch(InconsistencyException e) {
@@ -1678,7 +1679,7 @@ public class XCSP implements XCallbacks2 {
 		if (hasFailed)
 			return;
 		if (startIndex1 != startIndex2) {
-			System.out.println("c Channel constraint with two different start indices?!?");
+			Log.info("c Channel constraint with two different start indices?!?");
 			System.exit(1);
 		}
 		try {
@@ -1938,22 +1939,22 @@ public class XCSP implements XCallbacks2 {
 				maxWeight = (int) ((Condition.ConditionVal) wcondition).k;
 					woperator = ((Condition.ConditionVal) wcondition).operator;
 			} else {
-				System.out.println("c Knapsack constraint with an unsupported wcondition");
+				Log.info("c Knapsack constraint with an unsupported wcondition");
 				System.exit(1);
 			}
 			if ((woperator != Types.TypeConditionOperatorRel.EQ) && (woperator != Types.TypeConditionOperatorRel.LE) && (woperator != Types.TypeConditionOperatorRel.LT)) {
-				System.out.println("c Knapsack constraint with an unsupported wcondition");
+				Log.info("c Knapsack constraint with an unsupported wcondition");
 				System.exit(1);
 			}
 			if (pcondition instanceof Condition.ConditionVal) {
 				minProfit = (int) ((Condition.ConditionVal) pcondition).k;
 				poperator = ((Condition.ConditionVal) pcondition).operator;
 			} else {
-				System.out.println("c Knapsack constraint with an unsupported pcondition");
+				Log.info("c Knapsack constraint with an unsupported pcondition");
 				System.exit(1);
 			}
 			if ((poperator != Types.TypeConditionOperatorRel.EQ) && (poperator != Types.TypeConditionOperatorRel.GE) && (poperator != Types.TypeConditionOperatorRel.GT)) {
-				System.out.println("c Knapsack constraint with an unsupported pcondition");
+				Log.info("c Knapsack constraint with an unsupported pcondition");
 				System.exit(1);
 			}
 			relConstraintVal(sum(weights,xs), woperator, maxWeight);
@@ -1968,7 +1969,7 @@ public class XCSP implements XCallbacks2 {
 		if (hasFailed)
 			return;
 		if (!zeroIgnored) {
-			System.out.println("c NoOverlap constraint with unsupported zeroIgnored=false");
+			Log.info("c NoOverlap constraint with unsupported zeroIgnored=false");
 			System.exit(1);
 		}
 		try {
@@ -1986,7 +1987,7 @@ public class XCSP implements XCallbacks2 {
 		try {
 			IntVar[] starts = mapVarArray(origins);
 			if (!(condition instanceof Condition.ConditionVal) || (((Condition.ConditionVal) condition).operator != Types.TypeConditionOperatorRel.LE)) {
-				System.out.println("c Cumulative constraint with an unsupported condition");
+				Log.info("c Cumulative constraint with an unsupported condition");
 				System.exit(1);
 			}
 			minicp.post(cumulative(starts,lengths,heights,(int) ((Condition.ConditionVal) condition).k));
@@ -2007,7 +2008,7 @@ public class XCSP implements XCallbacks2 {
 		Long t0 = System.currentTimeMillis();
 
 		solve((solution, value) -> {
-			System.out.println("solfound " + (value == Integer.MAX_VALUE ? value : "solution"));
+			Log.info("solfound " + (value == Integer.MAX_VALUE ? value : "solution"));
 			lastSolution.set(solution);
 		}, ss -> {
 			int nSols = isCOP() ? nSolution : 1;
@@ -2081,12 +2082,14 @@ public class XCSP implements XCallbacks2 {
 
 	public void traceBP(boolean traceBP) {
 		XCSP.traceBP = traceBP;
+		Log.setTraceBP(traceBP);
 	}
 
 	private static boolean traceSearch = false;
 
 	public void traceSearch(boolean traceSearch) {
 		XCSP.traceSearch = traceSearch;
+		Log.setTraceSearch(traceSearch);
 	}
 
 	private static boolean traceEntropy = false;
@@ -2177,7 +2180,7 @@ public class XCSP implements XCallbacks2 {
 			search = makeLds(minicp, branching);
 			break;
 		default:
-			System.out.println("unknown search type");
+			Log.info("unknown search type");
 			System.exit(1);
 		}
 		return search;
@@ -2200,11 +2203,11 @@ public class XCSP implements XCallbacks2 {
 
 		if (hasFailed) {
 			if (!competitionOutput) {
-				System.out.println("problem failed before initiating the search");
+				Log.info("problem failed before initiating the search");
 				throw InconsistencyException.INCONSISTENCY;
 			} else {
-				System.out.println("s UNSATISFIABLE");
-				System.out.println("c problem failed before initiating the search");
+				Log.info("s UNSATISFIABLE");
+				Log.info("c problem failed before initiating the search");
 				return;
 			}
 		}
@@ -2275,7 +2278,7 @@ public class XCSP implements XCallbacks2 {
 			nbFailCutof = nbFailCutof*vars.length;
 			break;
 		default:
-			System.out.println("unknown search strategy");
+			Log.info("unknown search strategy");
 			System.exit(1);
 		}
 
@@ -2307,7 +2310,7 @@ public class XCSP implements XCallbacks2 {
 				solutionStr = sol.toString();
 			}
 			// GP: printing each solution
-//			System.out.println("SOLN:"+solutionStr);
+//			Log.info("SOLN:"+solutionStr);
 		});
 
 		SearchStatistics stats;
@@ -2327,47 +2330,47 @@ public class XCSP implements XCallbacks2 {
 		if(!competitionOutput) {
 			if (foundSolution) {
 				if(competitionOutput) {}
-				System.out.println("solution found");
+				Log.info("solution found");
 				if (checkSolution)
 					verifySolution();
 				printSolution(solFileStr);
 			} else
-				System.out.println("no solution was found");
+				Log.info("no solution was found");
 
 			Long runtime = System.currentTimeMillis() - t0;
 			printStats(stats, statsFileStr, runtime);
 		}
 		else {
 			if(foundSolution) {
-				System.out.println("s SATISFIABLE");
-				System.out.println(solutionStr);
-				System.out.println("c "+stats.numberOfFailures()+" backtracks");
+				Log.info("s SATISFIABLE");
+				Log.info(solutionStr);
+				Log.info("c "+stats.numberOfFailures()+" backtracks");
 			}
 			else if(stats.isCompleted()) {
-				System.out.println("s UNSATISFIABLE");
-				System.out.println("c "+stats.numberOfFailures()+" backtracks");
+				Log.info("s UNSATISFIABLE");
+				Log.info("c "+stats.numberOfFailures()+" backtracks");
 			}
 			else {
-				System.out.println("s UNKNOWN");
+				Log.info("s UNKNOWN");
 			}
 		}
 
 	}
 
 	private void verifySolution() {
-		System.out.println("verifying the solution (begin)");
+		Log.info("verifying the solution (begin)");
 		try {
 			SolutionChecker checker = new SolutionChecker(false, fileName,
 					new ByteArrayInputStream(solutionStr.getBytes()));
 			if (checker.violatedCtrs.size() > 0)
-				System.out.println("INVALID SOLUTION");
+				Log.info("INVALID SOLUTION");
 			else
-				System.out.println("VALID SOLUTION");
+				Log.info("VALID SOLUTION");
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("unable to verify the solution");
+			Log.info("unable to verify the solution");
 		}
-		System.out.println("verifying the solution (end)");
+		Log.info("verifying the solution (end)");
 	}
 
 	private void printSolution(String solFileStr) {
@@ -2378,7 +2381,7 @@ public class XCSP implements XCallbacks2 {
 				out.close();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				System.out.println("unable to create file " + solFileStr);
+				Log.info("unable to create file " + solFileStr);
 				System.exit(1);
 			}
 	}
@@ -2392,7 +2395,7 @@ public class XCSP implements XCallbacks2 {
 				out = new PrintStream(new File(statsFileStr));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				System.out.println("unable to create file " + statsFileStr);
+				Log.info("unable to create file " + statsFileStr);
 				System.exit(1);
 			}
 
@@ -2418,7 +2421,7 @@ public class XCSP implements XCallbacks2 {
 			XCSP xcsp = new XCSP(args[0]);
 			String solution = xcsp.solve(Integer.MAX_VALUE, 100);
 			List<String> violatedCtrs = xcsp.getViolatedCtrs(solution);
-			System.out.println(violatedCtrs);
+			Log.info(violatedCtrs.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
