@@ -18,8 +18,7 @@ package minicpbp.engine.constraints;
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 
-import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.*;
 
 import static minicpbp.cp.Factory.minus;
 
@@ -38,7 +37,6 @@ public class NegTableCT extends AbstractConstraint {
     private BitSet menacing;
     private BitSet conflictsi;
     private double[] tupleWeight;
-
     /**
      * Negative Table constraint.
      * <p>Assignment of {@code x_0=v_0, x_1=v_1,...} only valid if there does not
@@ -55,26 +53,33 @@ public class NegTableCT extends AbstractConstraint {
         this.xLength = x.length;
         ofs = new int[xLength];
 
-        // remove duplicate (the negative ct algo does not support it)
-        ArrayList<int[]> tableList = new ArrayList<>();
-        boolean[] duplicate = new boolean[table.length];
-        for (int i = 0; i < table.length; i++) {
-            if (!duplicate[i]) {
-                tableList.add(table[i]);
-                for (int j = i + 1; j < table.length; j++) {
-                    if (i != j && !duplicate[j]) {
-                        boolean same = true;
-                        for (int k = 0; k < xLength; k++) {
-                            same &= table[i][k] == table[j][k];
-                        }
-                        if (same) {
-                            duplicate[j] = true;
-                        }
-                    }
-                }
+        // To override equals and hashCode of the backing array
+        class Tuple {
+            public final int[] arr;
+
+            Tuple(int[] arr) {
+                this.arr = arr;
+            }
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                Tuple tuple = (Tuple) o;
+                return Arrays.equals(arr, tuple.arr);
+            }
+            @Override
+            public int hashCode() {
+                return Arrays.hashCode(arr);
             }
         }
-        this.table = tableList.toArray(new int[0][]);
+
+        // remove duplicate (the negative ct algo does not support it)
+        HashSet<Tuple> tableSet = new HashSet<>();
+        for (int[] tuple: table) {
+            tableSet.add(new Tuple(tuple));
+        }
+
+        this.table = tableSet.stream().map((t) -> t.arr).toArray(int[][]::new);
         this.tableLength = this.table.length;
         menacing = new BitSet(tableLength);
         conflictsi = new BitSet(tableLength);
