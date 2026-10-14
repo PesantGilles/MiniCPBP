@@ -16,6 +16,7 @@
 package minicpbp.engine.core;
 
 import minicpbp.search.Objective;
+import minicpbp.util.Log;
 import minicpbp.util.exception.InconsistencyException;
 
 import java.util.Iterator;
@@ -26,8 +27,6 @@ import java.util.Iterator;
 public class Minimize implements Objective {
     private int bound = Integer.MAX_VALUE;
     private final IntVar x;
-    private static boolean traceOptim = true;
-
     public Minimize(IntVar x) {
         this.x = x;
         if(x.getSolver().getMode() == Solver.PropaMode.BP)
@@ -51,10 +50,10 @@ public class Minimize implements Objective {
         return true;
     }
     public void setTraceOptimizationFlag(boolean traceOptim) {
-        this.traceOptim = traceOptim;
+        Log.setTraceOptimization(traceOptim);
     }
 
     public boolean tracingOptimization() {
-        return traceOptim;
+        return Log.isTracingOptimization();
     }
 }

@@ -21,6 +21,7 @@ import fzn.parser.intermediatemodel.ASTDecls.ASTFuncDecl;
 import fzn.parser.intermediatemodel.ASTDecls.ASTParamDecl;
 import fzn.parser.intermediatemodel.ASTDecls.ASTVarDecl;
 import fzn.parser.intermediatemodel.ASTLiterals.ASTId;
+import minicpbp.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,18 +51,18 @@ public class ASTModel extends ASTNode{
             }
         }
         for(ASTParamDecl p : paramDecls){
-            System.out.println(p);
+            Log.constraint(p.toString());
         }
         for(ASTVarDecl p : varDecls){
-            System.out.println(p);
+            Log.constraint(p.toString());
         }
         for(ASTConstraint p : constraints){
-            System.out.println(p);
+            Log.constraint(p.toString());
         }
         for(ASTFuncDecl p : funcDecls){
-            System.out.println(p);
+            Log.constraint(p.toString());
         }
-        System.out.println(solve);
+        Log.constraint(solve.toString());
 
     }
 

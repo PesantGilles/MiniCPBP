@@ -22,6 +22,7 @@ import minicpbp.state.StateBool;
 import minicpbp.state.StateDouble;
 
 import minicpbp.util.Belief;
+import minicpbp.util.Log;
 
 import minicpbp.util.exception.NotImplementedException;
 
@@ -327,12 +328,12 @@ public abstract class AbstractConstraint implements Constraint {
         receiveMessagesWCounting(); // collect pmfs over the domains of the variables in the scope of the constraint
         double wc = beliefRep.rep2std(weightedCounting());
         if (wc == 0) {
-            System.out.println("*** Warning! Infinite loss; mitigating by producing some very large gradients ***");
+            Log.gradient("*** Warning! Infinite loss; mitigating by producing some very large gradients ***");
             wc = 1.0E-10;
         }
         updateBelief();
         for (int i = 0; i < vars.length; i++) {
-            System.out.println("* "+vars[i].getName());
+            Log.gradient("* "+vars[i].getName());
             normalizeBelief(i, (j, val) -> localBelief(j, val), (j, val, b) -> setLocalBelief(j, val, b));
             int s = vars[i].fillArray(domainValues);
             double sumOverDomain = 0;
@@ -341,7 +342,7 @@ public abstract class AbstractConstraint implements Constraint {
             }
             for (int j = 0; j < s; j++) {
                 double gradient = (sumOverDomain - 2.0*localBelief(i, domainValues[j])) / wc;
-                System.out.println(domainValues[j]+": "+gradient);
+                Log.gradient(domainValues[j]+": "+gradient);
             }
         }
     }
@@ -356,7 +357,7 @@ public abstract class AbstractConstraint implements Constraint {
     protected void updateBelief() {
         if (!updateBeliefWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
-                System.out.println("c Warning: method updateBelief not implemented yet for " + getName() + " constraint. Using uniform belief instead.");
+                Log.warn("method updateBelief not implemented yet for " + getName() + " constraint. Using uniform belief instead.");
             updateBeliefWarningPrinted = true;
         }
         for (int i = 0; i < vars.length; i++) {
@@ -398,7 +399,7 @@ public abstract class AbstractConstraint implements Constraint {
     protected double weightedCounting() {
         if (!weightedCountingWarningPrinted) {
             if (getName() != null) // do not print warning for unnamed constraint
-                System.out.println("c Warning: method weightedCounting not implemented yet for " + getName() + " constraint. Returning beliefRep.one() instead.");
+                Log.warn("method weightedCounting not implemented yet for " + getName() + " constraint. Returning beliefRep.one() instead.");
             weightedCountingWarningPrinted = true;
         }
         return beliefRep.one();

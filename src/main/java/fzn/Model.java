@@ -27,6 +27,7 @@ import fzn.parser.intermediatemodel.ASTLiterals.ASTRange;
 import fzn.parser.intermediatemodel.ASTLiterals.*;
 
 import static minicpbp.cp.Factory.*;
+import minicpbp.util.Log;
 
 
 public class Model {
@@ -275,7 +276,7 @@ public class Model {
         }
         //case where the literal is the array's declaration
         else if(lit instanceof ASTArray) {
-            System.out.println((ASTArray) lit);
+            Log.constraint(((ASTArray) lit).toString());
             ArrayList<ASTLit> astarray = ((ASTArray) lit).getElems();
             int array[] = new int[astarray.size()];
             for(int i = 0; i < astarray.size(); i++) {
@@ -432,10 +433,10 @@ public class Model {
             //Integer.MIN_VALUE and Integer.MAX_VALUE is divided by 3,
             //otherwise the solver tries to create an array of size : 2*Integer*MAX_VALUE wich is impossible
             newVar = Factory.makeIntVar(solver, Integer.MIN_VALUE/3, Integer.MAX_VALUE/3);
-            System.out.println(newVar);
+            Log.constraint(newVar.toString());
         }
 		else {
-			System.out.println("Domaine type : " + type.getDom().getClass());
+			Log.constraint("Domaine type : " + type.getDom().getClass());
 			throw new NotImplementedException();
 		}
         newVar.setName(v.getName());
@@ -652,7 +653,7 @@ public class Model {
                 IntVar array[] = getIntVarArray(declDict.get(var).getExpr());
                 for(int i = 0; i < array.length-1; i++) 
                     sol.append(array[i].min() + ", ");
-                    //System.out.println(array[i].getName());
+                    //Log.constraint(array[i].getName());
                 sol.append(array[array.length-1].min() + "]);\n");
             }
         }

@@ -15,6 +15,8 @@
 
 package minicpbp.util.exception;
 
+import minicpbp.util.Log;
+
 
 public class NotImplementedException extends UnsupportedOperationException {
     public NotImplementedException(String message) {
@@ -26,7 +28,7 @@ public class NotImplementedException extends UnsupportedOperationException {
     }
 
     public void print() {
-        System.err.println(this + " " + (getStackTrace()[0].toString()));
+        Log.error(this + " " + (getStackTrace()[0].toString()));
         //printStackTrace();
     }
 

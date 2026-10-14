@@ -23,6 +23,7 @@ import minicpbp.util.Procedure;
 import minicpbp.engine.core.IntVar;
 import minicpbp.cp.Factory;
 import minicpbp.cp.Factory.IntHolder;
+import minicpbp.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -305,7 +306,7 @@ public class DFSearch extends Search{
         if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
             onSolution(() -> {
                 if (obj.tracingOptimization()) {
-                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                    Log.optim(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
                 }
                 obj.tighten();
             });
@@ -342,7 +343,7 @@ public class DFSearch extends Search{
         if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
             onSolution(() -> {
                 if (obj.tracingOptimization()) {
-                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                    Log.optim(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
                 }
                 obj.tighten();
             });
@@ -369,7 +370,7 @@ public class DFSearch extends Search{
         if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
             onSolution(() -> {
                 if (obj.tracingOptimization()) {
-                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                    Log.optim(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
                 }
                 obj.tighten();
             });

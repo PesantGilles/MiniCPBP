@@ -27,6 +27,7 @@ import minicpbp.engine.core.IntVar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
+import minicpbp.util.Log;
 import java.util.function.Supplier;
 
 import org.antlr.v4.parse.ANTLRParser.throwsSpec_return;
@@ -220,7 +221,7 @@ public class LDSearch extends Search{
         if (!obj.problemIsBound()) { // avoid in special case of problem solved by propagation alone
             onSolution(() -> {
                 if (obj.tracingOptimization()) {
-                    System.out.println(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
+                    Log.optim(" (solution found in " + statistics.numberOfFailures() + " fails and " + statistics.timeElapsed() + " msecs)");
                 }
                 obj.tighten();
             });

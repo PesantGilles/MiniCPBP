@@ -49,8 +49,11 @@ public class StateStack<E> {
     }
 
     public E get(int index) {
+        if (index >= size.value()) {
+            throw new IndexOutOfBoundsException();
+        }
         return stack.get(index);
     }
 
-    public Iterator<E> iterator() { return stack.iterator();}
+    public Iterator<E> iterator() { return stack.subList(0, size.value()).iterator();}
 }

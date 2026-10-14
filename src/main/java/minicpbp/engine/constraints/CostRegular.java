@@ -18,6 +18,8 @@
 
 package minicpbp.engine.constraints;
 
+import minicpbp.util.Log;
+
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 
@@ -452,7 +454,7 @@ public class CostRegular extends AbstractConstraint {
         /*
         for (int i = 0; i < n; i++) {
             for (int k = 0; k < nbStates; k++) {
-                if (!allCosts[i][k].isEmpty())  System.out.println(i+" "+k+" "+allCosts[i][k].toString());
+                if (!allCosts[i][k].isEmpty())  Log.constraint(i+" "+k+" "+allCosts[i][k].toString());
             }
 	    }
         */
@@ -478,7 +480,7 @@ public class CostRegular extends AbstractConstraint {
                     if ((newState >= 0) && (!beliefRep.isZero(op[i][newState]))) {
                         // add the combination of op[i][newState] and outsideBelief(i,v) to op[i-1][k]
                         op[i - 1][k] = beliefRep.add(op[i - 1][k], beliefRep.multiply(op[i][newState], outsideBelief(i, v)));
- //                       System.out.println((i-1)+" "+k+" op "+op[i - 1][k]);
+ //                       Log.constraint((i-1)+" "+k+" op "+op[i - 1][k]);
                     }
                 }
             }
@@ -490,10 +492,10 @@ public class CostRegular extends AbstractConstraint {
             int newState = transitionFct[initialState][v];
             if (newState >= 0) {
                 weightedCount = beliefRep.add(weightedCount, beliefRep.multiply(op[0][newState], outsideBelief(0, v)));
-//                System.out.println("0 "+newState+" x "+outsideBelief(0, v));
+//                Log.constraint("0 "+newState+" x "+outsideBelief(0, v));
             }
         }
-        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        Log.constraint("weighted count for "+this.getName()+" constraint: "+weightedCount);
         return weightedCount;
     }
 

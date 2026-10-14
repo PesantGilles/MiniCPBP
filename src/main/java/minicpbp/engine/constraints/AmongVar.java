@@ -18,6 +18,8 @@
 
 package minicpbp.engine.constraints;
 
+import minicpbp.util.Log;
+
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.state.StateInt;
@@ -208,14 +210,14 @@ public class AmongVar extends AbstractConstraint {
             // set marginals for y[i]
             vars[x.length + i].receiveMessage(1, belief);
             vars[x.length + i].receiveMessage(0, beliefRep.complement(belief));
-            System.out.println("marginal for indicator var y["+i+"]=1 is "+belief);
+            Log.constraint("marginal for indicator var y["+i+"]=1 is "+belief);
         }
     }
 
     @Override
     public double weightedCounting() {
         // reported by Sum constraint over indicator variables
-        System.out.println("weighted count for "+this.getName()+" constraint is reported by a SumDC constraint");
+        Log.constraint("weighted count for "+this.getName()+" constraint is reported by a SumDC constraint");
         return beliefRep.one();
     }
 

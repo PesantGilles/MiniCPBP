@@ -18,6 +18,8 @@
 
 package minicpbp.engine.constraints;
 
+import minicpbp.util.Log;
+
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
 import minicpbp.util.GraphUtil;
@@ -376,7 +378,7 @@ public class AllDifferentDC extends AbstractConstraint {
             setExactWCounting(false);
             weightedCount *= costBasedPermanent_UB3(-1, -1, nbVal, nbVal - nbVar);
         }
-        System.out.println("weighted count for "+this.getName()+" constraint: "+beliefRep.std2rep(weightedCount));
+        Log.constraint("weighted count for "+this.getName()+" constraint: "+beliefRep.std2rep(weightedCount));
         return beliefRep.std2rep(weightedCount); // put beliefs back to their original representation
     }
 
@@ -514,7 +516,7 @@ public class AllDifferentDC extends AbstractConstraint {
                     rSum = 1.0;
                     rMax = rowMax[i];
                 }
-//                System.out.println(var+" "+val+"; "+rSum+" " + rMax);
+//                Log.constraint(var+" "+val+"; "+rSum+" " + rMax);
                 if (rMax == 0)
                     return 0;
                 tmp = rSum / rMax;

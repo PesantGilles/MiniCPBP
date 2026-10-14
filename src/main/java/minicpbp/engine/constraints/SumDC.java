@@ -18,6 +18,8 @@
 
 package minicpbp.engine.constraints;
 
+import minicpbp.util.Log;
+
 import minicpbp.cp.Factory;
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
@@ -440,13 +442,13 @@ public class SumDC extends AbstractConstraint {
             s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 v = domainValues[j];
-//                System.out.println("i v "+i+" "+v);
+//                Log.constraint("i v "+i+" "+v);
                 for (int k = mini - (v < 0 ? v : 0); k <= maxi - (v > 0 ? v : 0); k++) {
                     if (!beliefRep.isZero(op[i][k + offset + v])) {
                         // add the combination of op[i][k+offset+v] and outsideBelief(i,v) to op[i-1][k+offset]
                             op[i - 1][k + offset] = beliefRep.add(op[i - 1][k + offset], beliefRep.multiply(op[i][k + offset + v], outsideBelief(i, v)));
-//                            System.out.println("outsideBelief(i,v)="+outsideBelief(i, v));
-//                            System.out.println(k+" "+op[i - 1][k + offset]);
+//                            Log.constraint("outsideBelief(i,v)="+outsideBelief(i, v));
+//                            Log.constraint(k+" "+op[i - 1][k + offset]);
                     }
                 }
             }
@@ -457,7 +459,7 @@ public class SumDC extends AbstractConstraint {
             v = domainValues[j];
             weightedCount = beliefRep.add(weightedCount, beliefRep.multiply(op[0][offset + v], outsideBelief(0, v)));
         }
-        System.out.println("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        Log.constraint("weighted count for "+this.getName()+" constraint: "+weightedCount);
         return weightedCount;
     }
 }

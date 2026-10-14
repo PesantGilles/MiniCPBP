@@ -14,6 +14,8 @@ import fzn.parser.FZParser;
 import fzn.parser.intermediatemodel.*;
 import minicpbp.util.exception.NotImplementedException;
 
+import minicpbp.util.Log;
+
 public class FZN extends ModelFormatFrontend {
 	//Model containing all constraints, parameters, variables and functions of the problem
 	private final Model m;
@@ -40,7 +42,7 @@ public class FZN extends ModelFormatFrontend {
 
 	public String getSolutionStr(boolean extractSolutionStr) {
 		String solutionStr = m.getSolutionOutput();
-		System.out.print(solutionStr);
+		Log.infoPrint(solutionStr);
 		return solutionStr;
 	}
 
@@ -65,16 +67,16 @@ public class FZN extends ModelFormatFrontend {
 
 	public void onSolutionFound(SearchStatistics stats, String solutionStr) {
 		if(stats.isCompleted()) {
-			System.out.println("==========");
+			Log.info("==========");
 		}
 	}
 
 	public void onNoSolutionFound(SearchStatistics stats) {
-		System.out.println("=====UNSATISFIABLE=====");
+		Log.info("=====UNSATISFIABLE=====");
 	}
 
 	public void onInconclusiveSearch(SearchStatistics stats) {
-		System.out.println("=====UNKNOWN=====");
+		Log.info("=====UNKNOWN=====");
 	}
 
 	public void verifySolution(String solutionStr) {
@@ -94,12 +96,12 @@ public class FZN extends ModelFormatFrontend {
 		}
 
 		//out.println("status: " + statusStr);
-		System.out.println("%%%mzn-stat: failures=" + stats.numberOfFailures());
+		Log.info("%%%mzn-stat: failures=" + stats.numberOfFailures());
 		if(m.getGoal() != ASTSolve.SAT)
-			System.out.println("%%%mzn-stat: objective=" + m.getObjective().min());
-		System.out.println("%%%mzn-stat: nodes=" + stats.numberOfNodes());
-		System.out.println("%%%mzn-stat: solveTime=" + runtime);
-		System.out.println("%%%mzn-stat-end");
+			Log.info("%%%mzn-stat: objective=" + m.getObjective().min());
+		Log.info("%%%mzn-stat: nodes=" + stats.numberOfNodes());
+		Log.info("%%%mzn-stat: solveTime=" + runtime);
+		Log.info("%%%mzn-stat-end");
 
 		if(!Objects.equals(statsFileStr, "")) {
 			PrintStream out = null;
@@ -108,7 +110,7 @@ public class FZN extends ModelFormatFrontend {
 				out = new PrintStream(statsFileStr);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				System.out.println("unable to create file " + statsFileStr);
+				Log.info("unable to create file " + statsFileStr);
 				System.exit(1);
 			}
 
