@@ -24,24 +24,24 @@ public class MznCompetition {
 	public static void main(String[] args) {
 
 		try {
-			FZN fzn = new FZN(args[0]);
-			fzn.searchType(TreeSearchType.DFS);
-			fzn.checkSolution(false);
-			fzn.traceBP(false);
-			fzn.traceSearch(false);
+			SolveXCSPFZN app = new SolveXCSPFZN();
+			app.setHeuristic(BranchingHeuristic.MNE);
+			app.setTimeout(1200);
+			app.setSearchType(TreeSearchType.DFS);
+			app.setCheckSolution(false);
+			app.setTraceBP(false);
+			app.setTraceSearch(false);
+			app.setMaxIter(10);
+//			app.setDamp(false);
+//			app.setDampingFactor(0.75);
+			app.setRestart(false);
+			app.setInitImpact(false);
+//			app.setDynamicStopBP(false);
+//			app.setTraceNbIter(true);
+//			app.setVariationThreshold(0.001);
+			FZN fzn = new FZN(app.getSolver(), args[0]);
 			fzn.printStats(false);
-			fzn.maxIter(10);
-//			fzn.damp(false);
-//			fzn.dampingFactor(0.75);
-			fzn.restart(false);
-			fzn.initImpact(false);
-//			fzn.dynamicStopBP(false);
-//			fzn.traceNbIter(true);
-//			fzn.variationThreshold(0.001);
-            //fzn.competitionOutput(true);
-			fzn.solve(BranchingHeuristic.MNE, 1200, "", "");
-//			fzn.solve(BranchingHeuristic.MXM,3600, "", "");
-//			fzn.solve(BranchingHeuristic.WDEG,1200, "", "");
+			app.solve(fzn);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -68,21 +68,26 @@ public class CompetitionInterface {
 		}
 
 		try {
-			XCSP xcsp = new XCSP(inputStr);
-//			xcsp.searchType(TreeSearchType.LDS);
-			xcsp.checkSolution(false); //à décider
-			xcsp.traceBP(false);
-			xcsp.traceSearch(false);
-			xcsp.maxIter(10);
-//			xcsp.damp(true);
-//			xcsp.dampingFactor(0.5);
-			xcsp.restart(false);
-			xcsp.initImpact(false);
-//			xcsp.dynamicStopBP(true);
-//			xcsp.traceNbIter(false);
-//			xcsp.variationThreshold(0.1);
-            xcsp.competitionOutput(true);
-			xcsp.solve(BranchingHeuristic.MNE, timeout, statsFileStr, solFileStr);
+			SolveXCSPFZN app = new SolveXCSPFZN();
+			app.setHeuristic(BranchingHeuristic.MNE);
+			app.setTimeout(timeout);
+			app.setStatsFileStr(statsFileStr);
+			app.setSolFileStr(solFileStr);
+//			app.setSearchType(TreeSearchType.LDS);
+			app.setCheckSolution(false); //à décider
+			app.setTraceBP(false);
+			app.setTraceSearch(false);
+			app.setMaxIter(10);
+//			app.setDamp(true);
+//			app.setDampingFactor(0.5);
+			app.setRestart(false);
+			app.setInitImpact(false);
+//			app.setDynamicStopBP(true);
+//			app.setTraceNbIter(false);
+//			app.setVariationThreshold(0.1);
+			XCSP xcsp = new XCSP(app.getSolver(), inputStr);
+			xcsp.competitionOutput(true);
+			app.solve(xcsp);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
