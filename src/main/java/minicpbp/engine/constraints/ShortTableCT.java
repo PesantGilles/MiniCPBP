@@ -17,6 +17,7 @@ package minicpbp.engine.constraints;
 
 import minicpbp.engine.core.AbstractConstraint;
 import minicpbp.engine.core.IntVar;
+import minicpbp.util.Log;
 
 import java.util.BitSet;
 
@@ -33,10 +34,11 @@ public class ShortTableCT extends AbstractConstraint {
     private int[] ofs; //offsets for each variable's domain
     //supports[i][v] is the set of tuples supported by x[i]=v
     private BitSet[][] supports;
+    //beliefs[i][v] is the accumulated weight of tuples supported by x[i]=v
+    private double[][] beliefs;
     //supportedTuples is the set of tuples supported by the current domains of the variables
     private BitSet supportedTuples;
     private BitSet supporti;
-    private double[] tupleWeight;
 
     /**
      * Create a Table constraint with short tuples.
@@ -59,18 +61,19 @@ public class ShortTableCT extends AbstractConstraint {
         ofs = new int[xLength];
         supportedTuples = new BitSet(tableLength);
         supporti = new BitSet(tableLength);
-        tupleWeight = new double[tableLength];
 
-        // Allocate supportedByVarVal
+        // Allocate supports and beliefs
         supports = new BitSet[x.length][];
+        beliefs = new double[xLength][];
         for (int i = 0; i < x.length; i++) {
-            ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][]
+            ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for supports[][] and beliefs[][]
             supports[i] = new BitSet[x[i].max() - x[i].min() + 1];
+            beliefs[i] = new double[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < supports[i].length; j++)
                 supports[i][j] = new BitSet();
         }
 
-        // Set values in supportedByVarVal, which contains all the tuples supported by each var-val pair
+        // Set values in supports, which contains all the tuples supported by each var-val pair
         for (int t = 0; t < table.length; t++) { //t is the index of the tuple (in table)
             for (int i = 0; i < x.length; i++) { //i is the index of the current variable (in x)
                 if (table[t][i] == star) {
@@ -131,6 +134,67 @@ public class ShortTableCT extends AbstractConstraint {
         // Compute supportedTuples as
         // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
         //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
+        // Initialize beliefs as well.
+        supportedTuples.set(0, tableLength); // set them all to true
+        for (int i = 0; i < xLength; i++) {
+            supporti.clear(); // set them all to false
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                supporti.or(supports[i][domainValues[j] - ofs[i]]);
+                beliefs[i][domainValues[j] - ofs[i]] = beliefRep.zero();
+            }
+            supportedTuples.and(supporti);
+        }
+
+        // Each tuple has its own weight given by the product of the outside_belief of its elements.
+        // Compute these products, but only for supported tuples.
+        // At the same time, distribute these weights to the appropriate i,v pairs
+        for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k + 1)) {
+            double tupleWeight = beliefRep.one();
+            for (int i = 0; i < xLength; i++) {
+                if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
+                    tupleWeight = beliefRep.multiply(tupleWeight, outsideBelief(i, table[k][i]));
+            }
+            for (int i = 0; i < xLength; i++) {
+                if (table[k][i] != star) {
+                    int j = table[k][i] - ofs[i];
+                    if (!beliefRep.isZero(outsideBelief(i, table[k][i])))
+                        beliefs[i][j] = beliefRep.add(beliefs[i][j], beliefRep.divide(tupleWeight, outsideBelief(i, table[k][i])));
+                    else { // Do we really need to handle the special case of null outside belief (division by zero)?
+                        double weight = beliefRep.one();
+                        for (int i2 = 0; i2 < i; i2++) {
+                            weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                        }
+                        for (int i2 = i + 1; i2 < xLength; i2++) {
+                            weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                        }
+                        beliefs[i][j] = beliefRep.add(beliefs[i][j], weight);
+                    }
+                } else { // it's the "any" value: every domain value adds the weight and no need to divide by one
+                    int s = x[i].fillArray(domainValues);
+                    for (int j = 0; j < s; j++) {
+                        int jj = domainValues[j] - ofs[i];
+                        beliefs[i][jj] = beliefRep.add(beliefs[i][jj], tupleWeight);
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < xLength; i++) {
+            int s = x[i].fillArray(domainValues);
+            for (int j = 0; j < s; j++) {
+                int v = domainValues[j];
+                setLocalBelief(i, v, beliefs[i][v - ofs[i]]);
+            }
+        }
+    }
+
+    @Override
+    public double weightedCounting() {
+
+        // Compute supportedTuples as
+        // supportedTuples = (supports[0][x[0].min()] | ... | supports[0][x[0].max()] ) & ... &
+        //                   (supports[x.length][x[0].min()] | ... | supports[x.length][x[0].max()] )
         //
         supportedTuples.set(0, tableLength); // set them all to true
         for (int i = 0; i < xLength; i++) {
@@ -142,52 +206,20 @@ public class ShortTableCT extends AbstractConstraint {
             supportedTuples.and(supporti);
         }
 
+        double weightedCount = beliefRep.zero();
+
         // Each tuple has its own weight given by the product of the outside_belief of its elements.
         // Compute these products, but only for supported tuples.
         for (int k = supportedTuples.nextSetBit(0); k >= 0; k = supportedTuples.nextSetBit(k + 1)) {
-            tupleWeight[k] = beliefRep.one();
+            double tupleWeight = beliefRep.one();
             for (int i = 0; i < xLength; i++) {
-		if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
-		    tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
+                if (table[k][i] != star) // otherwise it is the "any" value and we would multiply by one
+                    tupleWeight = beliefRep.multiply(tupleWeight, outsideBelief(i, table[k][i]));
             }
+            weightedCount = beliefRep.add(weightedCount, tupleWeight);
         }
-
-        for (int i = 0; i < xLength; i++) {
-            int s = x[i].fillArray(domainValues);
-            for (int j = 0; j < s; j++) {
-                int v = domainValues[j];
-                double belief = beliefRep.zero();
-                double outsideBelief_i_v = outsideBelief(i, v);
-                BitSet support_i_v = supports[i][v - ofs[i]];
-                // Iterate over supports[i][v] /\ supportedTuples, accumulating the weight of tuples.
-                if (!beliefRep.isZero(outsideBelief_i_v)) {
-                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
-                        if (supportedTuples.get(k)) {
-                            if (table[k][i] != star)
-                                belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
-                            else // it is the "any" value so we do not need to divide by its contribution, one
-                                belief = beliefRep.add(belief, tupleWeight[k]);
-                        }
-                    }
-                } else { // special case of null outside belief (avoid division by zero)
-                    for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
-                        if (supportedTuples.get(k)) {
-                            double weight = beliefRep.one();
-                            for (int i2 = 0; i2 < i; i2++) {
-				                if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				                    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            for (int i2 = i + 1; i2 < xLength; i2++) {
-				                if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				                    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            belief = beliefRep.add(belief, weight);
-                        }
-                    }
-                }
-                setLocalBelief(i, v, belief);
-            }
-        }
+        Log.constraint("weighted count for "+this.getName()+" constraint: "+weightedCount);
+        return weightedCount;
     }
 
 }
