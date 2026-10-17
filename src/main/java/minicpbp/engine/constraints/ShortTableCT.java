@@ -163,7 +163,10 @@ public class ShortTableCT extends AbstractConstraint {
                 if (!beliefRep.isZero(outsideBelief_i_v)) {
                     for (int k = support_i_v.nextSetBit(0); k >= 0; k = support_i_v.nextSetBit(k + 1)) {
                         if (supportedTuples.get(k)) {
-                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
+                            if (table[k][i] != star)
+                                belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
+                            else // it is the "any" value so we do not need to divide by its contribution, one
+                                belief = beliefRep.add(belief, tupleWeight[k]);
                         }
                     }
                 } else { // special case of null outside belief (avoid division by zero)
@@ -171,12 +174,12 @@ public class ShortTableCT extends AbstractConstraint {
                         if (supportedTuples.get(k)) {
                             double weight = beliefRep.one();
                             for (int i2 = 0; i2 < i; i2++) {
-				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+				                if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+				                    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
                             }
                             for (int i2 = i + 1; i2 < xLength; i2++) {
-				if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
-				    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+				                if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+				                    weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
                             }
                             belief = beliefRep.add(belief, weight);
                         }
