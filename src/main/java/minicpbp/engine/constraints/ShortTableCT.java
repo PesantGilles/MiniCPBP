@@ -163,10 +163,12 @@ public class ShortTableCT extends AbstractConstraint {
                     else { // Do we really need to handle the special case of null outside belief (division by zero)?
                         double weight = beliefRep.one();
                         for (int i2 = 0; i2 < i; i2++) {
-                            weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
                         }
                         for (int i2 = i + 1; i2 < xLength; i2++) {
-                            weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                            if (table[k][i2] != star) // otherwise it is the "any" value and we would multiply by one
+                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
                         }
                         beliefs[i][j] = beliefRep.add(beliefs[i][j], weight);
                     }
