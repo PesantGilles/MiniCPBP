@@ -34,9 +34,10 @@ public class NegTableCT extends AbstractConstraint {
     private int[] ofs; //offsets for each variable's domain
     //conflicts[i][v] is the set of forbidden tuples featuring x[i]=v
     private BitSet[][] conflicts;
+    //beliefs[i][v] is the accumulated weight of the forbidden tuples featuring x[i]=v
+    private double[][] beliefs;
     private BitSet menacing;
     private BitSet conflictsi;
-    private double[] tupleWeight;
     /**
      * Negative Table constraint.
      * <p>Assignment of {@code x_0=v_0, x_1=v_1,...} only valid if there does not
@@ -83,13 +84,14 @@ public class NegTableCT extends AbstractConstraint {
         this.tableLength = this.table.length;
         menacing = new BitSet(tableLength);
         conflictsi = new BitSet(tableLength);
-        tupleWeight = new double[tableLength];
 
-        // Allocate conflicts
+        // Allocate conflicts and beliefs
         conflicts = new BitSet[xLength][];
+        beliefs = new double[xLength][];
         for (int i = 0; i < xLength; i++) {
             ofs[i] = x[i].min(); // offsets map the variables' domain to start at 0 for conflicts[][]
             conflicts[i] = new BitSet[x[i].max() - x[i].min() + 1];
+            beliefs[i] = new double[x[i].max() - x[i].min() + 1];
             for (int j = 0; j < conflicts[i].length; j++)
                 conflicts[i][j] = new BitSet();
         }
@@ -143,13 +145,13 @@ public class NegTableCT extends AbstractConstraint {
                 // The condition for removing value v from x[i] is to check if
                 // there are enough (distinct) forbidden tuples to cover all possible supports
                 int v = domainValues[j];
-		BitSet menacingIntersect = (BitSet) menacing.clone();
-		menacingIntersect.and(conflicts[i][v - ofs[i]]);
-		if (menacingIntersect.cardinality() >= prodDomainsi) {
-		    x[i].remove(v);
-		}
+		        BitSet menacingIntersect = (BitSet) menacing.clone();
+		        menacingIntersect.and(conflicts[i][v - ofs[i]]);
+		        if (menacingIntersect.cardinality() >= prodDomainsi) {
+                    x[i].remove(v);
+		        }
+	        }
 	    }
-	}
     }
 
     @Override
@@ -161,16 +163,33 @@ public class NegTableCT extends AbstractConstraint {
             int s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 conflictsi.or(conflicts[i][domainValues[j] - ofs[i]]);
+                beliefs[i][domainValues[j] - ofs[i]] = beliefRep.zero();
             }
             menacing.and(conflictsi);
         }
 
         // Each tuple has its own weight given by the product of the outside_belief of its elements.
         // Compute these products, but only for menacing tuples.
+        // At the same time, distribute these weights to the appropriate i,v pairs
         for (int k = menacing.nextSetBit(0); k >= 0; k = menacing.nextSetBit(k + 1)) {
-            tupleWeight[k] = beliefRep.one();
+            double tupleWeight = beliefRep.one();
             for (int i = 0; i < xLength; i++) {
-                tupleWeight[k] = beliefRep.multiply(tupleWeight[k], outsideBelief(i, table[k][i]));
+                tupleWeight = beliefRep.multiply(tupleWeight, outsideBelief(i, table[k][i]));
+            }
+            for (int i = 0; i < xLength; i++) {
+                int j = table[k][i] - ofs[i];
+                if (!beliefRep.isZero(outsideBelief(i, table[k][i])))
+                    beliefs[i][j] = beliefRep.add(beliefs[i][j], beliefRep.divide(tupleWeight, outsideBelief(i, table[k][i])));
+                else { // Do we really need to handle the special case of null outside belief (division by zero)?
+                    double weight = beliefRep.one();
+                    for (int i2 = 0; i2 < i; i2++) {
+                        weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                    }
+                    for (int i2 = i + 1; i2 < xLength; i2++) {
+                        weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
+                    }
+                    beliefs[i][j] = beliefRep.add(beliefs[i][j], weight);
+                }
             }
         }
 
@@ -178,33 +197,9 @@ public class NegTableCT extends AbstractConstraint {
             int s = x[i].fillArray(domainValues);
             for (int j = 0; j < s; j++) {
                 int v = domainValues[j];
-                double belief = beliefRep.zero();
-                double outsideBelief_i_v = outsideBelief(i, v);
-                BitSet conflicts_i_v = conflicts[i][v - ofs[i]];
-                // Iterate over conflicts[i][v] /\ menacing, accumulating the weight of tuples.
-                if (!beliefRep.isZero(outsideBelief_i_v)) {
-                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
-                        if (menacing.get(k)) {
-                            belief = beliefRep.add(belief, beliefRep.divide(tupleWeight[k], outsideBelief_i_v));
-                        }
-                    }
-                } else { // special case of null outside belief (avoid division by zero)
-                    for (int k = conflicts_i_v.nextSetBit(0); k >= 0; k = conflicts_i_v.nextSetBit(k + 1)) {
-                        if (menacing.get(k)) {
-                            double weight = beliefRep.one();
-                            for (int i2 = 0; i2 < i; i2++) {
-                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            for (int i2 = i + 1; i2 < xLength; i2++) {
-                                weight = beliefRep.multiply(weight, outsideBelief(i2, table[k][i2]));
-                            }
-                            belief = beliefRep.add(belief, weight);
-                        }
-                    }
-		}
-                setLocalBelief(i, v, beliefRep.complement(belief));
-	    }
-	}
+                setLocalBelief(i, v, beliefRep.complement(beliefs[i][v - ofs[i]]));
+            }
+        }
     }
 
 }
