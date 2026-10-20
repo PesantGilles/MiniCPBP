@@ -226,4 +226,24 @@ public class ShortTableTest extends SolverTest {
             NotImplementedExceptionAssume.fail(e);
         }
     }
+
+    @Test
+    public void zeroOutsideBeliefWithStarElsewhere() {
+        // A starred tuple meets a zero outside belief at another position.
+        // In BP mode the table on (x0, x2) is not re-propagated after x2 loses
+        // value 1, so it sends x0=1 an exact zero while 1 stays in x0's domain.
+        // The short table then takes its zero-belief path on tuple (1, *).
+        int star = -1;
+        Solver cp = solverFactory.get();
+        cp.setMode(Solver.PropaMode.BP);
+        IntVar[] x = makeIntVarArray(cp, 3, 2);
+        cp.post(new ShortTableCT(new IntVar[]{x[0], x[1]}, new int[][]{{1, star}, {0, 0}}, star));
+        cp.post(new TableCT(new IntVar[]{x[0], x[2]}, new int[][]{{0, 0}, {1, 1}}));
+        x[2].remove(1);
+        assertTrue(x[0].contains(1));
+        cp.vanillaBP(3);
+        // the only solution is x0 = x1 = x2 = 0
+        assertEquals(1.0, cp.getBeliefRep().rep2std(x[0].marginal(0)), 1e-9);
+        assertEquals(1.0, cp.getBeliefRep().rep2std(x[1].marginal(0)), 1e-9);
+    }
 }
